@@ -198,6 +198,8 @@ function start() {
 		var frequencies = $(voices[i]).find('frequency');
 		for ( var j = 0; j < frequencies.length; ++j ) {
 			var t = parseInt($(frequencies[j]).attr('time'));
+			if ( t - timeStart < 0 )
+				t = timeStart;
 			var f = parseFloat($(frequencies[j]).html());
 			osc[i].right.frequency.exponentialRampToValueAtTime(baseFreq + f, t - timeStart);
 		}
@@ -205,6 +207,8 @@ function start() {
 		var volumes = $(voices[i]).find('volume');
 		for ( var j = 0; j < volumes.length; ++j ) {
 			var t = parseInt($(volumes[j]).attr('time'));
+			if ( t - timeStart < 0 )
+				t = timeStart;
 			var v = parseFloat($(volumes[j]).html());
 			gain[i].left.gain.linearRampToValueAtTime(v, t - timeStart);
 			gain[i].right.gain.linearRampToValueAtTime(v, t - timeStart);
