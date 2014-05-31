@@ -2,8 +2,8 @@ var chart;
 var monitor;
 var program;
 
-var currentProgram = "relaxation.xml";
-var baseRate = 440.0;
+var currentProgram = 'relaxation.xml';
+var baseFreq = 440.0;
 
 var timeStart = 0;
 var timeContext = 0;
@@ -23,54 +23,54 @@ function getTimeString(t) {
 	var m = parseInt((t % 3600) / 60);
 	var s = (t % 3600) % 60;
 	
-	var str = "";
+	var str = '';
 	if ( h > 0 )
-		str += h.toString() + ":";
+		str += h.toString() + ':';
 	if ( m > 9 )
-		str += m.toString() + ":";
+		str += m.toString() + ':';
 	else {
 		if ( h > 0 )
-			str += "0";
-		str += m.toString() + ":";
+			str += '0';
+		str += m.toString() + ':';
 	}
 	if ( s < 10 )
-		str += "0";
+		str += '0';
 	str += s.toString();
 	
 	return str;
 }
 
 function setFontSize(s, h) {
-	$(s).css("line-height", h + "px");
-	$(s).css("font-size", parseInt(h * 0.8) + "px");
+	$(s).css('line-height', h + 'px');
+	$(s).css('font-size', parseInt(h * 0.8) + 'px');
 }
 
 function clientResize() {
-	setFontSize("#header", $("#header").height() * 0.5);
-	setFontSize("#control", $("#control").height());
+	setFontSize('#header', $('#header').height() * 0.5);
+	setFontSize('#control', $('#control').height());
 	
-	$('#icon').css("height", $("#header").height() * 0.5 + "px");
-	$('#icon').css("width", $("#header").height() * 0.5 + "px");
+	$('#icon').css('height', $('#header').height() * 0.5 + 'px');
+	$('#icon').css('width', $('#header').height() * 0.5 + 'px');
 	
-	$("#divPosition").css("width", parseInt($("#control").height() * 0.8) * 3.5 + "px");
-	$("#divSlider").css("width", $("#control").width() - $("#divPosition").width() - 8 + "px");
-	$("#start").css("font-size", $("#header").height() * 0.5 + "px");
-	$("#done").css("font-size", $("#header").height() * 0.5 + "px");
+	$('#divPosition').css('width', parseInt($('#control').height() * 0.8) * 3.5 + 'px');
+	$('#divSlider').css('width', $('#control').width() - $('#divPosition').width() - 8 + 'px');
+	$('#start').css('font-size', $('#header').height() * 0.5 + 'px');
+	$('#done').css('font-size', $('#header').height() * 0.5 + 'px');
 	
-	var w = $("#body").width();
-	var h = $("#body").height();
-	$("#chart").attr("width", w + "px");
-	$("#chart").attr("height", h + "px");
-
+	var w = $('#body').width();
+	var h = $('#body').height();
+	$('#chart').attr('width', w + 'px');
+	$('#chart').attr('height', h + 'px');
+	
 	if (chart != null)
 		chart.replot();
 }
 
 function getFrequency(v, t) {
-	var f = $(v).find("frequency");
+	var f = $(v).find('frequency');
 	for ( var i = 0; i < f.length - 1; ++i ) {
-		var t0 = parseFloat($(f[i]).attr("time"));
-		var t1 = parseFloat($(f[i + 1]).attr("time"));
+		var t0 = parseFloat($(f[i]).attr('time'));
+		var t1 = parseFloat($(f[i + 1]).attr('time'));
 		if ( t0 <= t && t1 > t ) {
 			var d = (t - t0) / (t1 - t0);
 			var f0 = parseFloat($(f[i]).html());
@@ -84,23 +84,23 @@ function getFrequency(v, t) {
 function loadProgram(xml) {
 	stop();
 	
-	program = $(xml).find("program")[0];
+	program = $(xml).find('program')[0];
 
-	$("#title").html($(program).attr("name"));
-	$("#name").html($(program).attr("name"));
-	$("#description").html($(program).attr("description"));
-	$("#chart").empty();
+	$('#title').html($(program).attr('name'));
+	$('#name').html($(program).attr('name'));
+	$('#description').html($(program).attr('description'));
+	$('#chart').empty();
 	
 	// update chart
 	timeMax = 0;
 	var maxFreq = 0.0;
 	var data = [];
-	var voices = $(program).find("voice");
+	var voices = $(program).find('voice');
 	for ( var i = 0; i < voices.length; ++i ) {
 		data[i] = [];
-		var frequencies = $(voices[i]).find("frequency");
+		var frequencies = $(voices[i]).find('frequency');
 		for ( var j = 0; j < frequencies.length; ++j ) {
-			var t = parseInt($(frequencies[j]).attr("time"));
+			var t = parseInt($(frequencies[j]).attr('time'));
 			var f = parseFloat($(frequencies[j]).html());
 			data[i][j] = [ t, f ];
 
@@ -145,41 +145,41 @@ function loadProgram(xml) {
 			}
 		}
 	};
-	chart = $.jqplot("chart", data, options);
+	chart = $.jqplot('chart', data, options);
 	
 	// set slider/display
-	$("#slider").attr("max", timeMax);
-	$("#slider").val(0);
-	$("#slider").trigger("change");
+	$('#slider').attr('max', timeMax);
+	$('#slider').val(0);
+	$('#slider').trigger('change');
 }
 
 function changeProgram(filename) {
 	$.ajax({
-		type: "GET",
+		type: 'GET',
 		url: filename,
-		dataType: "xml",
+		dataType: 'xml',
 		success: function(xml) { 
 			currentProgram = filename;
-			if ( typeof(Storage) !== "undefined" )
-				localStorage.setItem("currentProgram", filename);
+			if ( typeof(Storage) !== 'undefined' )
+				localStorage.setItem('currentProgram', filename);
 			loadProgram(xml);
 		}
 	});
 }
 
 function start() {
-	$("#start").html("stop");
-	$("#start").data("playing", true);
+	$('#start').html('stop');
+	$('#start').data('playing', true);
 
 	// reset webAudio objects
 	merger = [];
 	gain = [];
 	osc = [];
 	
-	timeStart = $("#slider").val();
+	timeStart = $('#slider').val();
 	timeContext = context.currentTime;
 	
-	var voices = $(program).find("voice");
+	var voices = $(program).find('voice');
 	for ( var i = 0; i < voices.length; ++i ) {
 		merger[i] = context.createChannelMerger(2);
 		osc[i] = { left: context.createOscillator(), right: context.createOscillator() };
@@ -190,21 +190,21 @@ function start() {
 		gain[i].left.connect(merger[i], 0, 0);
 		gain[i].right.connect(merger[i], 0, 1);
 
-		osc[i].left.frequency.value = baseRate;
-		osc[i].right.frequency.value = baseRate;
+		osc[i].left.frequency.value = baseFreq;
+		osc[i].right.frequency.value = baseFreq;
 		gain[i].left.gain.value = 0;
 		gain[i].right.gain.value = 0;
 		
-		var frequencies = $(voices[i]).find("frequency");
+		var frequencies = $(voices[i]).find('frequency');
 		for ( var j = 0; j < frequencies.length; ++j ) {
-			var t = parseInt($(frequencies[j]).attr("time"));
+			var t = parseInt($(frequencies[j]).attr('time'));
 			var f = parseFloat($(frequencies[j]).html());
-			osc[i].right.frequency.exponentialRampToValueAtTime(baseRate + f, t - timeStart);
+			osc[i].right.frequency.exponentialRampToValueAtTime(baseFreq + f, t - timeStart);
 		}
 		
-		var volumes = $(voices[i]).find("volume");
+		var volumes = $(voices[i]).find('volume');
 		for ( var j = 0; j < volumes.length; ++j ) {
-			var t = parseInt($(volumes[j]).attr("time"));
+			var t = parseInt($(volumes[j]).attr('time'));
 			var v = parseFloat($(volumes[j]).html());
 			gain[i].left.gain.linearRampToValueAtTime(v, t - timeStart);
 			gain[i].right.gain.linearRampToValueAtTime(v, t - timeStart);
@@ -221,19 +221,19 @@ function start() {
 	monitor = setInterval(function() {
 		var t = parseInt(timeStart) + parseInt(context.currentTime - timeContext);
 		if ( t > timeMax ) {
-			$("#slider").val(0);
-			$("#divPosition").html('0:00');
+			$('#slider').val(0);
+			$('#divPosition').html('0:00');
 			stop();
 		} else {
-			$("#slider").val(t);
-			$("#divPosition").html(getTimeString(t));
+			$('#slider').val(t);
+			$('#divPosition').html(getTimeString(t));
 		}
 	}, 1000);
 }
 
 function stop() {
-	$("#start").html("start");
-	$("#start").data("playing", false);
+	$('#start').html('start');
+	$('#start').data('playing', false);
 	
 	// stop webAudio
 	if ( osc ) {
@@ -248,53 +248,64 @@ function stop() {
 
 $(document).ready(function() {
 	if ( context !== null ) {
-		$("#menu").click(function() {
-			$("#selectProgram").val(currentProgram);
-			$("#settings").css("display", "block");
+		$('#menu').click(function() {
+			$('#selectProgram').val(currentProgram);
+			$('#settings').css('display', 'block');
+			clientResize();
 		});
-		$("#done").click(function() {
-			$("#settings").css("display", "none");
+		$('#done').click(function() {
+			$('#settings').css('display', 'none');
 		});
-		$("#start").click(function() {
-			if ( $("#start").html() == "start" )
+		$('#start').click(function() {
+			if ( $('#start').html() == 'start' )
 				start();
 			else
 				stop();
 		});
-		$("#selectProgram").change(function() {
+		$('#selectProgram').change(function() {
 			if ( $(this).val() === 'custom' )
-				$("#selectCustom").fadeIn();
+				$('#selectCustom').fadeIn();
 			else
 			{
-				$("#selectCustom").fadeOut();
-				changeProgram($("#selectProgram").val());
+				$('#selectCustom').fadeOut();
+				changeProgram($('#selectProgram').val());
 			}
 		});
-		$("#selectCustom").change(function(e) {
+		$('#selectCustom').change(function(e) {
 			var reader = new FileReader();
 			reader.onload = function(event) {
 				parser = new DOMParser();
-				loadProgram(parser.parseFromString(event.target.result, "application/xml"));
-				currentProgram = "custom";
+				loadProgram(parser.parseFromString(event.target.result, 'application/xml'));
+				currentProgram = 'custom';
 			};
 			reader.readAsText(event.target.files[0]);
 		});
-		$("#slider").change(function() {
+		$('#slider').change(function() {
 			var t = parseInt(parseInt($(this).val()));
-			if ( $("#start").data("playing") === true ) {
+			if ( $('#start').data('playing') === true ) {
 				stop();
 				timeStart = t;
 				start();
 			} else
 				timeStart = t;
-			$("#divPosition").html(getTimeString(t));
+			$('#divPosition').html(getTimeString(t));
 		});
-
-		if ( typeof(Storage) !== "undefined" && localStorage.getItem("currentProgram") !== null )
-			currentProgram = localStorage.getItem("currentProgram");
+		$('#baseFreq').change(function() {
+			baseFreq = parseInt($(this).val());
+			if ( typeof(Storage) !== 'undefined' )
+				localStorage.setItem('baseFreq', baseFreq);
+		});
+		if ( typeof(Storage) !== 'undefined' ) {
+			if ( localStorage.getItem('currentProgram') !== null )
+				currentProgram = localStorage.getItem('currentProgram');
+			if ( localStorage.getItem('currentProgram') !== null ) {
+				baseFreq = parseInt(localStorage.getItem('baseFreq'));
+				$('#baseFreq').val(baseFreq);
+			}
+		}
 		changeProgram(currentProgram);
 	} else
-		$("#title").html("Web Audio API is not supported in this browser.");
+		$('#title').html('Web Audio API is not supported in this browser.');
 		
 	clientResize();	
 });
