@@ -1,0 +1,12 @@
+<program name="Concentration" description="Drifts from normal awakened state up to a peak of seventy hertz, then glides down to fifty hertz followed by a short drift back to normality (14 minutes)">
+	<voice length="840">
+		<frequency time="0">12.0</frequency>
+		<frequency time="120">70.0</frequency>
+		<frequency time="720">50.0</frequency>
+		<frequency time="840">12.0</frequency>
+		<volume time="0">0.0</volume>
+		<volume time="10">1.0</volume>
+		<volume time="830">1.0</volume>	
+		<volume time="840">0.0</volume>	
+	</voice>
+</program>

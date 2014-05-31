@@ -1,0 +1,16 @@
+<program name="Lucid Dreaming" description="Drift down into Theta state and then back up to Alpha to enhance awareness during dreaming (40 minutes)">
+	<voice length="2400">
+		<frequency time="0">12.0</frequency>
+		<frequency time="138">12.0</frequency>
+		<frequency time="180">8.0</frequency>
+		<frequency time="258">8.0</frequency>
+		<frequency time="300">5.0</frequency>
+		<frequency time="2100">5.0</frequency>
+		<frequency time="2160">7.5</frequency>)
+		<frequency time="2280">7.5</frequency>
+		<frequency time="2400">10.0</frequency>
+		<volume time="0">1.0</volume>
+		<volume time="2370">1.0</volume>
+		<volume time="2400">0.0</volume>	
+	</voice>
+</program>

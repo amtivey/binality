@@ -1,0 +1,35 @@
+<program name="Meditation" description="Drifts slowly down to 4Hz with spikes of 7Hz to aid wakefulness (60 minutes)">
+	<voice length="3600">
+		<frequency time="0">12.0</frequency>
+		<frequency time="60">8.0</frequency>
+		<frequency time="120">6.0</frequency>
+		<frequency time="180">5.0</frequency>
+		<frequency time="300">4.5</frequency>
+		<frequency time="480">4.0</frequency>
+		<frequency time="600">4.0</frequency>
+		<frequency time="605">7.0</frequency>
+		<frequency time="610">4.0</frequency>
+		<frequency time="1200">4.0</frequency>
+		<frequency time="1205">7.0</frequency>
+		<frequency time="1210">4.0</frequency>
+		<frequency time="1800">4.0</frequency>
+		<frequency time="1805">7.0</frequency>
+		<frequency time="1810">4.0</frequency>
+		<frequency time="2400">4.0</frequency>
+		<frequency time="2405">7.0</frequency>
+		<frequency time="2410">4.0</frequency>
+		<frequency time="3000">4.0</frequency>
+		<frequency time="3005">7.0</frequency>
+		<frequency time="3010">4.0</frequency>
+		<frequency time="3120">4.0</frequency>
+		<frequency time="3300">4.5</frequency>
+		<frequency time="3420">5.0</frequency>
+		<frequency time="3480">6.0</frequency>
+		<frequency time="3540">8.0</frequency>
+		<frequency time="3600">12.0</frequency>
+		<volume time="0">0.0</volume>
+		<volume time="10">1.0</volume>
+		<volume time="3590">1.0</volume>	
+		<volume time="3600">0.0</volume>	
+	</voice>
+</program>

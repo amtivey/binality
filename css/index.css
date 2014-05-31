@@ -1,0 +1,104 @@
+body {
+	background-color: black;
+	color: white;
+	font-family: sans-serif;
+	margin: 0px;
+	padding: 0px;
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	cursor: default;
+}
+
+#header {
+	background-color: black;
+	width: 100%;
+	height: 10%;
+}
+
+#title {
+	padding-left: 8px;
+	float: left;
+}
+
+#menu {
+	padding-right: 8px;
+	float: right;
+}
+
+#body {
+	background-color: black;
+	width: 100%;
+	height: 75%;
+}
+
+#control {
+	width: 100%;
+	height: 5%;
+}
+
+#footer {
+	width: 100%;
+	height: 10%;
+}
+
+#divPosition {
+	font-family: "Lucida Console", Monaco, monospace;
+	float: left;
+	height: 100%;
+	text-align: right;
+}
+
+#divSlider {
+	float: left;
+	padding-left: 4px;
+	height: 100%;
+}
+
+#slider {
+	width: 100%;
+}
+
+#start {
+	width: 100%;
+	height: 100%;
+}
+
+#chart {
+	background-color: black;
+	width: 100%;
+	height: 100%;
+}
+
+#settings {
+	padding: 0px;
+	background-color: black;
+	display: none;
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	width: 100%;
+	height: 100%;
+}
+
+#settingsBody {
+	width: 100%;
+	height: 90%;
+}
+
+#settingsFooter {
+	width: 100%;
+	height: 10%;
+}
+
+#done {
+	bottom: 0px;
+	width: 100%;
+	height: 100%;
+}
+
+#selectCustom {
+	display: none;
+	color: white;
+}

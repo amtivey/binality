@@ -1,0 +1,17 @@
+<program name="Shamanic Consciousness" description="Induces a meditative state similar to shamanic drumming or tibetan chanting (40 minutes)">
+	<voice length="2400">
+		<frequency time="0">12.0</frequency>
+		<frequency time="60">12.0</frequency>
+		<frequency time="120">8.0</frequency>
+		<frequency time="180">8.0</frequency>
+		<frequency time="240">4.0</frequency>
+		<frequency time="2220">4.0</frequency>
+		<frequency time="2280">8.0</frequency>)
+		<frequency time="2340">8.0</frequency>
+		<frequency time="2400">12.0</frequency>
+		<volume time="0">0.0</volume>
+		<volume time="10">1.0</volume>
+		<volume time="2390">1.0</volume>	
+		<volume time="2400">0.0</volume>	
+	</voice>
+</program>

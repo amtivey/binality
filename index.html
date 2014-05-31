@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+<html>
+	<head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<title>binality</title>
+        <meta name="description" content="">
+		<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="js/jquery-1.10.2.min.js"><\/script>')</script>
+		<script src="js/modernizr-2.6.2.min.js"></script>
+		<script src="js/jqplot/jquery.jqplot.min.js"></script>
+		<script src="js/jqplot/plugins/jqplot.canvasTextRenderer.min.js"></script>
+		<script src="js/jqplot/plugins/jqplot.canvasAxisLabelRenderer.min.js"></script>
+		<script src="js/jqplot/plugins/jqplot.highlighter.min.js"></script>
+        <script src="js/plugins.js"></script>
+        <script src="js/main.js"></script>
+		<script src="js/index.js"></script>
+		<link rel="stylesheet" type="text/css" href="css/normalize.css">
+		<link rel="stylesheet" type="text/css" href="css/main.css">
+		<link rel="stylesheet" type="text/css" href="css/index.css">
+		<link rel="stylesheet" type="text/css" href="js/jqplot/jquery.jqplot.min.css" />
+		<script>
+		</script>
+	</head>
+	<body>
+        <!--[if lt IE 7]>
+            <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->
+		<div id="header">
+			<div id="title"></div>
+			<div id="menu">&#9776;</div>
+		</div>
+		<div id="body">
+			<div id="chart"></div>
+		</div>
+		<div id="control">
+			<div id="divPosition">0:00</div>
+			<div id="divSlider"><input id="slider" type="range" min="0" max="60""/></div>
+		</div>
+		<div id="footer">
+			<button id="start">start</button>
+		</div>
+		<div id="settings">
+			<div id="settingsBody">
+				<div style="padding: 8px;">
+					Choose a program:
+					<select id="selectProgram">
+						<option value="custom">custom</option>
+						<option value="programs/astralprojection.xml">Astral Projection</option>
+						<option value="programs/concentration.xml">Concentration</option>
+						<option value="programs/luciddreaming.xml">Lucid Dreaming</option>
+						<option value="programs/meditation.xml">Meditation</option>
+						<option value="programs/oobe.xml">Out of Body Experience</option>
+						<option value="programs/painrelief.xml">Pain Relief</option>
+						<option value="programs/relaxation.xml">Relaxation</option>
+						<option value="programs/schumann.xml">Schumann Resonance</option>
+						<option value="programs/shamanicconsciousness.xml">Shamanic Consciousness</option>
+						<option value="programs/sleep.xml">Sleep Induction</option>
+						<option value="programs/universalhealing.xml">Universal Healing</option>
+					</select>
+					<input id="selectCustom" type="file" accept="application/xml"/>
+					<div id="name" style="font-weight: bold;"></div>
+					<div id="description"></div>
+				</div>
+			</div>
+			<div id="settingsFooter">
+				<button id="done">done</button>
+			</div>
+		</div>
+		<script>
+		  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+		  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+		  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+		  ga('create', 'UA-50182695-1', 'virtualarenas.com');
+		  ga('send', 'pageview');
+		</script>
+	</body>
+</html>

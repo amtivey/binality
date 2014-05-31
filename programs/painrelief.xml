@@ -1,0 +1,25 @@
+<program name="Pain Relief" description="Cycles between 0.5 and 1.5 Hertz to provide relief from pain (28 minutes)">
+	<voice length="1680">
+		<frequency time="0">12.0</frequency>
+		<frequency time="30">6.25</frequency>
+		<frequency time="60">3.375</frequency>
+		<frequency time="120">1.9375</frequency>
+		<frequency time="180">1.21875</frequency>
+		<frequency time="240">0.859375</frequency>
+		<frequency time="300">0.5</frequency>
+		<frequency time="600">1.5</frequency>
+		<frequency time="900">0.5</frequency>
+		<frequency time="1200">1.5</frequency>
+		<frequency time="1500">0.5</frequency>
+		<frequency time="1530">0.859375</frequency>
+		<frequency time="1560">1.21875</frequency>
+		<frequency time="1590">1.9375</frequency>
+		<frequency time="1620">3.375</frequency>
+		<frequency time="1650">6.25</frequency>
+		<frequency time="1680">12.0</frequency>
+		<volume time="0">0.0</volume>
+		<volume time="10">1.0</volume>
+		<volume time="1670">1.0</volume>	
+		<volume time="1680">0.0</volume>	
+	</voice>
+</program>

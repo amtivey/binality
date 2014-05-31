@@ -1,0 +1,16 @@
+<program name="Astral Projection" description="Aids in the practice of astral projection (40 minutes)">
+	<voice length="2400">
+		<frequency time="0">12.0</frequency>
+		<frequency time="60">10.0</frequency>
+		<frequency time="120">6.0</frequency>
+		<frequency time="180">4.0</frequency>
+		<frequency time="2220">4.0</frequency>
+		<frequency time="2280">6.0</frequency>)
+		<frequency time="2340">10.0</frequency>
+		<frequency time="2400">12.0</frequency>
+		<volume time="0">0.0</volume>
+		<volume time="10">1.0</volume>
+		<volume time="2390">1.0</volume>	
+		<volume time="2400">0.0</volume>	
+	</voice>
+</program>

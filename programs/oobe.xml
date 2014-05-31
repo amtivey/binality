@@ -1,0 +1,38 @@
+<program name="Out of Body Experience" description="Induces a state in which out of body experiences may result (40 minutes)">
+	<voice length="2400">
+		<frequency time="0">12.0</frequency>
+		<frequency time="60">14.0</frequency>
+		<frequency time="120">16.0</frequency>
+		<frequency time="180">18.0</frequency>
+		<frequency time="240">20.0</frequency>
+		<frequency time="300">22.0</frequency>
+		<frequency time="2100">22.0</frequency>
+		<frequency time="2160">20.0</frequency>)
+		<frequency time="2220">18.0</frequency>)
+		<frequency time="2280">16.0</frequency>
+		<frequency time="2340">14.0</frequency>)
+		<frequency time="2400">12.0</frequency>
+		<volume time="0">0.0</volume>
+		<volume time="10">1.0</volume>
+		<volume time="2390">1.0</volume>	
+		<volume time="2400">0.0</volume>	
+	</voice>
+	<voice length="2400">
+		<frequency time="0">12.0</frequency>
+		<frequency time="60">17.6</frequency>
+		<frequency time="120">23.2</frequency>
+		<frequency time="180">28.8</frequency>
+		<frequency time="240">34.4</frequency>
+		<frequency time="300">40.0</frequency>
+		<frequency time="2100">40.0</frequency>
+		<frequency time="2160">34.4</frequency>)
+		<frequency time="2220">28.8</frequency>)
+		<frequency time="2280">23.2</frequency>
+		<frequency time="2340">17.6</frequency>)
+		<frequency time="2400">12.0</frequency>
+		<volume time="0">0.0</volume>
+		<volume time="10">1.0</volume>
+		<volume time="2390">1.0</volume>	
+		<volume time="2400">0.0</volume>	
+	</voice>
+</program>

@@ -1,0 +1,22 @@
+<program name="Sleep Induction" description="Helps with getting to sleep (60 minutes)">
+	<voice length="3600">
+		<frequency time="0">12.0</frequency>
+		<frequency time="30">10.0</frequency>
+		<frequency time="60">8.0</frequency>
+		<frequency time="240">6.0</frequency>
+		<frequency time="480">4.0</frequency>
+		<frequency time="840">3.0</frequency>
+		<frequency time="1200">2.0</frequency>
+		<frequency time="1560">1.5</frequency>
+		<frequency time="1920">2.0</frequency>
+		<frequency time="2280">1.5</frequency>
+		<frequency time="2640">2.0</frequency>
+		<frequency time="3000">1.5</frequency>
+		<frequency time="3360">2.0</frequency>
+		<frequency time="3600">1.5</frequency>
+		<volume time="0">0.0</volume>
+		<volume time="10">1.0</volume>
+		<volume time="3570">1.0</volume>	
+		<volume time="3600">0.0</volume>	
+	</voice>
+</program>

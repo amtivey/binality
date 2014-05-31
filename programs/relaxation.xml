@@ -1,0 +1,44 @@
+<program name="Relaxation" description="Mixed theta and delta waves aid relaxation and may induce sleep (60 minutes)">
+	<voice length="3600">
+		<frequency time="0">12.0</frequency>
+		<frequency time="60">7.85</frequency>
+		<frequency time="120">5.775</frequency>
+		<frequency time="180">4.7375</frequency>
+		<frequency time="240">4.21875</frequency>
+		<frequency time="300">3.959375</frequency>
+		<frequency time="360">3.7</frequency>)
+		<frequency time="3600">3.7</frequency>
+		<volume time="0">0.0</volume>
+		<volume time="10">1.0</volume>
+		<volume time="3590">1.0</volume>	
+		<volume time="3600">0.0</volume>	
+	</voice>
+	<voice length="3600">
+		<frequency time="0">12.0</frequency>
+		<frequency time="60">7.25</frequency>
+		<frequency time="120">4.875</frequency>
+		<frequency time="180">3.6875</frequency>
+		<frequency time="240">3.09375</frequency>
+		<frequency time="300">2.796875</frequency>
+		<frequency time="360">2.5</frequency>
+		<frequency time="3600">2.5</frequency>
+		<volume time="0">0.0</volume>
+		<volume time="10">1.0</volume>
+		<volume time="3590">1.0</volume>	
+		<volume time="3600">0.0</volume>	
+	</voice>
+	<voice length="3600">
+		<frequency time="0">12.0</frequency>
+		<frequency time="60">8.95</frequency>
+		<frequency time="120">7.425</frequency>
+		<frequency time="180">6.6625</frequency>
+		<frequency time="240">6.28125</frequency>
+		<frequency time="300">6.090625</frequency>
+		<frequency time="360">5.9</frequency>
+		<frequency time="3600">5.9</frequency>
+		<volume time="0">0.0</volume>
+		<volume time="10">1.0</volume>
+		<volume time="3590">1.0</volume>	
+		<volume time="3600">0.0</volume>	
+	</voice>
+</program>
