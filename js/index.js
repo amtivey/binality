@@ -51,6 +51,8 @@ function clientResize() {
 	
 	$('#icon').css('height', $('#header').height() * 0.5 + 'px');
 	$('#icon').css('width', $('#header').height() * 0.5 + 'px');
+	$('#menu').css('height', $('#header').height() * 0.5 + 'px');
+	$('#menu').css('width', $('#header').height() * 0.5 + 'px');
 	
 	$('#divPosition').css('width', parseInt($('#control').height() * 0.8) * 3.5 + 'px');
 	$('#divSlider').css('width', $('#control').width() - $('#divPosition').width() - 8 + 'px');
