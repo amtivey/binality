@@ -1,0 +1,13 @@
+{
+  "name": "Binality",
+  "short_name": "Binality",
+  "description": "Brainwave entrainment / binaural beats for meditation, sleep and concentration.",
+  "start_url": "index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    { "src": "images/icon.png", "sizes": "any", "type": "image/png", "purpose": "any" }
+  ]
+}
