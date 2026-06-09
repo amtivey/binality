@@ -2,12 +2,14 @@ var chart;
 var monitor;
 var program;
 
-var currentProgram = 'relaxation.xml';
+var currentProgram = 'programs/relaxation.xml';
 var baseFreq = 440.0;
 
 var timeStart = 0;
 var timeContext = 0;
 var timeMax = 0;			
+
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
 var context = null;
 try {
@@ -15,8 +17,6 @@ try {
 } catch(e) {}
 
 var merger, gain, osc;
-
-window.AudioContext = window.AudioContext||window.webkitAudioContext;
 
 function getTimeString(t) {
 	var h = parseInt(t / 3600);
@@ -170,6 +170,8 @@ function changeProgram(filename) {
 }
 
 function start() {
+	context.resume(); // mobile: AudioContext starts suspended until a user gesture
+	if (window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.ForegroundAudio) Capacitor.Plugins.ForegroundAudio.start(); // keep process alive for screen-off playback
 	$('#start').html('stop');
 	$('#start').data('playing', true);
 
@@ -238,6 +240,7 @@ function start() {
 }
 
 function stop() {
+	if (window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.ForegroundAudio) Capacitor.Plugins.ForegroundAudio.stop();
 	$('#start').html('start');
 	$('#start').data('playing', false);
 	
