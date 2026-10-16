@@ -283,13 +283,13 @@
         </div>
       </div>
 
-      <div class="tone-quick-control" title="Binaural Tone Master Volume">
+      <div class="tone-quick-control" title="Beats Master Volume">
         <svg class="tone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
           <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
         </svg>
-        <label for="quickToneSlider" class="ambient-quick-label">Tone</label>
-        <input id="quickToneSlider" type="range" min="0" max="1" step="0.01" value="0.35" aria-label="Binaural tone volume">
+        <label for="quickToneSlider" id="quickToneLabel" class="ambient-quick-label">Beats</label>
+        <input id="quickToneSlider" type="range" min="0" max="1" step="0.01" value="0.35" aria-label="Beats volume">
         <span id="quickToneVal" class="tone-val-badge">35%</span>
       </div>
 
@@ -450,7 +450,7 @@
           <p id="carrierHintText" class="settings-hint">Left ear plays the Base Frequency; Right ear plays Base Frequency + Program Beat Frequency via stereo headphones.</p>
         </div>
 
-        <!-- Binaural Tone Volume Section -->
+        <!-- Beats Volume Section -->
         <div class="settings-section">
           <div class="ambient-header-row">
             <label for="volumeSlider" class="settings-label ambient-label-with-icon">
@@ -459,7 +459,7 @@
                 <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
                 <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
               </svg>
-              <span>Binaural Tone Volume</span>
+              <span>Beats Volume</span>
             </label>
             <span id="volumeVal" class="tone-val-badge">35%</span>
           </div>
