@@ -1,7 +1,7 @@
 name: CI
 
 # Static-site baseline checks (post native-wrapper rollback). There is no
-# build step: the site is served as-is. Expo/EAS jobs are added in Expo task E8.
+# build step: the site is served as-is.
 on:
   push:
     branches: [main, dev, "rollback/**", "ci/**"]
