@@ -8,8 +8,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#070314">
 
-  <!-- PWA & Icons -->
+  <!-- PWA & Mobile Web App Capabilities -->
   <link rel="manifest" href="manifest.webmanifest">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Binality">
+  <meta name="application-name" content="Binality">
   <link rel="icon" type="image/png" sizes="64x64" href="images/favicon.png">
   <link rel="icon" type="image/png" sizes="512x512" href="images/icon.png">
   <link rel="apple-touch-icon" href="apple-touch-icon-precomposed.png">
@@ -58,6 +63,42 @@
           <span class="status-text">Idle</span>
         </div>
 
+        <button id="headerStudioBtn" type="button" class="studio-quick-btn" title="Open Custom Preset Studio (Create, Save &amp; Share Frequency Recipes)">
+          <svg class="studio-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="4" y1="21" x2="4" y2="14"></line>
+            <line x1="4" y1="10" x2="4" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12" y2="3"></line>
+            <line x1="20" y1="21" x2="20" y2="16"></line>
+            <line x1="20" y1="12" x2="20" y2="3"></line>
+            <line x1="1" y1="14" x2="7" y2="14"></line>
+            <line x1="9" y1="8" x2="15" y2="8"></line>
+            <line x1="17" y1="16" x2="23" y2="16"></line>
+          </svg>
+          <span class="studio-quick-label">Studio</span>
+        </button>
+
+        <button id="headerBreathBtn" type="button" class="breath-quick-btn" aria-pressed="false" title="Toggle Visual Breathing Pacer (Box Breathing &amp; 4-7-8 Pranayama)">
+          <svg class="breath-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z"></path>
+            <path d="M9 21h6"></path>
+          </svg>
+          <span id="headerBreathLabel" class="breath-quick-label">Breathe</span>
+        </button>
+
+        <button id="headerModeBtn" type="button" class="mode-quick-btn" title="Toggle Entrainment Mode: Binaural Beats (Headphones) or Isochronic Tones (Speakers &amp; Phones)">
+          <span id="headerModeIcon" class="mode-quick-icon">🎧</span>
+          <span id="headerModeLabel" class="mode-quick-label">Binaural</span>
+        </button>
+
+        <button id="headerTestStereoBtn" type="button" class="stereo-quick-btn" title="Test Left / Right Headphone Separation">
+          <svg class="headphone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
+            <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
+          </svg>
+          <span class="stereo-quick-label">Test L / R</span>
+        </button>
+
         <button id="menu" type="button" class="icon-button" aria-label="Open Program &amp; Settings" title="Program &amp; Settings">
           <svg class="gear-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="3"></circle>
@@ -71,7 +112,25 @@
     <!-- Main Body: Program Frequency / Time Chart -->
     <main id="body" class="glass-panel">
       <div class="chart-header">
-        <p id="chartDescription" class="chart-description">Mixed theta and delta waves aid relaxation and may induce sleep (60 minutes)</p>
+        <div class="chart-header-left">
+          <p id="chartDescription" class="chart-description">Mixed theta and delta waves aid relaxation and may induce sleep (60 minutes)</p>
+        </div>
+        <div class="chart-header-center">
+          <div id="stageViewToggle" class="stage-view-toggle" role="group" aria-label="Visualizer stage view mode">
+            <button id="btnViewCurve" type="button" class="stage-view-btn active" data-view="curve" title="View Program Frequency Curve over time">
+              <svg class="view-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+              </svg>
+              <span>Program Curve</span>
+            </button>
+            <button id="btnViewWaveform" type="button" class="stage-view-btn" data-view="waveform" title="View Live Acoustic Waveforms &amp; Frequency Following Response (FFR) Envelope">
+              <svg class="view-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M2 13a2 2 0 0 0 2-2V7a2 2 0 0 1 4 0v13a2 2 0 0 0 4 0V4a2 2 0 0 1 4 0v13a2 2 0 0 0 4 0v-4a2 2 0 0 1 2-2"></path>
+              </svg>
+              <span>Waveform / FFR Scope</span>
+            </button>
+          </div>
+        </div>
         <div class="chart-meta">
           <span id="voiceCountBadge" class="meta-badge">3 Voices</span>
           <span id="liveFreqBadge" class="meta-badge meta-badge-accent">12.0 Hz Beat</span>
@@ -81,6 +140,129 @@
       <div id="chart" class="chart-stage">
         <canvas id="chartCanvas" aria-label="Binaural beat frequency over time chart"></canvas>
         <div id="chartTooltip" class="chart-tooltip hidden" role="tooltip"></div>
+
+        <!-- Live Acoustic Waveform / FFR Envelope Stage -->
+        <div id="waveformStage" class="waveform-stage hidden" aria-label="Live acoustic waveform and FFR envelope oscilloscope">
+          <div class="scope-controls-bar">
+            <div class="scope-mode-group" role="group" aria-label="Oscilloscope display mode">
+              <button type="button" class="scope-mode-btn active" data-scope="envelope" title="View neurological Frequency Following Response (FFR) beat interference envelope">
+                ⚡ FFR Envelope
+              </button>
+              <button type="button" class="scope-mode-btn" data-scope="oscilloscope" title="View real-time high-speed Left and Right carrier waveforms">
+                〰️ Dual Oscilloscope
+              </button>
+              <button type="button" class="scope-mode-btn" data-scope="orbit" title="View interaural phase Lissajous orbit rotating at beat frequency">
+                💫 Phase Orbit
+              </button>
+            </div>
+
+            <div class="scope-zoom-group" role="group" aria-label="Time window zoom">
+              <span class="scope-group-label">Window:</span>
+              <button type="button" class="scope-zoom-btn" data-zoom="fast" title="High-speed zoomed time window">Fast</button>
+              <button type="button" class="scope-zoom-btn active" data-zoom="med" title="Standard entrainment time window">Med</button>
+              <button type="button" class="scope-zoom-btn" data-zoom="slow" title="Wide entrainment time window">Slow</button>
+            </div>
+
+            <div class="scope-channel-group" role="group" aria-label="Channel visibility toggles">
+              <button type="button" class="scope-ch-btn active ch-left" data-channel="left" title="Toggle Left Channel Waveform (Cyan)">
+                <span class="ch-dot dot-left"></span>
+                <span>Left</span>
+              </button>
+              <button type="button" class="scope-ch-btn active ch-right" data-channel="right" title="Toggle Right Channel Waveform (Pink)">
+                <span class="ch-dot dot-right"></span>
+                <span>Right</span>
+              </button>
+              <button type="button" class="scope-ch-btn active ch-ffr" data-channel="ffr" title="Toggle FFR Brainstem Neurological Sum / Envelope (Violet)">
+                <span class="ch-dot dot-ffr"></span>
+                <span id="scopeFfrBtnLabel">FFR Envelope</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Scope HUD Overlay -->
+          <div id="scopeHud" class="scope-hud">
+            <div class="scope-hud-badge hud-entrainment">
+              <span class="hud-label">FFR BEAT:</span>
+              <span id="hudBeatVal" class="hud-value">12.0 Hz</span>
+              <span id="hudBandVal" class="hud-sub">Beta</span>
+            </div>
+            <div class="scope-hud-badge hud-carrier">
+              <span class="hud-label">CARRIER:</span>
+              <span id="hudCarrierVal" class="hud-value">440.0 Hz</span>
+            </div>
+            <div class="scope-hud-badge hud-cycle">
+              <span class="hud-label">CYCLE:</span>
+              <span id="hudCycleVal" class="hud-value">83.3 ms</span>
+            </div>
+            <div class="scope-hud-badge hud-mode">
+              <span id="hudModeDot" class="status-dot"></span>
+              <span id="hudModeVal" class="hud-value">Headphones Binaural</span>
+            </div>
+          </div>
+
+          <canvas id="waveformCanvas" aria-label="Live audio oscilloscope and FFR envelope canvas"></canvas>
+
+          <!-- Idle state banner when stopped -->
+          <div id="scopeIdleOverlay" class="scope-idle-overlay">
+            <div class="scope-idle-card">
+              <div class="scope-idle-icon">🌊</div>
+              <div class="scope-idle-title">Acoustic Waveform &amp; FFR Scope Standby</div>
+              <p class="scope-idle-text">Press <strong>start</strong> below to synthesize live audio and visualize real-time carrier waveforms, interaural phase rotation, and the Frequency Following Response (FFR) envelope.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Visual Breathing Pacer Overlay -->
+        <div id="breathOverlay" class="breath-overlay hidden" role="region" aria-label="Visual Breathing Pacer">
+          <div id="breathCard" class="breath-card">
+            <div class="breath-card-header">
+              <div class="breath-title-group">
+                <span id="breathPatternTitle" class="breath-pattern-title">Box Breathing (4-4-4-4)</span>
+                <span id="breathCycleBadge" class="breath-cycle-badge">Cycle 1</span>
+              </div>
+              <div class="breath-card-actions">
+                <button id="breathSizeToggleBtn" type="button" class="breath-icon-btn" title="Toggle Compact Corner / Centered View" aria-label="Toggle compact or centered pacer view">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <polyline points="9 21 3 21 3 15"></polyline>
+                    <line x1="21" y1="3" x2="14" y2="10"></line>
+                    <line x1="3" y1="21" x2="10" y2="14"></line>
+                  </svg>
+                </button>
+                <button id="breathCloseBtn" type="button" class="breath-icon-btn" title="Close Breathing Pacer" aria-label="Close breathing pacer">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="breath-visual-wrap">
+              <div id="breathAura" class="breath-aura"></div>
+              <div id="breathOrb" class="breath-orb"></div>
+              <svg class="breath-ring-svg" viewBox="0 0 160 160" aria-hidden="true">
+                <circle class="breath-ring-track" cx="80" cy="80" r="68"></circle>
+                <circle id="breathRingArc" class="breath-ring-arc" cx="80" cy="80" r="68"></circle>
+              </svg>
+              <div class="breath-center-readout">
+                <span id="breathPhaseText" class="breath-phase-text">Inhale</span>
+                <span id="breathCountdownText" class="breath-countdown-text">4.0s</span>
+              </div>
+            </div>
+
+            <div id="breathStepsRow" class="breath-steps-row" aria-hidden="true">
+              <!-- Populated dynamically with phase steps -->
+            </div>
+
+            <div class="breath-mode-pills" role="group" aria-label="Breathing pattern presets">
+              <button type="button" class="breath-mode-btn active" data-breath="box">Box 4-4-4-4</button>
+              <button type="button" class="breath-mode-btn" data-breath="478">4-7-8 Pranayama</button>
+              <button type="button" class="breath-mode-btn" data-breath="coherent">Coherent 5.5s</button>
+              <button type="button" class="breath-mode-btn" data-breath="calm">Calm 4-2-6</button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div id="chartLegend" class="chart-legend">
@@ -99,6 +281,44 @@
         <div id="divSlider">
           <input id="slider" type="range" min="0" max="3600" value="0" step="1" aria-label="Playback position in seconds">
         </div>
+      </div>
+
+      <div class="tone-quick-control" title="Binaural Tone Master Volume">
+        <svg class="tone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        </svg>
+        <label for="quickToneSlider" class="ambient-quick-label">Tone</label>
+        <input id="quickToneSlider" type="range" min="0" max="1" step="0.01" value="0.35" aria-label="Binaural tone volume">
+        <span id="quickToneVal" class="tone-val-badge">35%</span>
+      </div>
+
+      <div class="ambient-quick-control" title="Ambient Pink Noise / Soundscape Volume">
+        <svg class="ambient-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 15a4 4 0 0 0 4 4h9a5 5 0 1 0-.1-9.999 5.002 5.002 0 0 0-9.78 2.096A4.001 4.001 0 0 0 3 15z"></path>
+        </svg>
+        <label for="quickAmbientSlider" id="quickAmbientLabel" class="ambient-quick-label">Pink Noise</label>
+        <input id="quickAmbientSlider" type="range" min="0" max="1" step="0.01" value="0.20" aria-label="Ambient soundscape volume">
+        <span id="quickAmbientVal" class="ambient-val-badge">20%</span>
+      </div>
+
+      <div class="timer-quick-control" title="Session Sleep Timer &amp; Harmonic Chime">
+        <svg class="timer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <select id="quickTimerSelect" class="timer-quick-select" aria-label="Session sleep timer">
+          <option value="0">Timer: Off</option>
+          <option value="5">5 min</option>
+          <option value="10">10 min</option>
+          <option value="15">15 min</option>
+          <option value="20">20 min</option>
+          <option value="30">30 min</option>
+          <option value="45">45 min</option>
+          <option value="60">60 min</option>
+          <option value="10s">10s Test</option>
+        </select>
+        <span id="quickTimerDisplay" class="timer-val-badge">Continuous</span>
       </div>
 
       <div id="footer">
@@ -128,7 +348,16 @@
       <div id="settingsBody">
         <!-- Program Selector Section -->
         <div class="settings-section">
-          <label for="selectProgram" class="settings-label">Choose a program:</label>
+          <div class="ambient-header-row">
+            <label for="selectProgram" class="settings-label">Choose a program:</label>
+            <button id="openStudioFromSettingsBtn" type="button" class="open-studio-pill-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              <span>Custom Preset Studio</span>
+            </button>
+          </div>
           <div class="select-wrapper">
             <select id="selectProgram">
               <option value="custom">custom</option>
@@ -152,10 +381,54 @@
           <div class="program-info-card">
             <div class="program-info-top">
               <div id="name">Relaxation</div>
-              <span id="settingsProgramStats" class="program-stats-pill">60 min • 3 voices</span>
+              <div class="program-card-badges">
+                <span id="settingsProgramStats" class="program-stats-pill">60 min • 3 voices</span>
+                <button id="cloneToStudioBtn" type="button" class="clone-studio-btn" title="Clone and customize this program in the Preset Studio">
+                  Customize in Studio
+                </button>
+              </div>
             </div>
             <div id="description">Mixed theta and delta waves aid relaxation and may induce sleep (60 minutes)</div>
           </div>
+        </div>
+
+        <!-- Entrainment Synthesis Mode (Binaural Beats vs Isochronic Tones) -->
+        <div class="settings-section">
+          <div class="ambient-header-row">
+            <span class="settings-label ambient-label-with-icon">
+              <svg class="tone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 6v12"></path>
+                <path d="M8 8v8"></path>
+                <path d="M16 8v8"></path>
+                <path d="M4 11v2"></path>
+                <path d="M20 11v2"></path>
+              </svg>
+              <span>Entrainment Synthesis Mode</span>
+            </span>
+            <span id="settingsModeBadge" class="mode-badge">Headphones (Binaural)</span>
+          </div>
+
+          <div class="entrainment-mode-selector" role="group" aria-label="Entrainment Synthesis Mode">
+            <button type="button" id="btnModeBinaural" class="mode-toggle-btn active" data-mode="binaural">
+              <span class="mode-btn-icon">🎧</span>
+              <span class="mode-btn-content">
+                <strong>Binaural Beats</strong>
+                <small>Requires Stereo Headphones • Neurological Phase Difference</small>
+              </span>
+            </button>
+            <button type="button" id="btnModeIsochronic" class="mode-toggle-btn" data-mode="isochronic">
+              <span class="mode-btn-icon">🔊</span>
+              <span class="mode-btn-content">
+                <strong>Isochronic Tones</strong>
+                <small>Speakers &amp; Phones Friendly • Rhythmic Amplitude Pulses</small>
+              </span>
+            </button>
+          </div>
+
+          <p id="modeHintText" class="settings-hint">
+            <strong>Binaural Beats:</strong> Two constant tones played separately into Left &amp; Right ears. Beat is synthesized by your brain. Requires stereo headphones.
+          </p>
         </div>
 
         <!-- Base Carrier Frequency Section -->
@@ -174,7 +447,192 @@
               <button type="button" class="harmonic-btn" data-freq="440">440 Hz</button>
             </div>
           </div>
-          <p class="settings-hint">Left ear plays the Base Frequency; Right ear plays Base Frequency + Program Beat Frequency via stereo headphones.</p>
+          <p id="carrierHintText" class="settings-hint">Left ear plays the Base Frequency; Right ear plays Base Frequency + Program Beat Frequency via stereo headphones.</p>
+        </div>
+
+        <!-- Binaural Tone Volume Section -->
+        <div class="settings-section">
+          <div class="ambient-header-row">
+            <label for="volumeSlider" class="settings-label ambient-label-with-icon">
+              <svg class="tone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+              </svg>
+              <span>Binaural Tone Volume</span>
+            </label>
+            <span id="volumeVal" class="tone-val-badge">35%</span>
+          </div>
+
+          <input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="0.35" class="tone-range">
+
+          <div class="soundscape-presets" aria-label="Quick tone volume presets">
+            <button type="button" class="tone-vol-btn" data-tone-vol="0.15">Whisper (15%)</button>
+            <button type="button" class="tone-vol-btn active" data-tone-vol="0.35">Gentle (35% ★)</button>
+            <button type="button" class="tone-vol-btn" data-tone-vol="0.65">Medium (65%)</button>
+            <button type="button" class="tone-vol-btn" data-tone-vol="1.00">Full (100%)</button>
+            <button type="button" class="tone-vol-btn" data-tone-vol="0">Mute (0%)</button>
+          </div>
+
+          <p class="settings-hint">Gentle volume is best. Brain entrainment operates via frequency difference, not loudness.</p>
+        </div>
+
+        <!-- Ambient Pink Noise / Soundscape Layer Section -->
+        <div class="settings-section">
+          <div class="ambient-header-row">
+            <label for="ambientSlider" class="settings-label ambient-label-with-icon">
+              <svg class="ambient-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 15a4 4 0 0 0 4 4h9a5 5 0 1 0-.1-9.999 5.002 5.002 0 0 0-9.78 2.096A4.001 4.001 0 0 0 3 15z"></path>
+              </svg>
+              <span>Ambient Pink Noise (Soft Rain / Wind)</span>
+            </label>
+            <span id="ambientVal" class="ambient-val-badge">20%</span>
+          </div>
+
+          <input id="ambientSlider" type="range" min="0" max="1" step="0.01" value="0.20" class="ambient-range">
+
+          <div class="soundscape-presets" aria-label="Soundscape texture mode">
+            <button type="button" class="soundscape-btn active" data-soundscape="pink">Pink Noise (Warm 1/f)</button>
+            <button type="button" class="soundscape-btn" data-soundscape="rain">Soft Rain</button>
+            <button type="button" class="soundscape-btn" data-soundscape="wind">Cosmic Wind</button>
+            <button type="button" class="soundscape-btn" data-soundscape="off">Mute (0%)</button>
+          </div>
+
+          <p class="settings-hint">Blends warm soothing noise beneath pure sine tones to soften auditory fatigue.</p>
+        </div>
+
+        <!-- Session Sleep Timer & Harmonic Chime Section -->
+        <div class="settings-section">
+          <div class="ambient-header-row">
+            <label for="timerSelect" class="settings-label ambient-label-with-icon">
+              <svg class="timer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span>Session Sleep Timer &amp; Harmonic Chime</span>
+            </label>
+            <span id="timerDisplay" class="timer-val-badge">Continuous</span>
+          </div>
+
+          <div class="timer-controls-row">
+            <select id="timerSelect" class="timer-select-input" aria-label="Session timer duration">
+              <option value="0">Continuous (Full Program)</option>
+              <option value="5">5 Minutes</option>
+              <option value="10">10 Minutes</option>
+              <option value="15">15 Minutes</option>
+              <option value="20">20 Minutes</option>
+              <option value="30">30 Minutes</option>
+              <option value="45">45 Minutes</option>
+              <option value="60">60 Minutes</option>
+              <option value="10s">10 Seconds (Quick Test)</option>
+            </select>
+
+            <div class="chime-actions">
+              <button id="chimeToggleBtn" type="button" class="chime-toggle-btn active" aria-pressed="true" title="Toggle harmonic Solfeggio triad chime on completion">
+                <span class="chime-dot"></span>
+                <span id="chimeToggleLabel">Chime: ON</span>
+              </button>
+              <button id="previewChimeBtn" type="button" class="chime-preview-btn" title="Listen to the 528 / 660 / 792 Hz Harmonic Solfeggio Chime">
+                Preview Chime
+              </button>
+            </div>
+          </div>
+
+          <div class="timer-presets" aria-label="Quick sleep timer presets">
+            <button type="button" class="timer-preset-btn active" data-timer="0">Continuous</button>
+            <button type="button" class="timer-preset-btn" data-timer="5">5m</button>
+            <button type="button" class="timer-preset-btn" data-timer="10">10m</button>
+            <button type="button" class="timer-preset-btn" data-timer="15">15m</button>
+            <button type="button" class="timer-preset-btn" data-timer="20">20m</button>
+            <button type="button" class="timer-preset-btn" data-timer="30">30m</button>
+            <button type="button" class="timer-preset-btn" data-timer="45">45m</button>
+            <button type="button" class="timer-preset-btn" data-timer="60">60m</button>
+            <button type="button" class="timer-preset-btn" data-timer="10s">10s Test</button>
+          </div>
+
+          <p class="settings-hint">Performs a gentle 5-second exponential audio fade-out across both binaural tones and ambient soundscape before ringing the 528 / 660 / 792 Hz Solfeggio chime (or silent fade-out when Chime is OFF).</p>
+        </div>
+
+        <!-- Visual Breathing Pacer Section -->
+        <div class="settings-section">
+          <div class="ambient-header-row">
+            <label class="settings-label ambient-label-with-icon">
+              <svg class="breath-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z"></path>
+                <path d="M9 21h6"></path>
+              </svg>
+              <span>Breathing Pacer (Visual Biofeedback)</span>
+            </label>
+            <span id="settingsBreathBadge" class="timer-val-badge">Off</span>
+          </div>
+
+          <div class="breath-settings-presets" role="group" aria-label="Breathing pacer protocol">
+            <button type="button" class="settings-breath-btn active" data-breath="off">Off</button>
+            <button type="button" class="settings-breath-btn" data-breath="box">Box Breathing (4-4-4-4)</button>
+            <button type="button" class="settings-breath-btn" data-breath="478">4-7-8 Pranayama</button>
+            <button type="button" class="settings-breath-btn" data-breath="coherent">Coherent (5.5-5.5)</button>
+            <button type="button" class="settings-breath-btn" data-breath="calm">Calm Relax (4-2-6)</button>
+          </div>
+
+          <p class="settings-hint">Displays an expanding cosmic biofeedback mandala on the chart stage to guide Box Breathing, 4-7-8 Pranayama, or HRV Coherent Breathing alongside your session.</p>
+        </div>
+
+        <!-- Stereo Headset Verification Section -->
+        <div class="stereo-test-card">
+          <div class="stereo-test-info">
+            <div class="stereo-icon-badge" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15.536 8.464a5 5 0 0 1 0 7.072m2.828-9.9a9 9 0 0 1 0 12.728M5.586 15H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+              </svg>
+            </div>
+            <div class="stereo-test-copy">
+              <div class="stereo-test-title">Stereo Headphones Essential</div>
+              <p class="stereo-test-desc">Binaural beats require true stereo separation between your left and right ears.</p>
+            </div>
+          </div>
+
+          <div class="stereo-test-actions">
+            <div class="stereo-channels" aria-hidden="true">
+              <span id="leftChannelPill" class="channel-pill">L • 440 Hz</span>
+              <span id="rightChannelPill" class="channel-pill">R • 554 Hz</span>
+            </div>
+            <button id="testStereoBtn" type="button" class="stereo-test-btn">
+              <span>Test L / R Separation</span>
+            </button>
+          </div>
+
+          <div id="stereoStatus" class="stereo-status" aria-live="polite"></div>
+        </div>
+
+        <!-- 100% Offline PWA & Installation Section -->
+        <div class="settings-section pwa-settings-card">
+          <div class="ambient-header-row">
+            <div class="pwa-header-title">
+              <svg class="pwa-shield-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                <path d="m9 12 2 2 4-4"></path>
+              </svg>
+              <div>
+                <span class="settings-label" style="margin: 0;">100% Offline PWA &amp; Zero Tracking</span>
+                <span class="pwa-subtitle">Runs entirely in-browser • No accounts • No telemetry</span>
+              </div>
+            </div>
+            <span id="pwaStatusBadge" class="timer-val-badge pwa-badge-ready">Checking...</span>
+          </div>
+
+          <div class="pwa-actions-row">
+            <button id="pwaInstallBtn" type="button" class="pwa-install-btn hidden" title="Install Binality as a standalone Progressive Web App">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Install Binality App</span>
+            </button>
+            <div id="pwaOfflineNotice" class="pwa-offline-notice">
+              All 11 brainwave programs, binaural &amp; isochronic synthesizers, ambient soundscapes, and visualizers are cached locally by Service Worker for airplane mode &amp; offline use.
+            </div>
+          </div>
         </div>
 
         <hr class="settings-divider">
@@ -213,6 +671,141 @@
     </div>
   </div>
 
+  <!-- Custom Preset Studio Modal -->
+  <div id="studioModal" role="dialog" aria-modal="true" aria-labelledby="studioHeading">
+    <div id="studioBackdrop" class="settings-backdrop"></div>
+    <div class="studio-dialog glass-panel">
+      <div class="settings-header">
+        <div class="settings-header-title">
+          <span class="settings-eyebrow">FREQUENCY RECIPE DESIGNER</span>
+          <h2 id="studioHeading">Custom Preset Studio</h2>
+        </div>
+        <button id="closeStudioIcon" type="button" class="close-icon-btn" aria-label="Close Preset Studio">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div id="studioBody">
+        <!-- Quick Starter Templates & Clone Active Program -->
+        <div class="studio-section">
+          <div class="ambient-header-row">
+            <span class="settings-label">Quick Recipe Starter Templates</span>
+            <button id="studioCloneActiveBtn" type="button" class="studio-clone-active-btn" title="Copy the currently loaded program into the Studio">
+              Clone Current Program
+            </button>
+          </div>
+          <div class="studio-templates-bar" role="group" aria-label="Quick recipe templates">
+            <button type="button" class="studio-template-btn" data-studio-template="theta-flow">Deep Theta Flow (10→6 Hz)</button>
+            <button type="button" class="studio-template-btn" data-studio-template="delta-sleep">Delta Sleep Ramp (8→2 Hz)</button>
+            <button type="button" class="studio-template-btn" data-studio-template="alpha-focus">Alpha Flow State (10 Hz)</button>
+            <button type="button" class="studio-template-btn" data-studio-template="gamma-insight">Gamma Peak Focus (18→40 Hz)</button>
+            <button type="button" class="studio-template-btn" data-studio-template="dual-chord">Harmonic Dual-Voice Chord</button>
+          </div>
+        </div>
+
+        <!-- Recipe Metadata & Session Parameters -->
+        <div class="studio-meta-grid">
+          <div class="studio-field studio-field-wide">
+            <label for="studioName" class="studio-field-label">Preset Name</label>
+            <input id="studioName" type="text" class="studio-input" value="Deep Theta Flow" maxlength="60" placeholder="e.g. Deep Theta Flow">
+          </div>
+
+          <div class="studio-field">
+            <label for="studioDurationMin" class="studio-field-label">Duration (min)</label>
+            <input id="studioDurationMin" type="number" class="studio-input" value="20" min="1" max="180" step="1">
+          </div>
+
+          <div class="studio-field">
+            <label for="studioCarrierFreq" class="studio-field-label">Carrier (Hz)</label>
+            <input id="studioCarrierFreq" type="number" class="studio-input" value="216" min="20" max="2000" step="1">
+          </div>
+
+          <div class="studio-field studio-field-full">
+            <label for="studioDescription" class="studio-field-label">Description</label>
+            <input id="studioDescription" type="text" class="studio-input" value="Smooth Alpha to Theta meditation ramp for creative insight and deep calm (20 minutes)" maxlength="160" placeholder="Describe the purpose and feel of this frequency recipe...">
+          </div>
+        </div>
+
+        <!-- Live Curve Preview Canvas -->
+        <div class="studio-preview-card">
+          <div class="studio-preview-header">
+            <span class="studio-field-label">Live Frequency Curve Preview</span>
+            <span id="studioPreviewStats" class="studio-preview-stats">20 min • 1 Voice • 216 Hz Carrier</span>
+          </div>
+          <div class="studio-preview-stage">
+            <canvas id="studioPreviewCanvas" aria-label="Preset frequency curve preview"></canvas>
+          </div>
+        </div>
+
+        <!-- Multi-Voice Keyframe Editor -->
+        <div class="studio-section">
+          <div class="ambient-header-row">
+            <span class="settings-label">Voices &amp; Frequency Keyframes</span>
+            <button id="studioAddVoiceBtn" type="button" class="studio-add-voice-btn">
+              + Add Voice
+            </button>
+          </div>
+          <div id="studioVoicesList" class="studio-voices-list">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Saved Presets Library -->
+        <div class="studio-section">
+          <div class="ambient-header-row">
+            <span class="settings-label">My Saved Presets Library (<span id="studioSavedCount">0</span>)</span>
+            <span class="studio-saved-hint">Saved in browser &amp; Program dropdown</span>
+          </div>
+          <div id="studioSavedList" class="studio-saved-list">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <div id="studioStatusMsg" class="studio-status-msg" aria-live="polite"></div>
+      </div>
+
+      <div class="studio-footer">
+        <div class="studio-footer-secondary">
+          <button id="studioExportXmlBtn" type="button" class="studio-sec-btn" title="Download standard Binality .xml program file">
+            Export .XML
+          </button>
+          <button id="studioShareLinkBtn" type="button" class="studio-sec-btn" title="Copy shareable URL link for this frequency recipe">
+            Share Link
+          </button>
+        </div>
+        <div class="studio-footer-primary">
+          <button id="studioSaveBtn" type="button" class="studio-save-btn">
+            Save to My Presets
+          </button>
+          <button id="studioApplyBtn" type="button" class="studio-apply-btn">
+            Apply &amp; Load Recipe
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PWA Update Notification Toast -->
+  <div id="pwaUpdateToast" class="pwa-update-toast hidden" role="alert">
+    <div class="pwa-update-content">
+      <svg class="pwa-update-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+        <path d="M3 3v5h5"></path>
+        <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
+        <path d="M21 21v-5h-5"></path>
+      </svg>
+      <span>New Binality version is ready!</span>
+    </div>
+    <div class="pwa-update-actions">
+      <button id="pwaReloadBtn" type="button" class="pwa-reload-btn">Update Now</button>
+      <button id="pwaDismissBtn" type="button" class="pwa-dismiss-btn" aria-label="Dismiss update notification">✕</button>
+    </div>
+  </div>
+
   <script src="js/index.js"></script>
 </body>
 </html>
+

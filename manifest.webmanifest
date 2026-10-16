@@ -1,22 +1,36 @@
 {
-  "name": "Binality",
+  "name": "Binality — Brainwave Entrainment & Binaural Beats",
   "short_name": "Binality",
   "description": "Free, open-source brainwave entrainment & binaural beats for meditation, sleep, and concentration.",
   "start_url": "index.html",
+  "scope": "./",
+  "id": "binality-pwa",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "any",
   "background_color": "#070314",
   "theme_color": "#070314",
+  "categories": [
+    "health",
+    "lifestyle",
+    "music",
+    "utilities"
+  ],
   "icons": [
     {
-      "src": "images/icon.png",
-      "sizes": "512x512",
+      "src": "images/favicon.png",
+      "sizes": "64x64",
       "type": "image/png",
       "purpose": "any"
     },
     {
       "src": "images/binality-icon-192.png",
       "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "images/icon.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
