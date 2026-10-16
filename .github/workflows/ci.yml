@@ -1,0 +1,22 @@
+name: CI
+
+# Static-site baseline checks (post native-wrapper rollback). There is no
+# build step: the site is served as-is. Expo/EAS jobs are added in Expo task E8.
+on:
+  push:
+    branches: [main, dev, "rollback/**", "ci/**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  static-site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check site
+        run: bash scripts/ci-check.sh
