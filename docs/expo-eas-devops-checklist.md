@@ -5,7 +5,7 @@ No credentials belong in git. Everything below is created or entered by the owne
 
 ## 1. Current pipeline state (verified 2026-10-16)
 
-- The repo had no CI at all (no .github/, no other CI config) on master, dev or the rollback branch.
+- The repo had no CI at all (no .github/, no other CI config) on main, dev or the rollback branch.
 - After the rollback there is no build step: the site is static files served as-is. No package.json, no lockfile.
 - Added in this PR: .github/workflows/ci.yml running scripts/ci-check.sh (JS syntax, manifest JSON, programs/*.xml well-formed, no leftover native-wrapper files or references).
 - Not configured: GitHub Pages, repo secrets (none exist), any deploy job. How www.virtualarenas.com/binality is deployed today is unknown (Q3).
@@ -56,11 +56,11 @@ Nothing is stubbed in the repo on purpose. There is no Expo project yet, so an e
 [ ] eas.json with profiles development, preview and production, channels, `appVersionSource: remote` and fingerprint runtimeVersion (shape in expo-migration.md section 7). `eas init` and `eas build:configure` generate it.
 [ ] Set the starting version above the legacy versionCode (`eas build:version:set`).
 [ ] CI job on PR: install, lint, tsc, jest, `npx expo export -p web`. This replaces or extends scripts/ci-check.sh once the legacy files move to legacy-web/.
-[ ] Web deploy job on merge to master: upload dist/ per the Q3 choice. If hosted under /binality, set `experiments.baseUrl` to /binality.
-[ ] `eas update --channel preview` on merge to master; manual or tag-triggered production update.
+[ ] Web deploy job on merge to main (releases are dev -> main): upload dist/ per the Q3 choice. If hosted under /binality, set `experiments.baseUrl` to /binality.
+[ ] `eas update --channel preview` on merge to dev; manual or tag-triggered production update.
 [ ] Tag v* triggers `eas build --profile production` followed by `eas submit`. Use `--non-interactive`.
-[ ] Enable branch protection on master requiring the CI check.
+[ ] Enable branch protection on main and dev requiring the CI check.
 
 ## 7. Questions the owner must answer before E8
 
-Q1 (Play listing, keystore, last versionCode), Q2 (Apple account, bundle id), Q3 (web host and current deploy method), Q6 (PR target branch: master or dev).
+Q1 (Play listing, keystore, last versionCode), Q2 (Apple account, bundle id), Q3 (web host and current deploy method), Q6 (answered: PR target is dev; dev is the default branch).

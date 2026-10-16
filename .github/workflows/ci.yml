@@ -4,7 +4,7 @@ name: CI
 # build step: the site is served as-is. Expo/EAS jobs are added in Expo task E8.
 on:
   push:
-    branches: [master, dev, "rollback/**", "ci/**"]
+    branches: [main, dev, "rollback/**", "ci/**"]
   pull_request:
 
 permissions:
