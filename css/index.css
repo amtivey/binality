@@ -161,24 +161,31 @@ body {
 
 #header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
   padding: 10px 16px;
   border-radius: 20px;
   flex-shrink: 0;
-  gap: 12px;
+  gap: 8px;
 }
 
-.header-left {
+.header-top-row {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
-  min-width: 0;
+  width: 100%;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .brand-logo-wrap {
-  width: 44px;
-  height: 44px;
+  width: 38px;
+  height: 38px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -197,24 +204,10 @@ body {
   transform: scale(1.06);
 }
 
-.header-titles {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.brand-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
 .brand-name {
   font-family: var(--font-heading);
   font-weight: 800;
-  font-size: 0.78rem;
+  font-size: 0.84rem;
   letter-spacing: 0.08em;
   background: linear-gradient(90deg, #f9a8d4, #e9d5ff, #a5b4fc);
   -webkit-background-clip: text;
@@ -222,13 +215,44 @@ body {
   color: transparent;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.header-sub-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.header-sub-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.header-sub-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .pill-badge {
   font-family: var(--font-mono);
   font-size: 0.62rem;
   font-weight: 500;
-  padding: 1px 7px;
+  padding: 2px 7px;
   border-radius: 9999px;
   letter-spacing: 0.03em;
+  white-space: nowrap;
 }
 
 .pill-foss {
@@ -241,13 +265,6 @@ body {
   background: rgba(99, 102, 241, 0.12);
   border: 1px solid rgba(99, 102, 241, 0.28);
   color: #a5b4fc;
-}
-
-.program-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
 }
 
 #title {
@@ -543,11 +560,29 @@ body {
   flex-wrap: wrap;
 }
 
+.chart-header-left {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .chart-description {
   margin: 0;
   font-size: 0.82rem;
   color: var(--text-secondary);
   line-height: 1.4;
+  transition: all 0.2s ease;
+}
+
+.chart-header-controls {
+  display: contents;
+}
+
+.view-btn-text-short {
+  display: none;
+}
+
+.view-btn-text-full {
+  display: inline;
 }
 
 .chart-meta {
@@ -645,11 +680,6 @@ body {
    Visualizer Stage View Switcher & Waveform / FFR Scope (#waveformStage)
    ========================================================================== */
 
-.chart-header-left {
-  flex: 1 1 200px;
-  min-width: 0;
-}
-
 .chart-header-center {
   display: flex;
   align-items: center;
@@ -720,8 +750,8 @@ body {
 #waveformCanvas {
   display: block;
   width: 100%;
-  height: 100%;
-  flex: 1 1 auto;
+  flex: 1 1 0;
+  min-height: 0;
 }
 
 .scope-controls-bar {
@@ -1308,6 +1338,11 @@ body {
   padding: 12px 18px;
   border-radius: 22px;
   flex-shrink: 0;
+}
+
+.dock-quick-sliders,
+.dock-actions-row {
+  display: contents;
 }
 
 #control {
@@ -3101,40 +3136,98 @@ body {
    ========================================================================== */
 
 @media (max-width: 640px) {
+  html,
+  body {
+    height: auto;
+    min-height: 100%;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
   .app-shell {
-    padding: 8px 10px;
-    gap: 8px;
+    min-height: 100dvh;
+    height: auto;
+    padding: 6px 8px;
+    gap: 6px;
   }
 
   #header {
-    padding: 8px 12px;
-    border-radius: 16px;
+    padding: 6px 10px;
+    border-radius: 14px;
+    gap: 5px;
+  }
+
+  .header-brand {
+    gap: 8px;
   }
 
   .brand-logo-wrap {
-    width: 36px;
-    height: 36px;
+    width: 28px;
+    height: 28px;
   }
 
-  #title {
-    font-size: 1.05rem;
+  .brand-name {
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
   }
 
-  .pill-carrier,
+  .header-actions {
+    gap: 6px;
+  }
+
+  .studio-quick-btn,
+  .breath-quick-btn,
+  #menu {
+    padding: 5px 8px;
+    border-radius: 10px;
+    gap: 5px;
+  }
+
+  .studio-icon,
+  .breath-icon,
+  .gear-icon {
+    width: 14px;
+    height: 14px;
+  }
+
   .menu-label,
-  .stereo-quick-label,
   .breath-quick-label,
-  .studio-quick-label,
-  .mode-quick-label {
+  .studio-quick-label {
     display: none;
   }
 
-  #menu,
-  .stereo-quick-btn,
-  .breath-quick-btn,
-  .studio-quick-btn,
-  .mode-quick-btn {
-    padding: 8px 10px;
+  .header-sub-row {
+    gap: 8px;
+  }
+
+  .header-sub-left {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  #title {
+    font-size: 0.98rem;
+    font-weight: 700;
+  }
+
+  .header-sub-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .band-badge {
+    font-size: 0.62rem;
+    padding: 2px 6px;
+    border-radius: 6px;
+  }
+
+  .pill-carrier {
+    font-size: 0.62rem;
+    padding: 2px 6px;
+    display: inline-block;
   }
 
   .entrainment-mode-selector {
@@ -3142,37 +3235,115 @@ body {
   }
 
   #body {
-    padding: 10px 12px;
-    border-radius: 18px;
-    gap: 8px;
-  }
-
-  .chart-description {
-    font-size: 0.75rem;
+    padding: 8px 10px;
+    border-radius: 16px;
+    gap: 6px;
+    min-height: 220px;
   }
 
   .chart-header {
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
+    gap: 6px;
+    flex: 0 0 auto;
+    min-height: 0;
   }
 
-  .chart-header-center {
+  .chart-header-left {
     width: 100%;
+    flex: 0 0 auto;
+    min-height: 0;
+  }
+
+  .chart-description {
+    font-size: 0.74rem;
+    color: var(--text-muted);
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+    cursor: pointer;
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 0;
+  }
+
+  .chart-description.is-expanded {
+    display: block;
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+    overflow: visible;
+    color: var(--text-secondary);
+  }
+
+  .chart-header-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    flex: 0 0 auto;
+    min-height: 0;
   }
 
   .stage-view-toggle {
+    display: inline-flex;
     width: 100%;
-    display: flex;
+    max-width: 250px;
+    margin: 0 auto;
   }
 
   .stage-view-btn {
-    flex: 1;
+    flex: 1 1 50%;
     justify-content: center;
+    padding: 5px 10px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    gap: 5px;
+  }
+
+  .view-btn-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .view-btn-text-full {
+    display: none;
+  }
+
+  .view-btn-text-short {
+    display: inline;
+  }
+
+  .chart-meta {
+    display: none !important;
+  }
+
+  #chart {
+    min-height: 130px;
+    border-radius: 12px;
+  }
+
+  .chart-legend {
+    padding: 1px 2px;
+    gap: 5px;
+  }
+
+  .legend-item {
+    font-size: 0.62rem;
+    gap: 4px;
+  }
+
+  .legend-hint {
+    display: none;
   }
 
   .scope-controls-bar {
     position: static;
+    flex: 0 0 auto;
     padding: 6px;
     background: rgba(10, 6, 28, 0.95);
     border-radius: 0;
@@ -3199,34 +3370,118 @@ body {
     font-size: 0.62rem;
   }
 
-  .legend-hint {
-    display: none;
-  }
-
   .transport-dock {
     flex-direction: column;
     align-items: stretch;
-    padding: 10px 12px;
-    gap: 10px;
-    border-radius: 18px;
+    padding: 8px 10px;
+    gap: 7px;
+    border-radius: 16px;
+  }
+
+  #control {
+    gap: 8px;
+    width: 100%;
+  }
+
+  .time-readout {
+    padding: 4px 8px;
+    font-size: 0.72rem;
+    gap: 3px;
+  }
+
+  #divPosition,
+  #divDuration {
+    font-size: 0.76rem;
+    min-width: 32px;
+  }
+
+  .dock-quick-sliders {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    width: 100%;
   }
 
   .tone-quick-control,
-  .ambient-quick-control,
-  .timer-quick-control {
+  .ambient-quick-control {
+    padding: 4px 6px;
+    border-radius: 10px;
+    gap: 5px;
+    min-width: 0;
     justify-content: space-between;
   }
 
+  .tone-icon,
+  .ambient-icon {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+  }
+
+  .ambient-quick-label {
+    font-size: 0.65rem;
+    white-space: nowrap;
+  }
+
   #quickToneSlider,
-  #quickAmbientSlider,
+  #quickAmbientSlider {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
+    height: 3px;
+  }
+
+  .tone-val-badge,
+  .ambient-val-badge {
+    font-size: 0.58rem;
+    padding: 1px 3px;
+    min-width: 24px;
+    text-align: right;
+  }
+
+  .dock-actions-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .timer-quick-control {
+    flex: 1 1 auto;
+    padding: 5px 8px;
+    border-radius: 10px;
+    gap: 5px;
+    min-width: 0;
+  }
+
+  .timer-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
   .timer-quick-select {
     flex: 1 1 auto;
-    width: auto;
+    min-width: 0;
+    font-size: 0.72rem;
+    padding: 4px 6px;
+    border-radius: 8px;
+  }
+
+  #quickTimerDisplay {
+    display: none;
+  }
+
+  #footer {
+    flex: 0 0 auto;
   }
 
   #start {
-    width: 100%;
-    padding: 12px 20px;
+    width: auto;
+    min-width: 95px;
+    padding: 8px 16px;
+    font-size: 0.86rem;
+    border-radius: 10px;
   }
 
   #settings,

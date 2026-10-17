@@ -680,10 +680,10 @@ function createProgramChart() {
 
   function getLayout(width, height) {
     var isCompact = width < 500;
-    var padLeft = isCompact ? 38 : 48;
-    var padRight = isCompact ? 16 : 24;
-    var padTop = isCompact ? 16 : 22;
-    var padBottom = isCompact ? 32 : 38;
+    var padLeft = isCompact ? 34 : 48;
+    var padRight = isCompact ? 14 : 24;
+    var padTop = isCompact ? 12 : 22;
+    var padBottom = isCompact ? 24 : 36;
     return {
       padLeft: padLeft,
       padRight: padRight,
@@ -773,13 +773,15 @@ function createProgramChart() {
       ctx.stroke();
 
       ctx.fillStyle = '#94a3b8';
-      ctx.fillText(xVal + 's', px, padTop + plotH + 6);
+      ctx.fillText(xVal + 's', px, padTop + plotH + 4);
     }
 
-    ctx.fillStyle = 'rgba(203, 213, 225, 0.65)';
-    ctx.font = '500 10px "JetBrains Mono", monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('frequency/time(s)', padLeft + plotW / 2, height - 13);
+    if (height >= 180) {
+      ctx.fillStyle = 'rgba(203, 213, 225, 0.65)';
+      ctx.font = '500 10px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('frequency/time(s)', padLeft + plotW / 2, height - 8);
+    }
 
     // 3. Plot Voice Curves
     ctx.save();
@@ -1049,9 +1051,14 @@ function drawScopeFrame() {
   var stage = document.getElementById('waveformStage');
   if (!stage) return;
 
-  var rect = stage.getBoundingClientRect();
+  var rect = canvas.getBoundingClientRect();
   var width = Math.floor(rect.width);
   var height = Math.floor(rect.height);
+  if (width <= 0 || height <= 0) {
+    rect = stage.getBoundingClientRect();
+    width = Math.floor(rect.width);
+    height = Math.floor(rect.height);
+  }
   if (width <= 0 || height <= 0) return;
 
   var dpr = window.devicePixelRatio || 1;
@@ -1104,7 +1111,10 @@ function drawScopeFrame() {
     scopeFfrBtnLabel.textContent = isIso ? 'Pulse Envelope' : 'FFR Envelope';
   }
 
-  var midY = height / 2;
+  var isCompact = width <= 640;
+  var hudReserve = isCompact ? 14 : 0;
+  var effectiveHeight = height - hudReserve;
+  var midY = effectiveHeight / 2;
   var nowSec = performance.now() * 0.001;
 
   if (scopeMode === 'orbit') {
@@ -1112,8 +1122,8 @@ function drawScopeFrame() {
     // SCOPE MODE: PHASE ORBIT / LISSAJOUS
     // -------------------------------------------------------------------------
     var cx = width / 2;
-    var cy = height / 2;
-    var maxR = Math.min(width, height) * 0.38;
+    var cy = effectiveHeight / 2;
+    var maxR = Math.min(width, effectiveHeight) * (isCompact ? 0.33 : 0.38);
 
     // Draw Polar Radar Grids
     ctx.lineWidth = 1;
@@ -1219,7 +1229,10 @@ function drawScopeFrame() {
       ctx.fillStyle = 'rgba(216, 180, 254, 0.7)';
       ctx.textAlign = 'center';
       var rotRpm = (primaryFreq * 60).toFixed(0);
-      ctx.fillText('Interaural Phase Orbit: ' + primaryFreq.toFixed(1) + ' rev/sec (' + rotRpm + ' RPM) • ' + bandName + ' Wave', cx, cy + maxR * 1.15);
+      var orbitLabel = isCompact
+        ? (primaryFreq.toFixed(1) + ' rev/s (' + rotRpm + ' RPM) • ' + bandName)
+        : ('Interaural Phase Orbit: ' + primaryFreq.toFixed(1) + ' rev/sec (' + rotRpm + ' RPM) • ' + bandName + ' Wave');
+      ctx.fillText(orbitLabel, cx, cy + maxR * 1.15);
     }
 
   } else if (scopeMode === 'oscilloscope') {
@@ -1228,7 +1241,7 @@ function drawScopeFrame() {
     // -------------------------------------------------------------------------
     var windowMs = scopeZoom === 'fast' ? 10 : scopeZoom === 'slow' ? 40 : 20;
     var effectiveAmp = isPlaying ? Math.min(1.0, Math.max(0.15, (toneVolume / 0.35) * 0.75)) : 0.6;
-    var plotAmp = (height * 0.36) * effectiveAmp;
+    var plotAmp = (effectiveHeight * (isCompact ? 0.32 : 0.36)) * effectiveAmp;
 
     // Draw horizontal zero line & amplitude guides
     ctx.lineWidth = 1;
@@ -1361,10 +1374,12 @@ function drawScopeFrame() {
       ctx.restore();
     }
 
-    // Time window calibration badge
-    ctx.fillStyle = 'rgba(203, 213, 225, 0.7)';
-    ctx.textAlign = 'right';
-    ctx.fillText('Window: ' + windowMs + ' ms • Carrier: ' + carrierF + ' Hz', width - 14, height - 14);
+    // Time window calibration badge (desktop only to prevent mobile HUD overlap)
+    if (!isCompact) {
+      ctx.fillStyle = 'rgba(203, 213, 225, 0.7)';
+      ctx.textAlign = 'right';
+      ctx.fillText('Window: ' + windowMs + ' ms • Carrier: ' + carrierF + ' Hz', width - 14, height - 14);
+    }
 
   } else {
     // -------------------------------------------------------------------------
@@ -1372,7 +1387,7 @@ function drawScopeFrame() {
     // -------------------------------------------------------------------------
     var spanMs = scopeZoom === 'fast' ? 150 : scopeZoom === 'slow' ? 700 : 350;
     var totalSpanSec = spanMs * 0.001;
-    var maxEnvAmp = (height * 0.36);
+    var maxEnvAmp = (effectiveHeight * (isCompact ? 0.32 : 0.36));
     var carrierFreq = baseFreq;
     var beatRate = primaryFreq;
     var envPhase = isPlaying ? (nowSec * 2 * Math.PI * beatRate) : 0;
@@ -1403,7 +1418,8 @@ function drawScopeFrame() {
         ctx.lineTo(gx, height);
         ctx.stroke();
         var sign = s > 0 ? '+' : '';
-        ctx.fillText(sign + (s * gridStepMs) + 'ms', gx, height - 12);
+        var timeLabelY = isCompact ? (midY + 13) : (height - 12);
+        ctx.fillText(sign + (s * gridStepMs) + 'ms', gx, timeLabelY);
       }
     }
 
@@ -1480,7 +1496,7 @@ function drawScopeFrame() {
       if (lambdaPix > 40 && lambdaPix < width * 0.9) {
         var calX1 = (width - lambdaPix) / 2;
         var calX2 = calX1 + lambdaPix;
-        var calY = midY - maxEnvAmp - 18;
+        var calY = midY - maxEnvAmp - (isCompact ? 14 : 18);
 
         ctx.save();
         ctx.lineWidth = 1.5;
@@ -1703,10 +1719,16 @@ function loadProgram(xml) {
   var descEl = document.getElementById('description');
   var chartDescEl = document.getElementById('chartDescription');
 
-  if (titleEl) titleEl.textContent = progName;
+  if (titleEl) {
+    titleEl.textContent = progName;
+    titleEl.title = progName;
+  }
   if (nameEl) nameEl.textContent = progName;
   if (descEl) descEl.textContent = progDesc;
-  if (chartDescEl) chartDescEl.textContent = progDesc;
+  if (chartDescEl) {
+    chartDescEl.textContent = progDesc;
+    chartDescEl.title = progDesc ? (progDesc + ' (Click to expand/collapse)') : '';
+  }
 
   timeMax = 0;
   maxFreq = 0.0;
@@ -4565,6 +4587,16 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   if (headerTestStereoBtn) {
     headerTestStereoBtn.addEventListener('click', testStereo);
+  }
+
+  var chartDescEl = document.getElementById('chartDescription');
+  if (chartDescEl) {
+    chartDescEl.addEventListener('click', function () {
+      this.classList.toggle('is-expanded');
+      if (typeof clientResize === 'function') {
+        clientResize();
+      }
+    });
   }
 
   window.addEventListener('keydown', function (e) {
