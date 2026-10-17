@@ -1705,7 +1705,10 @@ function loadProgram(xml) {
   var descEl = document.getElementById('description');
   var chartDescEl = document.getElementById('chartDescription');
 
-  if (titleEl) titleEl.textContent = progName;
+  if (titleEl) {
+    titleEl.textContent = progName;
+    titleEl.title = progName;
+  }
   if (nameEl) nameEl.textContent = progName;
   if (descEl) descEl.textContent = progDesc;
   if (chartDescEl) {

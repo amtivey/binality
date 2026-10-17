@@ -235,6 +235,7 @@ body {
   align-items: center;
   gap: 10px;
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 .header-sub-right {
@@ -3201,46 +3202,32 @@ body {
   }
 
   .header-sub-left {
-    gap: 6px;
     min-width: 0;
     flex: 1 1 auto;
   }
 
   #title {
-    font-size: 0.92rem;
+    font-size: 0.98rem;
     font-weight: 700;
   }
 
+  .header-sub-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
   .band-badge {
-    font-size: 0.6rem;
-    padding: 1px 6px;
+    font-size: 0.62rem;
+    padding: 2px 6px;
     border-radius: 6px;
   }
 
-  .header-sub-right {
-    gap: 6px;
-  }
-
-  .status-pill {
-    padding: 3px 8px;
-    font-size: 0.64rem;
-    gap: 5px;
-  }
-
-  .status-dot {
-    width: 6px;
-    height: 6px;
-  }
-
   .pill-carrier {
-    font-size: 0.58rem;
-    padding: 1px 5px;
+    font-size: 0.62rem;
+    padding: 2px 6px;
     display: inline-block;
-  }
-
-  .pill-foss {
-    font-size: 0.58rem;
-    padding: 1px 5px;
   }
 
   .entrainment-mode-selector {
