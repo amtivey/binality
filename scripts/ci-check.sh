@@ -5,12 +5,12 @@ cd "$(dirname "$0")/.."
 fail=0
 
 echo "== required files"
-for f in index.html manifest.webmanifest js/index.js js/main.js js/plugins.js; do
+for f in index.html manifest.webmanifest sw.js js/index.js css/index.css; do
   [ -f "$f" ] || { echo "missing: $f"; fail=1; }
 done
 
 echo "== JS syntax"
-for f in js/index.js js/main.js js/plugins.js; do node --check "$f"; done
+for f in js/index.js sw.js; do node --check "$f"; done
 
 echo "== manifest.webmanifest is valid JSON"
 python3 -m json.tool manifest.webmanifest > /dev/null
