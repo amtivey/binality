@@ -679,11 +679,6 @@ body {
    Visualizer Stage View Switcher & Waveform / FFR Scope (#waveformStage)
    ========================================================================== */
 
-.chart-header-left {
-  flex: 1 1 200px;
-  min-width: 0;
-}
-
 .chart-header-center {
   display: flex;
   align-items: center;
@@ -3262,11 +3257,15 @@ body {
   .chart-header {
     flex-direction: column;
     align-items: stretch;
-    gap: 5px;
+    gap: 6px;
+    flex: 0 0 auto;
+    min-height: 0;
   }
 
   .chart-header-left {
     width: 100%;
+    flex: 0 0 auto;
+    min-height: 0;
   }
 
   .chart-description {
@@ -3277,6 +3276,9 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     cursor: pointer;
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 0;
   }
 
   .chart-description.is-expanded {
@@ -3290,6 +3292,8 @@ body {
     justify-content: space-between;
     gap: 6px;
     width: 100%;
+    flex: 0 0 auto;
+    min-height: 0;
   }
 
   .stage-view-toggle {

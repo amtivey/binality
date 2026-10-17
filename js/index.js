@@ -4576,6 +4576,9 @@ document.addEventListener('DOMContentLoaded', function () {
   if (chartDescEl) {
     chartDescEl.addEventListener('click', function () {
       this.classList.toggle('is-expanded');
+      if (typeof clientResize === 'function') {
+        clientResize();
+      }
     });
   }
 
