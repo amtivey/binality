@@ -40,72 +40,64 @@
 
     <!-- Header -->
     <header id="header" class="glass-panel">
-      <div class="header-left">
-        <div class="brand-logo-wrap">
-          <img id="icon" src="images/icon.png" alt="Binality Icon">
+      <!-- Top Row: Logo & Brand on Left, Quick Action Buttons on Right -->
+      <div class="header-top-row">
+        <div class="header-brand">
+          <div class="brand-logo-wrap">
+            <img id="icon" src="images/icon.png" alt="Binality Icon">
+          </div>
+          <span class="brand-name">BINALITY</span>
         </div>
-        <div class="header-titles">
-          <div class="brand-row">
-            <span class="brand-name">BINALITY</span>
-            <span class="pill-badge pill-foss">FOSS</span>
-            <span id="carrierBadge" class="pill-badge pill-carrier" title="Base Carrier Frequency">440 Hz Carrier</span>
-          </div>
-          <div class="program-row">
-            <h1 id="title">Relaxation</h1>
-            <span id="activeBandBadge" class="band-badge">Theta / Delta</span>
-          </div>
+
+        <div class="header-actions">
+          <button id="headerStudioBtn" type="button" class="studio-quick-btn" title="Open Custom Preset Studio (Create, Save &amp; Share Frequency Recipes)">
+            <svg class="studio-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="4" y1="21" x2="4" y2="14"></line>
+              <line x1="4" y1="10" x2="4" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12" y2="3"></line>
+              <line x1="20" y1="21" x2="20" y2="16"></line>
+              <line x1="20" y1="12" x2="20" y2="3"></line>
+              <line x1="1" y1="14" x2="7" y2="14"></line>
+              <line x1="9" y1="8" x2="15" y2="8"></line>
+              <line x1="17" y1="16" x2="23" y2="16"></line>
+            </svg>
+            <span class="studio-quick-label">Studio</span>
+          </button>
+
+          <button id="headerBreathBtn" type="button" class="breath-quick-btn" aria-pressed="false" title="Toggle Visual Breathing Pacer (Box Breathing &amp; 4-7-8 Pranayama)">
+            <svg class="breath-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z"></path>
+              <path d="M9 21h6"></path>
+            </svg>
+            <span id="headerBreathLabel" class="breath-quick-label">Breathe</span>
+          </button>
+
+          <button id="menu" type="button" class="icon-button" aria-label="Open Program &amp; Settings" title="Program &amp; Settings">
+            <svg class="gear-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            <span class="menu-label">Settings</span>
+          </button>
         </div>
       </div>
 
-      <div class="header-right">
-        <div id="audioStatus" class="status-pill" aria-live="polite">
-          <span class="status-dot"></span>
-          <span class="status-text">Idle</span>
+      <!-- Sub Row: Under the Buttons! Program Name & Band on Left, Audio Status, Carrier & FOSS on Right -->
+      <div class="header-sub-row">
+        <div class="header-sub-left">
+          <h1 id="title">Relaxation</h1>
+          <span id="activeBandBadge" class="band-badge">Theta / Delta</span>
         </div>
 
-        <button id="headerStudioBtn" type="button" class="studio-quick-btn" title="Open Custom Preset Studio (Create, Save &amp; Share Frequency Recipes)">
-          <svg class="studio-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <line x1="4" y1="21" x2="4" y2="14"></line>
-            <line x1="4" y1="10" x2="4" y2="3"></line>
-            <line x1="12" y1="21" x2="12" y2="12"></line>
-            <line x1="12" y1="8" x2="12" y2="3"></line>
-            <line x1="20" y1="21" x2="20" y2="16"></line>
-            <line x1="20" y1="12" x2="20" y2="3"></line>
-            <line x1="1" y1="14" x2="7" y2="14"></line>
-            <line x1="9" y1="8" x2="15" y2="8"></line>
-            <line x1="17" y1="16" x2="23" y2="16"></line>
-          </svg>
-          <span class="studio-quick-label">Studio</span>
-        </button>
-
-        <button id="headerBreathBtn" type="button" class="breath-quick-btn" aria-pressed="false" title="Toggle Visual Breathing Pacer (Box Breathing &amp; 4-7-8 Pranayama)">
-          <svg class="breath-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z"></path>
-            <path d="M9 21h6"></path>
-          </svg>
-          <span id="headerBreathLabel" class="breath-quick-label">Breathe</span>
-        </button>
-
-        <button id="headerModeBtn" type="button" class="mode-quick-btn" title="Toggle Entrainment Mode: Binaural Beats (Headphones) or Isochronic Tones (Speakers &amp; Phones)">
-          <span id="headerModeIcon" class="mode-quick-icon">🎧</span>
-          <span id="headerModeLabel" class="mode-quick-label">Binaural</span>
-        </button>
-
-        <button id="headerTestStereoBtn" type="button" class="stereo-quick-btn" title="Test Left / Right Headphone Separation">
-          <svg class="headphone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
-            <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
-          </svg>
-          <span class="stereo-quick-label">Test L / R</span>
-        </button>
-
-        <button id="menu" type="button" class="icon-button" aria-label="Open Program &amp; Settings" title="Program &amp; Settings">
-          <svg class="gear-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="3"></circle>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-          </svg>
-          <span class="menu-label">Programs &amp; Settings</span>
-        </button>
+        <div class="header-sub-right">
+          <div id="audioStatus" class="status-pill" aria-live="polite">
+            <span class="status-dot"></span>
+            <span class="status-text">Idle</span>
+          </div>
+          <span id="carrierBadge" class="pill-badge pill-carrier" title="Base Carrier Frequency">440 Hz</span>
+          <span class="pill-badge pill-foss">FOSS</span>
+        </div>
       </div>
     </header>
 
@@ -113,27 +105,29 @@
     <main id="body" class="glass-panel">
       <div class="chart-header">
         <div class="chart-header-left">
-          <p id="chartDescription" class="chart-description">Mixed theta and delta waves aid relaxation and may induce sleep (60 minutes)</p>
+          <p id="chartDescription" class="chart-description" title="Click to expand/collapse full description">Mixed theta and delta waves aid relaxation and may induce sleep (60 minutes)</p>
         </div>
-        <div class="chart-header-center">
+        <div class="chart-header-controls">
           <div id="stageViewToggle" class="stage-view-toggle" role="group" aria-label="Visualizer stage view mode">
             <button id="btnViewCurve" type="button" class="stage-view-btn active" data-view="curve" title="View Program Frequency Curve over time">
               <svg class="view-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
               </svg>
-              <span>Program Curve</span>
+              <span class="view-btn-text-full">Program Curve</span>
+              <span class="view-btn-text-short">Curve</span>
             </button>
             <button id="btnViewWaveform" type="button" class="stage-view-btn" data-view="waveform" title="View Live Acoustic Waveforms &amp; Frequency Following Response (FFR) Envelope">
               <svg class="view-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M2 13a2 2 0 0 0 2-2V7a2 2 0 0 1 4 0v13a2 2 0 0 0 4 0V4a2 2 0 0 1 4 0v13a2 2 0 0 0 4 0v-4a2 2 0 0 1 2-2"></path>
               </svg>
-              <span>Waveform / FFR Scope</span>
+              <span class="view-btn-text-full">Waveform / FFR Scope</span>
+              <span class="view-btn-text-short">Scope</span>
             </button>
           </div>
-        </div>
-        <div class="chart-meta">
-          <span id="voiceCountBadge" class="meta-badge">3 Voices</span>
-          <span id="liveFreqBadge" class="meta-badge meta-badge-accent">12.0 Hz Beat</span>
+          <div class="chart-meta">
+            <span id="voiceCountBadge" class="meta-badge">3 Voices</span>
+            <span id="liveFreqBadge" class="meta-badge meta-badge-accent">12.0 Hz Beat</span>
+          </div>
         </div>
       </div>
 
@@ -283,46 +277,50 @@
         </div>
       </div>
 
-      <div class="tone-quick-control" title="Beats Master Volume">
-        <svg class="tone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-        </svg>
-        <label for="quickToneSlider" id="quickToneLabel" class="ambient-quick-label">Beats</label>
-        <input id="quickToneSlider" type="range" min="0" max="1" step="0.01" value="0.35" aria-label="Beats volume">
-        <span id="quickToneVal" class="tone-val-badge">35%</span>
+      <div class="dock-quick-sliders">
+        <div class="tone-quick-control" title="Beats Master Volume">
+          <svg class="tone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          </svg>
+          <label for="quickToneSlider" id="quickToneLabel" class="ambient-quick-label">Beats</label>
+          <input id="quickToneSlider" type="range" min="0" max="1" step="0.01" value="0.35" aria-label="Beats volume">
+          <span id="quickToneVal" class="tone-val-badge">35%</span>
+        </div>
+
+        <div class="ambient-quick-control" title="Ambient Pink Noise / Soundscape Volume">
+          <svg class="ambient-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 15a4 4 0 0 0 4 4h9a5 5 0 1 0-.1-9.999 5.002 5.002 0 0 0-9.78 2.096A4.001 4.001 0 0 0 3 15z"></path>
+          </svg>
+          <label for="quickAmbientSlider" id="quickAmbientLabel" class="ambient-quick-label">Pink Noise</label>
+          <input id="quickAmbientSlider" type="range" min="0" max="1" step="0.01" value="0.20" aria-label="Ambient soundscape volume">
+          <span id="quickAmbientVal" class="ambient-val-badge">20%</span>
+        </div>
       </div>
 
-      <div class="ambient-quick-control" title="Ambient Pink Noise / Soundscape Volume">
-        <svg class="ambient-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M3 15a4 4 0 0 0 4 4h9a5 5 0 1 0-.1-9.999 5.002 5.002 0 0 0-9.78 2.096A4.001 4.001 0 0 0 3 15z"></path>
-        </svg>
-        <label for="quickAmbientSlider" id="quickAmbientLabel" class="ambient-quick-label">Pink Noise</label>
-        <input id="quickAmbientSlider" type="range" min="0" max="1" step="0.01" value="0.20" aria-label="Ambient soundscape volume">
-        <span id="quickAmbientVal" class="ambient-val-badge">20%</span>
-      </div>
+      <div class="dock-actions-row">
+        <div class="timer-quick-control" title="Session Sleep Timer &amp; Harmonic Chime">
+          <svg class="timer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <select id="quickTimerSelect" class="timer-quick-select" aria-label="Session sleep timer">
+            <option value="0">Timer: Off</option>
+            <option value="5">5 min</option>
+            <option value="10">10 min</option>
+            <option value="15">15 min</option>
+            <option value="20">20 min</option>
+            <option value="30">30 min</option>
+            <option value="45">45 min</option>
+            <option value="60">60 min</option>
+            <option value="10s">10s Test</option>
+          </select>
+          <span id="quickTimerDisplay" class="timer-val-badge">Continuous</span>
+        </div>
 
-      <div class="timer-quick-control" title="Session Sleep Timer &amp; Harmonic Chime">
-        <svg class="timer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="12" cy="12" r="10"></circle>
-          <polyline points="12 6 12 12 16 14"></polyline>
-        </svg>
-        <select id="quickTimerSelect" class="timer-quick-select" aria-label="Session sleep timer">
-          <option value="0">Timer: Off</option>
-          <option value="5">5 min</option>
-          <option value="10">10 min</option>
-          <option value="15">15 min</option>
-          <option value="20">20 min</option>
-          <option value="30">30 min</option>
-          <option value="45">45 min</option>
-          <option value="60">60 min</option>
-          <option value="10s">10s Test</option>
-        </select>
-        <span id="quickTimerDisplay" class="timer-val-badge">Continuous</span>
-      </div>
-
-      <div id="footer">
-        <button id="start" type="button">start</button>
+        <div id="footer">
+          <button id="start" type="button">start</button>
+        </div>
       </div>
     </section>
 

@@ -680,10 +680,10 @@ function createProgramChart() {
 
   function getLayout(width, height) {
     var isCompact = width < 500;
-    var padLeft = isCompact ? 38 : 48;
-    var padRight = isCompact ? 16 : 24;
-    var padTop = isCompact ? 16 : 22;
-    var padBottom = isCompact ? 32 : 38;
+    var padLeft = isCompact ? 34 : 48;
+    var padRight = isCompact ? 14 : 24;
+    var padTop = isCompact ? 12 : 22;
+    var padBottom = isCompact ? 24 : 36;
     return {
       padLeft: padLeft,
       padRight: padRight,
@@ -773,13 +773,15 @@ function createProgramChart() {
       ctx.stroke();
 
       ctx.fillStyle = '#94a3b8';
-      ctx.fillText(xVal + 's', px, padTop + plotH + 6);
+      ctx.fillText(xVal + 's', px, padTop + plotH + 4);
     }
 
-    ctx.fillStyle = 'rgba(203, 213, 225, 0.65)';
-    ctx.font = '500 10px "JetBrains Mono", monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('frequency/time(s)', padLeft + plotW / 2, height - 13);
+    if (height >= 180) {
+      ctx.fillStyle = 'rgba(203, 213, 225, 0.65)';
+      ctx.font = '500 10px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('frequency/time(s)', padLeft + plotW / 2, height - 8);
+    }
 
     // 3. Plot Voice Curves
     ctx.save();
@@ -1706,7 +1708,10 @@ function loadProgram(xml) {
   if (titleEl) titleEl.textContent = progName;
   if (nameEl) nameEl.textContent = progName;
   if (descEl) descEl.textContent = progDesc;
-  if (chartDescEl) chartDescEl.textContent = progDesc;
+  if (chartDescEl) {
+    chartDescEl.textContent = progDesc;
+    chartDescEl.title = progDesc ? (progDesc + ' (Click to expand/collapse)') : '';
+  }
 
   timeMax = 0;
   maxFreq = 0.0;
@@ -4565,6 +4570,13 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   if (headerTestStereoBtn) {
     headerTestStereoBtn.addEventListener('click', testStereo);
+  }
+
+  var chartDescEl = document.getElementById('chartDescription');
+  if (chartDescEl) {
+    chartDescEl.addEventListener('click', function () {
+      this.classList.toggle('is-expanded');
+    });
   }
 
   window.addEventListener('keydown', function (e) {
