@@ -5096,7 +5096,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  initPwaServiceWorker();
+  if (!(window.BinalityPlatform && window.BinalityPlatform.isNative)) initPwaServiceWorker();
 });
 
 window.addEventListener('resize', function () {
