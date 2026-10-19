@@ -87,7 +87,7 @@ var STOP_FADE_SEC = 0.3;
 var SEEK_FADE_SEC = 0.15; // gain fade-out across a seek restart while playing (MUX-IN-3)
 var TAP_MAX_MOVE_PX = 10; // chart tap = moved less than this ...
 var TAP_MAX_MS = 300; // ... and pressed for less than this (MUX-IN-2)
-var TOUCH_TOOLTIP_LIFT_PX = 56; // touch tooltip sits at least this far above the finger (MUX-IN-1)
+var TOUCH_TOOLTIP_LIFT_PX = 58; // touch tooltip sits at least this far above the finger (MUX-IN-1)
 var TOAST_MS = 1500;
 var seekRestartId = null;
 var sliderHeld = false; // true while a finger/mouse holds the #slider thumb
@@ -999,10 +999,53 @@ function createProgramChart() {
       var leftPos;
       var topPos;
       if (isTouch) {
-        // Finger or pen: centre the tooltip above the contact point so the hand never covers it (MUX-IN-1).
-        leftPos = x - tipRect.width / 2;
-        leftPos = Math.min(leftPos, rect.width - tipRect.width - 8);
-        topPos = Math.max(8, y - tipRect.height - TOUCH_TOOLTIP_LIFT_PX);
+        // Finger or pen (MUX-IN-1): keep the tooltip >= TOUCH_TOOLTIP_LIFT_PX from the touch point, inside the stage.
+        // Try above, then beside (right/left), then below; if none fit, fall back to a one-line compact tooltip.
+        var placeTouch = function (w, h, M, L) {
+          var cy = Math.max(M, Math.min(rect.height - h - M, y - h / 2));
+          var cx = Math.max(M, Math.min(rect.width - w - M, x - w / 2));
+          var cands = [
+            { l: cx, t: y - h - L },
+            { l: x + L, t: cy },
+            { l: x - w - L, t: cy },
+            { l: cx, t: y + L }
+          ];
+          for (var k = 0; k < cands.length; ++k) {
+            var c = cands[k];
+            if (c.l >= M && c.t >= M && c.l + w <= rect.width - M && c.t + h <= rect.height - M) return c;
+          }
+          return null;
+        };
+        var pos = placeTouch(tipRect.width, tipRect.height, 8, TOUCH_TOOLTIP_LIFT_PX);
+        if (!pos) {
+          var parts = [];
+          for (var j = 0; j < voicesData.length; ++j) parts.push(getFrequency(voicesData[j], hoverTime).toFixed(2));
+          tooltip.innerHTML =
+            '<div class="tooltip-time" style="margin:0;white-space:nowrap;">' +
+            getTimeString(hoverTime) +
+            ' &middot; ' +
+            parts.join(' / ') +
+            ' Hz</div>';
+          tipRect = tooltip.getBoundingClientRect();
+          pos = placeTouch(tipRect.width, tipRect.height, 0, TOUCH_TOOLTIP_LIFT_PX);
+        }
+        if (!pos) {
+          // Tiny stage: the stage corner farthest from the finger.
+          var best = -1;
+          [2, rect.width - tipRect.width - 2].forEach(function (cl) {
+            [2, rect.height - tipRect.height - 2].forEach(function (ct) {
+              var ddx = Math.max(cl - x, 0, x - (cl + tipRect.width));
+              var ddy = Math.max(ct - y, 0, y - (ct + tipRect.height));
+              var dd = Math.hypot(ddx, ddy);
+              if (dd > best) {
+                best = dd;
+                pos = { l: cl, t: ct };
+              }
+            });
+          });
+        }
+        leftPos = pos.l;
+        topPos = pos.t;
       } else {
         leftPos = x + 14;
         if (leftPos + tipRect.width > rect.width - 8) {
