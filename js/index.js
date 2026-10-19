@@ -15,11 +15,18 @@ var hoverTime = null;
 
 window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
+// Every AudioContext goes through createAudioContext() so onstatechange is always wired (see lifecycle block).
+function createAudioContext() {
+  var ctx = new AudioContext();
+  ctx.onstatechange = onContextStateChange;
+  return ctx;
+}
+
 var context = null;
 var isAudioSupported = typeof window.AudioContext !== 'undefined';
 try {
   if (isAudioSupported) {
-    context = new AudioContext();
+    context = createAudioContext();
   }
 } catch (e) {
   context = null;
@@ -30,6 +37,11 @@ var gain = [];
 var osc = [];
 
 var entrainmentMode = 'binaural'; // 'binaural' (stereo headphones) or 'isochronic' (speakers & phones)
+// Canvas backing-store scale: device pixel ratio capped at 2 to bound memory/fill cost on high-DPR phones.
+function getCanvasDpr() {
+  return Math.min(window.devicePixelRatio || 1, 2);
+}
+
 var activeStageView = 'curve'; // 'curve' (Program Timeline) or 'waveform' (Live Waveform & FFR Scope)
 var scopeMode = 'envelope'; // 'envelope', 'oscilloscope', 'orbit'
 var scopeZoom = 'med'; // 'fast', 'med', 'slow'
@@ -59,7 +71,32 @@ var noiseLfoGain = null;
 var timerSetting = '0';
 var timerDurationSec = 0;
 var timerRemainingSec = 0;
-var timerInterval = null;
+// Audio-clock end schedule (context.currentTime seconds); null = not scheduled. UI derives remaining time from these.
+var sleepEndAt = null;
+var programEndAt = null;
+var toneRampEndAt = 0;
+var noiseRampEndAt = 0;
+var toneRampStartAt = 0;
+var noiseRampStartAt = 0;
+var SLEEP_FADE_SEC = 10;
+var PROGRAM_FADE_SEC = 3;
+var sleepFadeSec = SLEEP_FADE_SEC; // fade length fixed when the end is scheduled (min of 10 s and half the remaining time)
+var programFadeSec = PROGRAM_FADE_SEC;
+var START_FADE_SEC = 3;
+var STOP_FADE_SEC = 0.3;
+var SEEK_FADE_SEC = 0.15; // gain fade-out across a seek restart while playing (MUX-IN-3)
+var TAP_MAX_MOVE_PX = 10; // chart tap = moved less than this ...
+var TAP_MAX_MS = 300; // ... and pressed for less than this (MUX-IN-2)
+var TOUCH_TOOLTIP_LIFT_PX = 56; // touch tooltip sits at least this far above the finger (MUX-IN-1)
+var TOAST_MS = 1500;
+var seekRestartId = null;
+var sliderHeld = false; // true while a finger/mouse holds the #slider thumb
+var pendingStopId = null;
+var ctxResumePending = false;
+var interruptedInfo = null; // { at: Date.now(), reason } while UI state is 'interrupted'
+var hiddenWatchId = null;
+var lastPositionSavedAt = -1;
+var pendingRestorePosition = null; // { program, position } from the previous session, applied by the first loadProgram
 var chimeEnabled = true;
 var timerCompletedStatus = null;
 
@@ -543,12 +580,7 @@ function updateSliderFill() {
   var val = parseFloat(slider.value) || 0;
   var pct = max > min ? ((val - min) / (max - min)) * 100 : 0;
   pct = Math.max(0, Math.min(100, pct));
-  slider.style.background =
-    'linear-gradient(90deg, #ff70d9 0%, #a855f7 ' +
-    pct.toFixed(2) +
-    '%, rgba(255, 255, 255, 0.14) ' +
-    pct.toFixed(2) +
-    '%, rgba(255, 255, 255, 0.14) 100%)';
+  slider.style.setProperty('--fill', pct.toFixed(2) + '%');
 }
 
 function updateLiveReadouts(t) {
@@ -700,10 +732,12 @@ function createProgramChart() {
     var height = Math.floor(rect.height);
     if (width <= 0 || height <= 0) return;
 
-    var dpr = window.devicePixelRatio || 1;
-    if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
+    var dpr = getCanvasDpr();
+    var pxW = Math.floor(width * dpr);
+    var pxH = Math.floor(height * dpr);
+    if (canvas.width !== pxW || canvas.height !== pxH) {
+      canvas.width = pxW;
+      canvas.height = pxH;
     }
 
     ctx.save();
@@ -736,7 +770,7 @@ function createProgramChart() {
 
     // 2. Grid lines & Axis Ticks
     ctx.lineWidth = 1;
-    ctx.font = '500 10px "JetBrains Mono", monospace';
+    ctx.font = '500 11px "JetBrains Mono", monospace';
 
     var yTickCount = height < 220 ? 4 : 5;
     var rawYStep = yMax / yTickCount;
@@ -778,7 +812,7 @@ function createProgramChart() {
 
     if (height >= 180) {
       ctx.fillStyle = 'rgba(203, 213, 225, 0.65)';
-      ctx.font = '500 10px "JetBrains Mono", monospace';
+      ctx.font = '500 11px "JetBrains Mono", monospace';
       ctx.textAlign = 'center';
       ctx.fillText('frequency/time(s)', padLeft + plotW / 2, height - 8);
     }
@@ -909,7 +943,7 @@ function createProgramChart() {
     ctx.restore();
   }
 
-  function handlePointerMove(clientX, clientY) {
+  function handlePointerMove(clientX, clientY, isTouch) {
     var rect = container.getBoundingClientRect();
     var x = clientX - rect.left;
     var y = clientY - rect.top;
@@ -960,11 +994,20 @@ function createProgramChart() {
       tooltip.classList.remove('hidden');
 
       var tipRect = tooltip.getBoundingClientRect();
-      var leftPos = x + 14;
-      if (leftPos + tipRect.width > rect.width - 8) {
-        leftPos = x - tipRect.width - 14;
+      var leftPos;
+      var topPos;
+      if (isTouch) {
+        // Finger or pen: centre the tooltip above the contact point so the hand never covers it (MUX-IN-1).
+        leftPos = x - tipRect.width / 2;
+        leftPos = Math.min(leftPos, rect.width - tipRect.width - 8);
+        topPos = Math.max(8, y - tipRect.height - TOUCH_TOOLTIP_LIFT_PX);
+      } else {
+        leftPos = x + 14;
+        if (leftPos + tipRect.width > rect.width - 8) {
+          leftPos = x - tipRect.width - 14;
+        }
+        topPos = Math.max(8, Math.min(rect.height - tipRect.height - 8, y - tipRect.height / 2));
       }
-      var topPos = Math.max(8, Math.min(rect.height - tipRect.height - 8, y - tipRect.height / 2));
       tooltip.style.left = Math.max(8, leftPos) + 'px';
       tooltip.style.top = topPos + 'px';
     }
@@ -972,29 +1015,68 @@ function createProgramChart() {
     replot();
   }
 
-  canvas.addEventListener('mousemove', function (e) {
-    handlePointerMove(e.clientX, e.clientY);
-  });
+  // Pointer Events (MUX-IN-1/2): hover for mouse, press-and-drag scrub for touch/pen. A seek happens only on a
+  // tap: moved < 10 px and (for touch/pen) pressed < 300 ms. Dragging never seeks. The canvas has touch-action: none.
+  var press = null;
 
-  canvas.addEventListener('mouseleave', function () {
+  function hideCursor() {
     hoverTime = null;
     if (tooltip) tooltip.classList.add('hidden');
     replot();
-  });
+  }
 
-  canvas.addEventListener('click', function (e) {
+  function secondAtClientX(clientX) {
     var rect = container.getBoundingClientRect();
-    var x = e.clientX - rect.left;
+    var x = clientX - rect.left;
     var layout = getLayout(rect.width, rect.height);
     if (x >= layout.padLeft && x <= layout.padLeft + layout.plotW && timeMax > 0) {
       var ratio = (x - layout.padLeft) / layout.plotW;
-      var seekSec = Math.max(0, Math.min(timeMax, Math.round(ratio * timeMax)));
-      var slider = document.getElementById('slider');
-      if (slider) {
-        slider.value = seekSec;
-        onSliderChanged();
-      }
+      return Math.max(0, Math.min(timeMax, Math.round(ratio * timeMax)));
     }
+    return null;
+  }
+
+  canvas.addEventListener('pointerdown', function (e) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    press = { id: e.pointerId, type: e.pointerType, x: e.clientX, y: e.clientY, at: Date.now(), moved: false };
+    try {
+      canvas.setPointerCapture(e.pointerId);
+    } catch (err) {}
+    handlePointerMove(e.clientX, e.clientY, e.pointerType !== 'mouse');
+  });
+
+  canvas.addEventListener('pointermove', function (e) {
+    if (press && press.id === e.pointerId) {
+      if (Math.hypot(e.clientX - press.x, e.clientY - press.y) >= TAP_MAX_MOVE_PX) press.moved = true;
+    } else if (press) {
+      return;
+    }
+    handlePointerMove(e.clientX, e.clientY, e.pointerType !== 'mouse');
+  });
+
+  canvas.addEventListener('pointerup', function (e) {
+    if (!press || press.id !== e.pointerId) return;
+    var p = press;
+    press = null;
+    try {
+      canvas.releasePointerCapture(e.pointerId);
+    } catch (err) {}
+    var isTap = !p.moved && (p.type === 'mouse' || Date.now() - p.at < TAP_MAX_MS);
+    if (isTap) {
+      var seekSec = secondAtClientX(e.clientX);
+      if (seekSec !== null) seekToSecond(seekSec, true);
+    }
+    if (p.type !== 'mouse') hideCursor();
+  });
+
+  canvas.addEventListener('pointercancel', function () {
+    press = null;
+    hideCursor();
+  });
+
+  canvas.addEventListener('pointerleave', function (e) {
+    if (press || e.pointerType !== 'mouse') return;
+    hideCursor();
   });
 
   return {
@@ -1061,10 +1143,12 @@ function drawScopeFrame() {
   }
   if (width <= 0 || height <= 0) return;
 
-  var dpr = window.devicePixelRatio || 1;
-  if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
+  var dpr = getCanvasDpr();
+  var pxW = Math.floor(width * dpr);
+  var pxH = Math.floor(height * dpr);
+  if (canvas.width !== pxW || canvas.height !== pxH) {
+    canvas.width = pxW;
+    canvas.height = pxH;
   }
 
   var ctx = canvas.getContext('2d');
@@ -1150,7 +1234,7 @@ function drawScopeFrame() {
     ctx.stroke();
 
     // Axis Labels
-    ctx.font = '500 10px "JetBrains Mono", monospace';
+    ctx.font = '500 11px "JetBrains Mono", monospace';
     ctx.fillStyle = '#38bdf8';
     ctx.textAlign = 'right';
     ctx.fillText('Left Ear (X) →', cx + maxR * 1.1, cy - 6);
@@ -1255,7 +1339,7 @@ function drawScopeFrame() {
     ctx.lineTo(width, midY + plotAmp);
     ctx.stroke();
 
-    ctx.font = '500 10px "JetBrains Mono", monospace';
+    ctx.font = '500 11px "JetBrains Mono", monospace';
     ctx.fillStyle = '#64748b';
     ctx.textAlign = 'left';
     ctx.fillText('+1.0', 10, midY - plotAmp - 4);
@@ -1405,7 +1489,7 @@ function drawScopeFrame() {
     // Vertical time grid lines
     var gridStepMs = spanMs <= 200 ? 25 : spanMs <= 400 ? 50 : 100;
     var numSteps = Math.floor(spanMs / gridStepMs);
-    ctx.font = '500 10px "JetBrains Mono", monospace';
+    ctx.font = '500 11px "JetBrains Mono", monospace';
     ctx.fillStyle = '#64748b';
     ctx.textAlign = 'center';
 
@@ -1511,7 +1595,7 @@ function drawScopeFrame() {
         ctx.stroke();
 
         ctx.fillStyle = '#f472b6';
-        ctx.font = '600 10px "JetBrains Mono", monospace';
+        ctx.font = '600 11px "JetBrains Mono", monospace';
         ctx.textAlign = 'center';
         ctx.fillText('λ = ' + cycleMs.toFixed(1) + 'ms (' + beatRate.toFixed(1) + ' Hz ' + bandName + ' Entrainment)', (calX1 + calX2) / 2, calY - 6);
         ctx.restore();
@@ -1636,13 +1720,15 @@ function isCurrentlyPlaying() {
   return startBtn ? startBtn.getAttribute('data-playing') === 'true' : false;
 }
 
-function setPlayingUI(playing) {
+function setPlayingUI(playing, interrupted) {
   var startBtn = document.getElementById('start');
   var audioStatus = document.getElementById('audioStatus');
+  var uiState = playing ? 'playing' : interrupted ? 'interrupted' : 'idle';
 
   if (startBtn) {
     startBtn.textContent = playing ? 'stop' : 'start';
     startBtn.setAttribute('data-playing', playing ? 'true' : 'false');
+    startBtn.setAttribute('data-state', uiState);
     if (playing) {
       startBtn.classList.add('is-playing');
     } else {
@@ -1652,6 +1738,12 @@ function setPlayingUI(playing) {
 
   if (audioStatus) {
     var statusText = audioStatus.querySelector('.status-text');
+    audioStatus.setAttribute('data-state', uiState);
+    if (interrupted) {
+      audioStatus.classList.add('interrupted');
+    } else {
+      audioStatus.classList.remove('interrupted');
+    }
     if (playing) {
       audioStatus.classList.add('playing');
       if (statusText) {
@@ -1659,7 +1751,7 @@ function setPlayingUI(playing) {
       }
     } else {
       audioStatus.classList.remove('playing');
-      if (statusText) statusText.textContent = 'Idle';
+      if (statusText) statusText.textContent = interrupted ? 'Interrupted' : 'Idle';
     }
   }
 
@@ -1682,7 +1774,7 @@ function setPlayingUI(playing) {
 
   if (activeStageView === 'waveform') {
     if (playing) {
-      startScopeAnimation();
+      if (!document.hidden) startScopeAnimation();
     } else {
       drawScopeFrame();
       stopScopeAnimation();
@@ -1775,21 +1867,30 @@ function loadProgram(xml) {
     durationEl.textContent = getTimeString(timeMax);
   }
 
+  var restoredPos = 0;
+  if (pendingRestorePosition) {
+    if (pendingRestorePosition.program === currentProgram && pendingRestorePosition.position > 0 && pendingRestorePosition.position < timeMax) {
+      restoredPos = Math.floor(pendingRestorePosition.position);
+    }
+    pendingRestorePosition = null; // only the first program load of a session restores
+  }
+
   var slider = document.getElementById('slider');
   if (slider) {
     slider.setAttribute('max', timeMax);
-    slider.value = 0;
+    slider.value = restoredPos;
   }
 
-  timeStart = 0;
+  timeStart = restoredPos;
   var posEl = document.getElementById('divPosition');
   if (posEl) {
-    posEl.textContent = getTimeString(0);
+    posEl.textContent = getTimeString(restoredPos);
   }
+  savePosition(restoredPos);
 
   updateSliderFill();
+  updateLiveReadouts(restoredPos);
   renderLegend();
-  updateLiveReadouts(0);
 
   if (!chart) {
     chart = createProgramChart();
@@ -1888,16 +1989,32 @@ function changeProgram(filename) {
     });
 }
 
-function start(preserveTimer) {
+function start(preserveTimer, fullFade) {
   if (!context && isAudioSupported) {
     try {
-      context = new AudioContext();
+      context = createAudioContext();
     } catch (e) {}
   }
   if (!context || !program) return;
 
-  if (context.state === 'suspended') {
-    context.resume();
+  cancelPendingStop();
+  interruptedInfo = null;
+  // Always request resume: a preceding stop() may have a suspend() still in flight (state still reads 'running').
+  ctxResumePending = true;
+  var resumeResult = null;
+  try {
+    resumeResult = context.resume();
+  } catch (e) {}
+  var resumeSettled = function () {
+    ctxResumePending = false;
+    if (isCurrentlyPlaying() && context && context.state !== 'running') {
+      enterInterrupted('resume-failed');
+    }
+  };
+  if (resumeResult && typeof resumeResult.then === 'function') {
+    resumeResult.then(resumeSettled, resumeSettled);
+  } else {
+    ctxResumePending = false;
   }
 
   cleanupAudioNodes();
@@ -1913,12 +2030,10 @@ function start(preserveTimer) {
   timeContext = context.currentTime;
 
   toneMasterGain = context.createGain();
-  if (toneVolume > 0.001) {
-    toneMasterGain.gain.setValueAtTime(0.0001, timeContext);
-    toneMasterGain.gain.exponentialRampToValueAtTime(toneVolume, timeContext + 0.8);
-  } else {
-    toneMasterGain.gain.setValueAtTime(0, timeContext);
-  }
+  // Gain ramps 0 -> target over START_FADE_SEC; scheduleAudioEnd() below builds the ramp (and any end fade).
+  toneMasterGain.gain.setValueAtTime(0, timeContext);
+  toneRampStartAt = timeContext;
+  toneRampEndAt = timeContext + (preserveTimer === true && !fullFade ? 0.8 : START_FADE_SEC);
   toneMasterGain.connect(context.destination);
   ensureScopeAnalysers();
   if (analyserSplitter) {
@@ -2083,41 +2198,115 @@ function start(preserveTimer) {
     }
   }
 
-  startAmbientNoise();
+  startAmbientNoise(preserveTimer === true && !fullFade ? 0.8 : START_FADE_SEC);
+
+  // Program end is on the audio clock: fade + osc.stop at timeMax (see scheduleAudioEnd).
+  programEndAt = timeContext + Math.max(0, timeMax - timeStart);
+  programFadeSec = Math.min(PROGRAM_FADE_SEC, Math.max(0, timeMax - timeStart) / 2);
 
   if (timerDurationSec > 0) {
     startSleepTimer(preserveTimer);
   } else {
+    scheduleAudioEnd();
     syncTimerUI();
   }
 
   if (chart) chart.replot();
-  if (activeStageView === 'waveform') {
+  if (activeStageView === 'waveform' && !document.hidden) {
     startScopeAnimation();
   }
 
-  monitor = setInterval(function () {
-    var t = parseInt(timeStart, 10) + Math.floor(context.currentTime - timeContext);
-    var sliderEl = document.getElementById('slider');
-    var posEl = document.getElementById('divPosition');
+  if (document.hidden) {
+    armHiddenWatch();
+  } else {
+    startMonitor();
+  }
+}
 
-    if (t > timeMax) {
-      if (sliderEl) sliderEl.value = 0;
-      if (posEl) posEl.textContent = '0:00';
-      updateSliderFill();
-      updateLiveReadouts(0);
-      stop(false, true);
-      playChime(false);
-      timerCompletedStatus = chimeEnabled ? 'Complete (Chime)' : 'Complete';
+// Position/timer/end-of-session UI driver. Everything here is derived from context.currentTime; the interval only
+// decides how often we paint, so throttling it (background tabs) cannot move the end of the session.
+function startMonitor() {
+  if (monitor !== null) clearInterval(monitor);
+  monitor = setInterval(monitorTick, 250);
+}
+
+function stopMonitor() {
+  if (monitor !== null) {
+    clearInterval(monitor);
+    monitor = null;
+  }
+}
+
+function getCurrentPositionSec() {
+  var slider = document.getElementById('slider');
+  if (context && isCurrentlyPlaying()) {
+    var t = parseInt(timeStart, 10) + Math.floor(Math.max(0, context.currentTime - timeContext));
+    return Math.max(0, Math.min(timeMax, t));
+  }
+  return slider ? parseInt(slider.value, 10) || 0 : timeStart;
+}
+
+// Seconds of sleep timer left, from the audio clock while playing.
+function getTimerRemaining() {
+  if (sleepEndAt !== null && context && isCurrentlyPlaying()) {
+    return Math.max(0, Math.ceil(sleepEndAt - context.currentTime));
+  }
+  return timerRemainingSec;
+}
+
+// Returns true when the session ended (and was torn down).
+function checkSessionEnd() {
+  if (!context || !isCurrentlyPlaying()) return false;
+  var now = context.currentTime;
+  var programDone = programEndAt !== null && now >= programEndAt;
+  var timerDone = sleepEndAt !== null && now >= sleepEndAt;
+  if (!programDone && !timerDone) return false;
+
+  var sliderEl = document.getElementById('slider');
+  var posEl = document.getElementById('divPosition');
+  if (sliderEl) sliderEl.value = 0;
+  if (posEl) posEl.textContent = '0:00';
+  timeStart = 0;
+  updateSliderFill();
+  updateLiveReadouts(0);
+  var timerFinished = timerDone && !(programDone && sleepEndAt > programEndAt);
+  stop(false, true);
+  playChime(false);
+  if (timerFinished) {
+    timerCompletedStatus = chimeEnabled ? 'Complete (Chime)' : 'Complete (Silent)';
+  } else {
+    timerCompletedStatus = chimeEnabled ? 'Complete (Chime)' : 'Complete';
+  }
+  syncTimerUI();
+  savePosition(0);
+  return true;
+}
+
+var lastShownTimerSec = -1;
+
+function monitorTick() {
+  if (!context || !isCurrentlyPlaying()) return;
+  if (checkSessionEnd()) return;
+
+  var t = getCurrentPositionSec();
+  var sliderEl = document.getElementById('slider');
+  var posEl = document.getElementById('divPosition');
+  // Leave the slider and time label alone while a finger holds the thumb or a seek is mid-fade (MUX-IN-6).
+  var userOwnsSlider = sliderHeld || seekRestartId !== null;
+  if (sliderEl && !userOwnsSlider) sliderEl.value = t;
+  if (posEl && !userOwnsSlider) posEl.textContent = getTimeString(t);
+  if (!userOwnsSlider) updateSliderFill();
+  if (!userOwnsSlider) updateLiveReadouts(t);
+  if (sleepEndAt !== null) {
+    var rem = getTimerRemaining();
+    if (rem !== lastShownTimerSec) {
+      lastShownTimerSec = rem;
       syncTimerUI();
-    } else {
-      if (sliderEl) sliderEl.value = t;
-      if (posEl) posEl.textContent = getTimeString(t);
-      updateSliderFill();
-      updateLiveReadouts(t);
-      if (chart) chart.replot();
     }
-  }, 250);
+  }
+  // The timeline chart is invisible while the scope view is active or the page is hidden.
+  if (chart && activeStageView === 'curve' && !document.hidden) chart.replot();
+  if (lastPositionSavedAt < 0 || Math.abs(t - lastPositionSavedAt) >= 5) savePosition(t);
 }
 
 function getSoundscapeGainScale(type) {
@@ -2207,7 +2396,7 @@ function ensurePinkNoiseBuffer() {
   return pinkNoiseBuffer;
 }
 
-function startAmbientNoise() {
+function startAmbientNoise(rampSec) {
   stopAmbientNoise();
   if (!context) return;
 
@@ -2223,15 +2412,17 @@ function startAmbientNoise() {
 
   noiseGain = context.createGain();
   var now = context.currentTime;
-  var targetGain = ambientVolume * getSoundscapeGainScale(ambientType);
-  noiseGain.gain.setValueAtTime(0.0001, now);
-  noiseGain.gain.linearRampToValueAtTime(targetGain, now + 0.8);
+  noiseGain.gain.setValueAtTime(0, now);
+  noiseRampStartAt = now;
+  noiseRampEndAt = now + (typeof rampSec === 'number' ? rampSec : 0.8);
 
   noiseNode.connect(noiseFilter);
   noiseFilter.connect(noiseGain);
   noiseGain.connect(context.destination);
 
   noiseNode.start(0);
+  // Builds the fade-in (and re-applies any pending end fade, e.g. noise switched on mid-session).
+  scheduleAudioEnd();
 }
 
 function stopAmbientNoise() {
@@ -2264,12 +2455,7 @@ function updateAmbientRangeFill(slider) {
   var val = parseFloat(slider.value) || 0;
   var pct = max > min ? ((val - min) / (max - min)) * 100 : 0;
   pct = Math.max(0, Math.min(100, pct));
-  slider.style.background =
-    'linear-gradient(90deg, #38bdf8 0%, #a855f7 ' +
-    pct.toFixed(2) +
-    '%, rgba(255, 255, 255, 0.14) ' +
-    pct.toFixed(2) +
-    '%, rgba(255, 255, 255, 0.14) 100%)';
+  slider.style.setProperty('--fill', pct.toFixed(2) + '%');
 }
 
 function syncAmbientUI() {
@@ -2321,8 +2507,7 @@ function setAmbientVolume(vol) {
   }
 
   if (noiseGain && context) {
-    var target = ambientVolume * getSoundscapeGainScale(ambientType);
-    noiseGain.gain.setTargetAtTime(target, context.currentTime, 0.05);
+    scheduleAudioEnd();
   } else if (isCurrentlyPlaying() && ambientVolume > 0 && !noiseNode) {
     startAmbientNoise();
   }
@@ -2360,8 +2545,7 @@ function setSoundscapePreset(preset) {
     if (noiseFilter && context) {
       configureSoundscapeFilter();
       if (noiseGain) {
-        var target = ambientVolume * getSoundscapeGainScale(ambientType);
-        noiseGain.gain.setTargetAtTime(target, context.currentTime, 0.06);
+        scheduleAudioEnd();
       }
     }
   }
@@ -2374,12 +2558,7 @@ function updateToneRangeFill(slider) {
   var val = parseFloat(slider.value) || 0;
   var pct = max > min ? ((val - min) / (max - min)) * 100 : 0;
   pct = Math.max(0, Math.min(100, pct));
-  slider.style.background =
-    'linear-gradient(90deg, #ff70d9 0%, #a855f7 ' +
-    pct.toFixed(2) +
-    '%, rgba(255, 255, 255, 0.14) ' +
-    pct.toFixed(2) +
-    '%, rgba(255, 255, 255, 0.14) 100%)';
+  slider.style.setProperty('--fill', pct.toFixed(2) + '%');
 }
 
 function syncToneVolumeUI() {
@@ -2422,18 +2601,8 @@ function setToneVolume(vol) {
   toneVolume = parsed;
 
   if (toneMasterGain && context) {
-    var now = context.currentTime;
-    if (isTimerFadingOut) {
-      isTimerFadingOut = false;
-    }
-    try {
-      toneMasterGain.gain.cancelScheduledValues(now);
-      if (toneVolume <= 0.001) {
-        toneMasterGain.gain.setTargetAtTime(0, now, 0.05);
-      } else {
-        toneMasterGain.gain.setTargetAtTime(toneVolume, now, 0.05);
-      }
-    } catch (e) {}
+    // Re-applies the level (and any scheduled end fade) from the audio clock.
+    scheduleAudioEnd();
   }
 
   try {
@@ -2455,6 +2624,9 @@ function cleanupAudioNodes() {
     toneMasterGain = null;
   }
   isTimerFadingOut = false;
+  sleepEndAt = null;
+  programEndAt = null;
+  lastShownTimerSec = -1;
 
   if (osc && osc.length > 0) {
     for (var i = 0; i < osc.length; ++i) {
@@ -2536,14 +2708,20 @@ function playChime(forcePlay) {
   if (!forcePlay && !chimeEnabled) return;
   if (!context && isAudioSupported) {
     try {
-      context = new AudioContext();
+      context = createAudioContext();
     } catch (e) {}
   }
   if (!context) return;
 
-  if (context.state === 'suspended') {
-    context.resume();
-  }
+  // Always request resume: stop() may have a suspend() in flight while context.state still reads 'running'.
+  try {
+    var chimeResume = context.resume();
+    if (chimeResume && chimeResume.catch) chimeResume.catch(function () {});
+  } catch (e) {}
+  // Release the audio hardware again once the chime tail is over, if nothing is playing.
+  setTimeout(function () {
+    if (context && !isCurrentlyPlaying() && !isTestingStereo) suspendContextIfIdle();
+  }, 3900);
 
   var t = context.currentTime;
   var frequencies = [528, 660, 792]; // Harmonic Solfeggio triad (528 Hz MI + Major 3rd + Perfect 5th)
@@ -2577,49 +2755,103 @@ function playChime(forcePlay) {
   }
 }
 
-function beginSleepTimerFadeOut(fadeSec) {
-  if (isTimerFadingOut || !context) return;
-  isTimerFadingOut = true;
+// Applies the level envelope for one gain param on the audio clock: fade-in continuation, hold at target, and an
+// optional linear fade to silence finishing at endAt. Re-callable (volume change, timer change): it restarts from
+// the param's current value so there are no jumps.
+function applyGainEnvelope(param, target, rampStartAt, rampEndAt, fadeStartAt, endAt) {
   var now = context.currentTime;
-  var dur = Math.max(1, fadeSec || 5);
+  try {
+    // param.value is stale (default 1) until the audio thread has rendered, so the very start is known to be 0.
+    var v = now <= rampStartAt + 0.02 ? 0 : param.value;
+    param.cancelScheduledValues(now);
+    param.setValueAtTime(v, now);
+    var cursor = now;
+    var rampingIn = now < rampEndAt;
+    if (rampingIn && (endAt === null || rampEndAt <= fadeStartAt)) {
+      param.linearRampToValueAtTime(target, rampEndAt);
+      cursor = rampEndAt;
+    } else if (!rampingIn || endAt === null) {
+      param.setTargetAtTime(target, now, 0.05);
+    }
+    if (endAt !== null) {
+      if (fadeStartAt > cursor) {
+        // Hold the level until the fade starts (cursor == now means we are already near target).
+        param.setValueAtTime(target, fadeStartAt);
+      }
+      param.linearRampToValueAtTime(0, Math.max(endAt, now + 0.01));
+    }
+  } catch (e) {}
+}
 
-  if (toneMasterGain) {
-    try {
-      toneMasterGain.gain.cancelScheduledValues(now);
-      var currentTVal = Math.max(0.0002, toneMasterGain.gain.value || toneVolume);
-      toneMasterGain.gain.setValueAtTime(currentTVal, now);
-      toneMasterGain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
-    } catch (e) {}
+// Schedules the end of the session on the audio clock (D8): a linear fade to silence and osc.stop, so it lands on
+// time even when JS timers are throttled or suspended. Earliest of sleep timer / program end wins.
+// Safe to call repeatedly; also (re)builds the fade-in and tracks live volume changes.
+function scheduleAudioEnd() {
+  if (!context || !isCurrentlyPlaying()) return;
+  var now = context.currentTime;
+
+  var endAt = null;
+  var fadeSec = 0;
+  if (sleepEndAt !== null) {
+    endAt = sleepEndAt;
+    fadeSec = sleepFadeSec;
+  }
+  if (programEndAt !== null && (endAt === null || programEndAt < endAt)) {
+    endAt = programEndAt;
+    fadeSec = programFadeSec;
+  }
+  var fadeStartAt = null;
+  if (endAt !== null) {
+    fadeSec = Math.min(fadeSec, Math.max(0.05, endAt - now));
+    fadeStartAt = Math.max(now, endAt - fadeSec);
   }
 
+  if (toneMasterGain) {
+    applyGainEnvelope(toneMasterGain.gain, toneVolume > 0.001 ? toneVolume : 0, toneRampStartAt, toneRampEndAt, fadeStartAt, endAt);
+  }
   if (noiseGain) {
-    try {
-      noiseGain.gain.cancelScheduledValues(now);
-      var currentNVal = Math.max(
-        0.0002,
-        noiseGain.gain.value || (ambientVolume * getSoundscapeGainScale(ambientType))
-      );
-      noiseGain.gain.setValueAtTime(currentNVal, now);
-      noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
-    } catch (e) {}
+    applyGainEnvelope(
+      noiseGain.gain,
+      ambientVolume * getSoundscapeGainScale(ambientType),
+      noiseRampStartAt,
+      noiseRampEndAt,
+      fadeStartAt,
+      endAt
+    );
+  }
+  // Oscillators cannot be un-stopped, so only the program end (fixed for this start()) schedules osc.stop; a sleep
+  // timer relies on the gain reaching 0 on the audio clock and the oscillators are torn down by checkSessionEnd().
+  if (programEndAt !== null && osc) {
+    var stopAt = programEndAt + 0.05;
+    for (var i = 0; i < osc.length; ++i) {
+      var nodes = [osc[i].left, osc[i].right, osc[i].carrier, osc[i].lfo];
+      for (var n = 0; n < nodes.length; ++n) {
+        if (nodes[n]) {
+          try {
+            nodes[n].stop(stopAt);
+          } catch (e) {}
+        }
+      }
+    }
   }
 }
 
 function clearSleepTimer(resetRemaining) {
-  if (timerInterval !== null) {
-    clearInterval(timerInterval);
-    timerInterval = null;
-  }
+  var hadEnd = sleepEndAt !== null;
+  sleepEndAt = null;
   isTimerFadingOut = false;
+  lastShownTimerSec = -1;
   if (resetRemaining) {
     timerRemainingSec = timerDurationSec;
   }
+  if (hadEnd) scheduleAudioEnd(); // cancels a pending fade if still playing
 }
 
 function startSleepTimer(preserveRemaining) {
   clearSleepTimer(false);
-  if (timerDurationSec <= 0) {
+  if (timerDurationSec <= 0 || !context) {
     timerRemainingSec = 0;
+    scheduleAudioEnd();
     syncTimerUI();
     return;
   }
@@ -2628,28 +2860,11 @@ function startSleepTimer(preserveRemaining) {
     timerRemainingSec = timerDurationSec;
   }
 
-  if (timerRemainingSec <= 5 && timerRemainingSec > 0 && isCurrentlyPlaying()) {
-    beginSleepTimerFadeOut(timerRemainingSec);
-  }
-
+  // End time on the audio clock; the UI countdown is derived from it (getTimerRemaining), never decremented.
+  sleepEndAt = context.currentTime + timerRemainingSec;
+  sleepFadeSec = Math.min(SLEEP_FADE_SEC, timerRemainingSec / 2);
+  scheduleAudioEnd();
   syncTimerUI();
-
-  timerInterval = setInterval(function () {
-    timerRemainingSec -= 1;
-    if (timerRemainingSec <= 5 && timerRemainingSec > 0 && !isTimerFadingOut && isCurrentlyPlaying()) {
-      beginSleepTimerFadeOut(timerRemainingSec);
-    }
-    if (timerRemainingSec <= 0) {
-      timerRemainingSec = 0;
-      clearSleepTimer(false);
-      stop(false, true);
-      playChime(false);
-      timerCompletedStatus = chimeEnabled ? 'Complete (Chime)' : 'Complete (Silent)';
-      syncTimerUI();
-    } else {
-      syncTimerUI();
-    }
-  }, 1000);
 }
 
 function syncTimerUI() {
@@ -2696,10 +2911,14 @@ function syncTimerUI() {
     badgeText = timerCompletedStatus;
     badgeStateClass = 'timer-complete';
   } else if (timerDurationSec > 0) {
-    var displaySec = isCurrentlyPlaying() && timerRemainingSec > 0 ? timerRemainingSec : timerDurationSec;
+    var playingNow = isCurrentlyPlaying();
+    var remainingSec = getTimerRemaining();
+    var displaySec = (playingNow || interruptedInfo) && remainingSec > 0 ? remainingSec : timerDurationSec;
     badgeText = formatTimerCountdown(displaySec);
-    if (isCurrentlyPlaying()) {
-      if (isTimerFadingOut && timerRemainingSec > 0) {
+    if (playingNow) {
+      isTimerFadingOut =
+        sleepEndAt !== null && context && context.currentTime >= sleepEndAt - sleepFadeSec;
+      if (isTimerFadingOut && remainingSec > 0) {
         badgeStateClass = 'timer-fading';
         badgeText = 'Fade ' + badgeText;
       } else {
@@ -2996,9 +3215,79 @@ function toggleBreathCompact() {
   syncBreathUI();
 }
 
-function stop(preserveTimer, fromTimerComplete) {
-  setPlayingUI(false);
-  cleanupAudioNodes();
+function cancelPendingStop() {
+  if (pendingStopId !== null) {
+    clearTimeout(pendingStopId);
+    pendingStopId = null;
+  }
+}
+
+// Release the audio hardware while idle (saves battery); start()/playChime()/testStereo() resume it.
+function suspendContextIfIdle() {
+  if (context && context.state === 'running' && !isCurrentlyPlaying() && typeof context.suspend === 'function') {
+    try {
+      var p = context.suspend();
+      if (p && p.catch) p.catch(function () {});
+    } catch (e) {}
+  }
+}
+
+// Linear fade of both gains to silence over sec on the audio clock, then osc/noise stop at the end of the fade.
+function fadeOutNow(sec) {
+  var now = context.currentTime;
+  var gains = [toneMasterGain && toneMasterGain.gain, noiseGain && noiseGain.gain];
+  for (var g = 0; g < gains.length; ++g) {
+    if (!gains[g]) continue;
+    try {
+      var v = gains[g].value;
+      gains[g].cancelScheduledValues(now);
+      gains[g].setValueAtTime(v, now);
+      gains[g].linearRampToValueAtTime(0, now + sec);
+    } catch (e) {}
+  }
+  var stopAt = now + sec + 0.02;
+  var sources = [noiseNode];
+  for (var i = 0; i < osc.length; ++i) {
+    sources.push(osc[i].left, osc[i].right, osc[i].carrier, osc[i].lfo);
+  }
+  for (var s = 0; s < sources.length; ++s) {
+    if (sources[s]) {
+      try {
+        sources[s].stop(stopAt);
+      } catch (e) {}
+    }
+  }
+}
+
+// opts: { immediate: skip the 300 ms fade, keepContext: do not suspend the context (system owns it),
+//         interrupted: report UI state 'interrupted' instead of 'idle' }
+function stop(preserveTimer, fromTimerComplete, opts) {
+  opts = opts || {};
+  cancelSeekRestart();
+  var wasPlaying = isCurrentlyPlaying();
+  var userStop = wasPlaying && !preserveTimer && !fromTimerComplete;
+
+  if (wasPlaying) {
+    timerRemainingSec = getTimerRemaining(); // freeze the audio-clock countdown before nodes are torn down
+    if (userStop) {
+      // Pause = stop + remembered position (taken from the audio clock, not the 250 ms-stale slider).
+      var pos = getCurrentPositionSec();
+      var sliderEl = document.getElementById('slider');
+      if (sliderEl) sliderEl.value = pos;
+      timeStart = pos;
+      var posEl = document.getElementById('divPosition');
+      if (posEl) posEl.textContent = getTimeString(pos);
+      updateSliderFill();
+      updateLiveReadouts(pos);
+    }
+  }
+  var fade =
+    userStop && !opts.immediate && context && context.state === 'running' && toneMasterGain !== null;
+
+  setPlayingUI(false, !!opts.interrupted);
+  stopMonitor();
+  clearHiddenWatch();
+  cancelPendingStop();
   if (!preserveTimer) {
     clearSleepTimer(true);
   }
@@ -3007,7 +3296,200 @@ function stop(preserveTimer, fromTimerComplete) {
     syncTimerUI();
   }
   if (chart) chart.replot();
+  if (userStop) savePosition(timeStart);
+
+  var finish = function () {
+    cleanupAudioNodes();
+    if (!preserveTimer && !opts.keepContext) suspendContextIfIdle();
+  };
+  if (fade) {
+    fadeOutNow(STOP_FADE_SEC);
+    pendingStopId = setTimeout(function () {
+      pendingStopId = null;
+      if (!isCurrentlyPlaying()) finish();
+    }, STOP_FADE_SEC * 1000 + 40);
+  } else {
+    finish();
+  }
 }
+
+
+// ---------------------------------------------------------------------------------------------------------------
+// Lifecycle (MUX-LIFE-2/3/5/7): audio-clock truth, interruption states, background throttling, persistence.
+// UI states: 'idle' | 'playing' | 'interrupted' (data-state on #start and #audioStatus).
+// ---------------------------------------------------------------------------------------------------------------
+
+function savePosition(sec) {
+  sec = Math.max(0, Math.floor(sec || 0));
+  lastPositionSavedAt = sec;
+  try {
+    if (typeof Storage !== 'undefined') {
+      localStorage.setItem('lastPosition', String(sec));
+      localStorage.setItem('lastPositionProgram', currentProgram);
+    }
+  } catch (e) {}
+}
+
+function loadSavedPosition() {
+  try {
+    if (typeof Storage !== 'undefined') {
+      var pos = parseInt(localStorage.getItem('lastPosition'), 10);
+      var prog = localStorage.getItem('lastPositionProgram');
+      if (!isNaN(pos) && pos > 0 && prog) {
+        pendingRestorePosition = { program: prog, position: pos };
+      }
+    }
+  } catch (e) {}
+}
+
+// Playing -> interrupted: the system (or a failed resume) took the audio. Keeps position and remaining timer.
+function enterInterrupted(reason) {
+  if (!isCurrentlyPlaying()) return;
+  var pos = getCurrentPositionSec();
+  var sliderEl = document.getElementById('slider');
+  var posEl = document.getElementById('divPosition');
+  interruptedInfo = { at: Date.now(), reason: reason || 'unknown' };
+  stop(true, false, { immediate: true, keepContext: true, interrupted: true });
+  timeStart = pos;
+  if (sliderEl) sliderEl.value = pos;
+  if (posEl) posEl.textContent = getTimeString(pos);
+  updateSliderFill();
+  updateLiveReadouts(pos);
+  savePosition(pos);
+  syncTimerUI();
+}
+
+function onContextStateChange() {
+  if (!context || ctxResumePending) return;
+  if (isCurrentlyPlaying() && context.state !== 'running') {
+    enterInterrupted('statechange:' + context.state);
+  }
+}
+
+var INTERRUPTION_AUTO_RESUME_MAX_MS = 10 * 60 * 1000;
+
+function resumeFromInterruption() {
+  interruptedInfo = null;
+  start(true, true); // keeps the remaining timer, 3 s fade-in
+}
+
+// While hidden there are no rAF loops, no interval and no DOM writes: one low-rate timeout checks the audio-clock
+// end of the session (and persists position). The audio itself ends on the audio clock regardless of this timeout.
+function clearHiddenWatch() {
+  if (hiddenWatchId !== null) {
+    clearTimeout(hiddenWatchId);
+    hiddenWatchId = null;
+  }
+}
+
+function armHiddenWatch() {
+  clearHiddenWatch();
+  if (!context || !isCurrentlyPlaying()) return;
+  var delay = 30000;
+  var endAt = null;
+  if (sleepEndAt !== null) endAt = sleepEndAt;
+  if (programEndAt !== null && (endAt === null || programEndAt < endAt)) endAt = programEndAt;
+  if (endAt !== null) {
+    delay = Math.min(delay, Math.max(250, (endAt - context.currentTime) * 1000 + 300));
+  }
+  hiddenWatchId = setTimeout(function () {
+    hiddenWatchId = null;
+    if (!document.hidden) return;
+    if (context && isCurrentlyPlaying() && context.state !== 'running' && !ctxResumePending) {
+      enterInterrupted('statechange:' + context.state);
+      return;
+    }
+    if (checkSessionEnd()) return;
+    if (isCurrentlyPlaying()) {
+      savePosition(getCurrentPositionSec());
+      armHiddenWatch();
+    }
+  }, delay);
+}
+
+function onPageHidden() {
+  if (isCurrentlyPlaying()) {
+    savePosition(getCurrentPositionSec());
+  } else {
+    savePosition(parseInt((document.getElementById('slider') || {}).value, 10) || timeStart || 0);
+  }
+  stopScopeAnimation();
+  stopBreathAnimation();
+  stopMonitor();
+  armHiddenWatch();
+}
+
+function onPageVisible() {
+  clearHiddenWatch();
+  if (context && isCurrentlyPlaying() && context.state !== 'running' && !ctxResumePending) {
+    enterInterrupted('statechange:' + context.state);
+  } else if (isCurrentlyPlaying()) {
+    if (checkSessionEnd()) {
+      // ended while hidden: UI already moved to idle
+    } else {
+      monitorTick();
+      startMonitor();
+      if (activeStageView === 'waveform') startScopeAnimation();
+    }
+  }
+  if (breathMode !== 'off' && BREATH_PATTERNS[breathMode]) startBreathAnimation();
+  syncTimerUI();
+  if (chart) chart.replot();
+  if (activeStageView === 'waveform') drawScopeFrame();
+}
+
+document.addEventListener('visibilitychange', function () {
+  if (document.hidden) {
+    onPageHidden();
+  } else {
+    onPageVisible();
+  }
+});
+
+window.addEventListener('pagehide', function () {
+  if (isCurrentlyPlaying()) {
+    savePosition(getCurrentPositionSec());
+  } else {
+    var s = document.getElementById('slider');
+    savePosition(s ? parseInt(s.value, 10) || 0 : timeStart);
+  }
+});
+
+// Hooks for the native wrapper (M2.1 / M2.2). They route into the same stop()/start() paths as the buttons.
+window.BinalityApp = window.BinalityApp || {};
+window.BinalityApp.getState = function () {
+  var btn = document.getElementById('start');
+  return btn ? btn.getAttribute('data-state') || 'idle' : 'idle';
+};
+// System took the audio (call, Siri, other app): pause now, state 'interrupted'.
+window.BinalityApp.onInterruptionBegan = function () {
+  enterInterrupted('native');
+};
+// info.shouldResume (default true). Resumes with a 3 s fade-in only if interrupted < 10 min ago; else goes idle.
+window.BinalityApp.onInterruptionEnded = function (info) {
+  if (!interruptedInfo) return;
+  var shouldResume = !info || info.shouldResume !== false;
+  var fresh = Date.now() - interruptedInfo.at < INTERRUPTION_AUTO_RESUME_MAX_MS;
+  if (shouldResume && fresh) {
+    resumeFromInterruption();
+  } else {
+    interruptedInfo = null;
+    setPlayingUI(false, false);
+    syncTimerUI();
+  }
+};
+// Headphones unplugged / Bluetooth lost: stop at once, idle, never auto-resume.
+window.BinalityApp.onRouteLost = function () {
+  if (isCurrentlyPlaying()) {
+    enterInterrupted('route-lost');
+  }
+  interruptedInfo = null;
+  setPlayingUI(false, false);
+  suspendContextIfIdle();
+  var statusText = document.querySelector('#audioStatus .status-text');
+  if (statusText) statusText.textContent = 'Headphones disconnected - session stopped';
+  syncTimerUI();
+};
 
 function onSliderChanged() {
   var slider = document.getElementById('slider');
@@ -3021,13 +3503,136 @@ function onSliderChanged() {
   updateLiveReadouts(t);
 
   if (isCurrentlyPlaying()) {
+    restartPlaybackAt(t);
+  } else {
+    timeStart = t;
+    savePosition(t);
+    if (chart) chart.replot();
+  }
+}
+
+function cancelSeekRestart() {
+  if (seekRestartId !== null) {
+    clearTimeout(seekRestartId);
+    seekRestartId = null;
+  }
+}
+
+// Seeks while playing: 150 ms gain fade to silence, then the usual stop/start restart (which fades back in), so the
+// restart never cuts a waveform mid-cycle (MUX-IN-3). Falls back to an immediate restart if there is nothing to fade.
+function restartPlaybackAt(t) {
+  cancelSeekRestart();
+  var restart = function () {
+    seekRestartId = null;
+    if (!isCurrentlyPlaying()) return; // user stopped during the fade
+    var sliderEl = document.getElementById('slider');
+    if (sliderEl) sliderEl.value = t; // start() reads its start point from the slider
     stop(true);
     timeStart = t;
     start(true);
+  };
+  if (context && context.state === 'running' && toneMasterGain !== null) {
+    fadeOutNow(SEEK_FADE_SEC);
+    seekRestartId = setTimeout(restart, SEEK_FADE_SEC * 1000 + 20);
   } else {
-    timeStart = t;
-    if (chart) chart.replot();
+    restart();
   }
+}
+
+// Moves the program to second t (slider, readouts, audio). fromChart adds the "Jumped to" toast.
+function seekToSecond(t, fromChart) {
+  var slider = document.getElementById('slider');
+  if (!slider) return;
+  slider.value = t;
+  onSliderChanged();
+  if (fromChart) showToast('Jumped to ' + getTimeString(t));
+}
+
+var toastHideId = null;
+
+function showToast(text, ms) {
+  var el = document.getElementById('appToast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'appToast';
+    el.className = 'app-toast';
+    el.setAttribute('role', 'status');
+    el.setAttribute('aria-live', 'polite');
+    document.body.appendChild(el);
+  }
+  el.textContent = text;
+  // Force a reflow so a repeated toast restarts its transition.
+  void el.offsetWidth;
+  el.classList.add('visible');
+  if (toastHideId !== null) clearTimeout(toastHideId);
+  toastHideId = setTimeout(function () {
+    toastHideId = null;
+    el.classList.remove('visible');
+  }, ms || TOAST_MS);
+}
+
+// Confirm sheet for destructive actions (MUX-TAP-7): bottom sheet on Compact, centred card otherwise, 56 px buttons.
+// Resolves via onConfirm only on an explicit tap of the destructive button; backdrop, Cancel and Escape dismiss.
+function confirmAction(opts, onConfirm) {
+  var existing = document.getElementById('confirmSheet');
+  if (existing) existing.parentNode.removeChild(existing);
+
+  var sheet = document.createElement('div');
+  sheet.id = 'confirmSheet';
+  sheet.className = 'confirm-sheet';
+  sheet.setAttribute('role', 'alertdialog');
+  sheet.setAttribute('aria-modal', 'true');
+  sheet.setAttribute('aria-labelledby', 'confirmSheetTitle');
+
+  var backdrop = document.createElement('div');
+  backdrop.className = 'confirm-backdrop';
+  var card = document.createElement('div');
+  card.className = 'confirm-card';
+  var title = document.createElement('h2');
+  title.id = 'confirmSheetTitle';
+  title.className = 'confirm-title';
+  title.textContent = opts.title;
+  var body = document.createElement('p');
+  body.className = 'confirm-body';
+  body.textContent = opts.message || '';
+  var cancelBtn = document.createElement('button');
+  cancelBtn.type = 'button';
+  cancelBtn.className = 'confirm-btn confirm-cancel';
+  cancelBtn.textContent = 'Cancel';
+  var okBtn = document.createElement('button');
+  okBtn.type = 'button';
+  okBtn.className = 'confirm-btn confirm-ok';
+  okBtn.textContent = opts.confirmLabel || 'Delete';
+
+  var actions = document.createElement('div');
+  actions.className = 'confirm-actions';
+  actions.appendChild(cancelBtn);
+  actions.appendChild(okBtn);
+  card.appendChild(title);
+  card.appendChild(body);
+  card.appendChild(actions);
+  sheet.appendChild(backdrop);
+  sheet.appendChild(card);
+  document.body.appendChild(sheet);
+
+  function dismiss() {
+    document.removeEventListener('keydown', onKey, true);
+    if (sheet.parentNode) sheet.parentNode.removeChild(sheet);
+  }
+  function onKey(e) {
+    if (e.key === 'Escape') {
+      e.stopPropagation(); // closes only the sheet, not the modal underneath
+      dismiss();
+    }
+  }
+  document.addEventListener('keydown', onKey, true);
+  backdrop.addEventListener('click', dismiss);
+  cancelBtn.addEventListener('click', dismiss);
+  okBtn.addEventListener('click', function () {
+    dismiss();
+    onConfirm();
+  });
+  cancelBtn.focus();
 }
 
 function syncModeUI() {
@@ -3145,10 +3750,34 @@ function syncHarmonicButtons() {
   }
 }
 
+var BASE_FREQ_MIN = 20;
+var BASE_FREQ_MAX = 1500;
+
+function showBaseFreqMessage(text) {
+  var msg = document.getElementById('baseFreqMsg');
+  if (!msg) return;
+  msg.textContent = text || '';
+  if (text) {
+    msg.classList.remove('hidden');
+  } else {
+    msg.classList.add('hidden');
+  }
+}
+
 function applyBaseFrequency(newFreq) {
   var parsed = parseFloat(newFreq);
-  if (isNaN(parsed) || parsed < 20) parsed = 20;
-  if (parsed > 2000) parsed = 2000;
+  var note = '';
+  if (isNaN(parsed)) {
+    parsed = baseFreq;
+    note = 'Enter a frequency from ' + BASE_FREQ_MIN + ' to ' + BASE_FREQ_MAX + ' Hz. Kept ' + parsed + ' Hz.';
+  } else if (parsed < BASE_FREQ_MIN) {
+    parsed = BASE_FREQ_MIN;
+    note = 'Minimum is ' + BASE_FREQ_MIN + ' Hz. Set to ' + parsed + ' Hz.';
+  } else if (parsed > BASE_FREQ_MAX) {
+    parsed = BASE_FREQ_MAX;
+    note = 'Maximum is ' + BASE_FREQ_MAX + ' Hz. Set to ' + parsed + ' Hz.';
+  }
+  showBaseFreqMessage(note);
   baseFreq = parsed;
 
   var baseFreqInput = document.getElementById('baseFreq');
@@ -3181,7 +3810,7 @@ function testStereo() {
   if (isTestingStereo) return;
   if (!context && isAudioSupported) {
     try {
-      context = new AudioContext();
+      context = createAudioContext();
     } catch (e) {}
   }
   if (!context) return;
@@ -3193,6 +3822,8 @@ function testStereo() {
   // If binaural session is currently playing, stop it so L/R test tones are isolated
   if (isCurrentlyPlaying()) {
     stop();
+    // stop() suspends the context; resume it for the test tones (resume is ordered after suspend).
+    context.resume();
   }
 
   isTestingStereo = true;
@@ -3720,7 +4351,7 @@ function renderStudioPreview() {
   var rect = stage ? stage.getBoundingClientRect() : canvas.getBoundingClientRect();
   var w = Math.max(260, Math.floor(rect.width || 640));
   var h = Math.max(110, Math.floor(rect.height || 136));
-  var dpr = window.devicePixelRatio || 1;
+  var dpr = getCanvasDpr();
 
   if (canvas.width !== Math.floor(w * dpr) || canvas.height !== Math.floor(h * dpr)) {
     canvas.width = Math.floor(w * dpr);
@@ -3749,7 +4380,7 @@ function renderStudioPreview() {
   // Subtle horizontal grid lines
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
   ctx.lineWidth = 1;
-  ctx.font = '500 10px "JetBrains Mono", monospace';
+  ctx.font = '500 11px "JetBrains Mono", monospace';
   ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
   ctx.textAlign = 'right';
   ctx.textBaseline = 'middle';
@@ -3832,7 +4463,7 @@ function renderStudioPreview() {
 
       var freqStr =
         rawPts[rp].freq % 1 === 0 ? rawPts[rp].freq.toFixed(0) + 'Hz' : rawPts[rp].freq.toFixed(1) + 'Hz';
-      ctx.font = '600 9.5px "JetBrains Mono", monospace';
+      ctx.font = '600 11px "JetBrains Mono", monospace';
       ctx.fillStyle = '#ffffff';
       ctx.textAlign = rp === 0 ? 'left' : rp === rawPts.length - 1 ? 'right' : 'center';
       var labelY = dy - 9 < padT + 4 ? dy + 11 : dy - 9;
@@ -3891,7 +4522,7 @@ function renderStudioVoices() {
       html += '      <div class="studio-point-time">';
       html += '        <label>Time (s)</label>';
       html +=
-        '        <input type="number" class="studio-time-input" min="0" max="' +
+        '        <input type="number" inputmode="decimal" autocomplete="off" class="studio-time-input" min="0" max="' +
         durationSec +
         '" step="5" value="' +
         pt.time +
@@ -3913,7 +4544,7 @@ function renderStudioVoices() {
       html += '      <div class="studio-point-freq">';
       html += '        <label>Beat (Hz)</label>';
       html +=
-        '        <input type="number" class="studio-freq-input" min="0.5" max="80" step="0.5" value="' +
+        '        <input type="number" inputmode="decimal" autocomplete="off" class="studio-freq-input" min="0.5" max="80" step="0.5" value="' +
         pt.freq +
         '" data-voice="' +
         vIdx +
@@ -4173,21 +4804,35 @@ function renderSavedPresetsList() {
   for (var d = 0; d < delBtns.length; ++d) {
     delBtns[d].addEventListener('click', function () {
       var id = this.getAttribute('data-delete-preset');
-      for (var k = 0; k < savedPresets.length; ++k) {
-        if (savedPresets[k].id === id) {
-          var removedName = savedPresets[k].name;
-          savedPresets.splice(k, 1);
-          persistSavedPresets();
-          renderSavedPresetsList();
-          showStudioStatus('Deleted "' + removedName + '" from My Saved Presets.', false);
-          clearUrlPresetHash();
-          if (currentProgram === 'saved:' + id) {
-            changeProgram('programs/relaxation.xml');
-          }
-          break;
+      var target = findSavedPresetById(id);
+      confirmAction(
+        {
+          title: 'Delete preset?',
+          message: target ? '"' + target.name + '" will be removed from My Saved Presets. This cannot be undone.' : 'This cannot be undone.',
+          confirmLabel: 'Delete'
+        },
+        function () {
+          deleteSavedPreset(id);
         }
-      }
+      );
     });
+  }
+}
+
+function deleteSavedPreset(id) {
+  for (var k = 0; k < savedPresets.length; ++k) {
+    if (savedPresets[k].id === id) {
+      var removedName = savedPresets[k].name;
+      savedPresets.splice(k, 1);
+      persistSavedPresets();
+      renderSavedPresetsList();
+      showStudioStatus('Deleted "' + removedName + '" from My Saved Presets.', false);
+      clearUrlPresetHash();
+      if (currentProgram === 'saved:' + id) {
+        changeProgram('programs/relaxation.xml');
+      }
+      break;
+    }
   }
 }
 
@@ -4599,6 +5244,19 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // Mixer drawer (Compact/Medium only; the button is display:none elsewhere). Layout itself is pure CSS (MUX-LAYOUT-2).
+  var mixerToggleEl = document.getElementById('mixerToggle');
+  if (mixerToggleEl) {
+    mixerToggleEl.addEventListener('click', function () {
+      var dock = document.querySelector('.transport-dock');
+      var open = !(dock && dock.classList.contains('mixer-open'));
+      if (dock) {
+        dock.classList.toggle('mixer-open', open);
+      }
+      mixerToggleEl.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+
   window.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
       var studioModal = document.getElementById('studioModal');
@@ -4661,6 +5319,14 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
     slider.addEventListener('change', onSliderChanged);
+    slider.addEventListener('pointerdown', function () {
+      sliderHeld = true;
+    });
+    ['pointerup', 'pointercancel', 'lostpointercapture', 'change', 'blur'].forEach(function (evt) {
+      slider.addEventListener(evt, function () {
+        sliderHeld = false;
+      });
+    });
   }
 
   var btnViewCurve = document.getElementById('btnViewCurve');
@@ -4724,6 +5390,12 @@ document.addEventListener('DOMContentLoaded', function () {
   if (baseFreqInput) {
     baseFreqInput.addEventListener('change', function () {
       applyBaseFrequency(this.value);
+    });
+    baseFreqInput.addEventListener('blur', function () {
+      if (parseFloat(this.value) !== baseFreq) applyBaseFrequency(this.value);
+    });
+    baseFreqInput.addEventListener('input', function () {
+      showBaseFreqMessage('');
     });
   }
 
@@ -4997,7 +5669,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var savedBaseFreq = localStorage.getItem('baseFreq');
       if (savedBaseFreq !== null) {
         var parsedFreq = parseFloat(savedBaseFreq);
-        if (!isNaN(parsedFreq) && parsedFreq >= 20 && parsedFreq <= 2000) {
+        if (!isNaN(parsedFreq) && parsedFreq >= BASE_FREQ_MIN && parsedFreq <= BASE_FREQ_MAX) {
           baseFreq = parsedFreq;
           if (baseFreqInput) baseFreqInput.value = baseFreq;
         }
@@ -5065,6 +5737,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   } catch (e) {}
 
+  loadSavedPosition(); // applied once (no autoplay) by the first loadProgram()
   syncHarmonicButtons();
   syncToneVolumeUI();
   syncAmbientUI();
