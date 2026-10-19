@@ -581,9 +581,11 @@ function updateSliderFill() {
   var pct = max > min ? ((val - min) / (max - min)) * 100 : 0;
   pct = Math.max(0, Math.min(100, pct));
   slider.style.setProperty('--fill', pct.toFixed(2) + '%');
+  setSliderValueText(slider);
 }
 
 function updateLiveReadouts(t) {
+  updateCanvasLabelsSoon();
   var currentT = typeof t === 'number' ? t : parseInt(document.getElementById('slider').value, 10) || 0;
   var liveFreqBadge = document.getElementById('liveFreqBadge');
   var activeBandBadge = document.getElementById('activeBandBadge');
@@ -1116,8 +1118,13 @@ function stopScopeAnimation() {
 
 function startScopeAnimation() {
   stopScopeAnimation();
-  function loop() {
-    drawScopeFrame();
+  var lastDraw = 0;
+  function loop(ts) {
+    // MUX-VIS-3: reduced motion redraws the scope as a static plot at 10 fps
+    if (!prefersReducedMotion() || !ts || ts - lastDraw >= 100) {
+      lastDraw = ts || 0;
+      drawScopeFrame();
+    }
     if (activeStageView === 'waveform' && isCurrentlyPlaying()) {
       scopeAnimId = requestAnimationFrame(loop);
     } else {
@@ -1728,6 +1735,8 @@ function setPlayingUI(playing, interrupted) {
   if (startBtn) {
     startBtn.textContent = playing ? 'stop' : 'start';
     startBtn.setAttribute('data-playing', playing ? 'true' : 'false');
+    startBtn.setAttribute('aria-pressed', playing ? 'true' : 'false');
+    startBtn.setAttribute('aria-label', playing ? 'Stop session' : 'Start session');
     startBtn.setAttribute('data-state', uiState);
     if (playing) {
       startBtn.classList.add('is-playing');
@@ -1813,7 +1822,7 @@ function loadProgram(xml) {
 
   if (titleEl) {
     titleEl.textContent = progName;
-    titleEl.title = progName;
+    titleEl.setAttribute('aria-label', progName + '. Choose a program');
   }
   if (nameEl) nameEl.textContent = progName;
   if (descEl) descEl.textContent = progDesc;
@@ -2456,6 +2465,7 @@ function updateAmbientRangeFill(slider) {
   var pct = max > min ? ((val - min) / (max - min)) * 100 : 0;
   pct = Math.max(0, Math.min(100, pct));
   slider.style.setProperty('--fill', pct.toFixed(2) + '%');
+  setSliderValueText(slider);
 }
 
 function syncAmbientUI() {
@@ -2559,6 +2569,7 @@ function updateToneRangeFill(slider) {
   var pct = max > min ? ((val - min) / (max - min)) * 100 : 0;
   pct = Math.max(0, Math.min(100, pct));
   slider.style.setProperty('--fill', pct.toFixed(2) + '%');
+  setSliderValueText(slider);
 }
 
 function syncToneVolumeUI() {
@@ -2688,8 +2699,12 @@ function cleanupAudioNodes() {
   }
 }
 
+function isNativeApp() {
+  return !!(window.BinalityPlatform && window.BinalityPlatform.isNative);
+}
+
 function parseTimerSettingToSeconds(val) {
-  if (val === '10s') return 10;
+  if (val === '10s') return isNativeApp() ? 0 : 10; // D21: the 10 s test timer is a web-only development aid
   var mins = parseInt(val, 10);
   if (!isNaN(mins) && mins > 0) return mins * 60;
   return 0;
@@ -3059,6 +3074,7 @@ function startBreathAnimation() {
       scale = 0.52 + 0.02 * Math.sin(progress * Math.PI * 2);
     }
 
+    if (prefersReducedMotion()) scale = 0.76; // MUX-VIS-3: static orb; the countdown text and ring carry the pacing
     var orb = document.getElementById('breathOrb');
     var aura = document.getElementById('breathAura');
     var ringArc = document.getElementById('breathRingArc');
@@ -3614,9 +3630,11 @@ function confirmAction(opts, onConfirm) {
   sheet.appendChild(backdrop);
   sheet.appendChild(card);
   document.body.appendChild(sheet);
+  trapFocus(sheet, document.activeElement);
 
   function dismiss() {
     document.removeEventListener('keydown', onKey, true);
+    releaseFocus(sheet);
     if (sheet.parentNode) sheet.parentNode.removeChild(sheet);
   }
   function onKey(e) {
@@ -3654,6 +3672,15 @@ function syncModeUI() {
     } else {
       headerModeBtn.classList.remove('is-isochronic');
     }
+  }
+  if (headerModeBtn) {
+    headerModeBtn.setAttribute('aria-pressed', isIso ? 'true' : 'false');
+    headerModeBtn.setAttribute(
+      'aria-label',
+      isIso
+        ? 'Tone mode: Isochronic, works on speakers. Switch to Binaural'
+        : 'Tone mode: Binaural, for stereo headphones. Switch to Isochronic'
+    );
   }
   if (headerModeIcon) {
     headerModeIcon.textContent = isIso ? '🔊' : '🎧';
@@ -3929,6 +3956,7 @@ function openSettings() {
   updatePwaStatusUI();
   if (settingsModal) {
     settingsModal.style.display = 'flex';
+    trapFocus(settingsModal, document.getElementById('menu'));
   }
   clientResize();
 }
@@ -3937,6 +3965,7 @@ function closeSettings() {
   var settingsModal = document.getElementById('settings');
   if (settingsModal) {
     settingsModal.style.display = 'none';
+    releaseFocus(settingsModal);
   }
   clientResize();
 }
@@ -5031,6 +5060,7 @@ function openStudio() {
   var modal = document.getElementById('studioModal');
   if (!modal) return;
   modal.style.display = 'flex';
+  trapFocus(modal, document.getElementById('headerStudioBtn') || document.getElementById('openStudioFromSettingsBtn'));
   clearStudioStatus();
   syncStudioMetaInputs();
   renderStudioVoices();
@@ -5044,6 +5074,7 @@ function closeStudio() {
   var modal = document.getElementById('studioModal');
   if (!modal) return;
   modal.style.display = 'none';
+  releaseFocus(modal);
   clientResize();
 }
 
@@ -5770,6 +5801,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   initPwaServiceWorker();
+  initMobileHud();
 });
 
 window.addEventListener('resize', function () {
@@ -5780,3 +5812,404 @@ window.addEventListener('resize', function () {
   }
 });
 
+
+// ==========================================================================
+// Mobile HUD, accessibility, sheets and first-run notice (M1.5)
+// ==========================================================================
+
+function prefersReducedMotion() {
+  return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+}
+
+// ---- Sheets: focus trap, inert background, focus returns to the opener (MUX-VIS-6) ----
+var sheetStack = [];
+var FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+function isVisibleEl(el) {
+  return !!(el && (el.offsetWidth || el.offsetHeight || el.getClientRects().length));
+}
+
+function getFocusable(root) {
+  var list = root.querySelectorAll(FOCUSABLE_SELECTOR);
+  var out = [];
+  for (var i = 0; i < list.length; ++i) {
+    if (isVisibleEl(list[i])) out.push(list[i]);
+  }
+  return out;
+}
+
+function trapFocus(modal, opener) {
+  if (!modal) return;
+  for (var k = 0; k < sheetStack.length; ++k) {
+    if (sheetStack[k].modal === modal) return;
+  }
+  var entry = { modal: modal, opener: opener || document.activeElement, inerted: [] };
+  var kids = document.body.children;
+  for (var i = 0; i < kids.length; ++i) {
+    var el = kids[i];
+    if (el === modal || el.tagName === 'SCRIPT' || el.contains(modal) || el.hasAttribute('inert')) continue;
+    el.setAttribute('inert', '');
+    entry.inerted.push(el);
+  }
+  sheetStack.push(entry);
+  var focusables = getFocusable(modal);
+  var target = modal.querySelector('[data-initial-focus]') || focusables[0];
+  if (target) {
+    setTimeout(function () {
+      target.focus();
+    }, 0);
+  }
+}
+
+function releaseFocus(modal) {
+  for (var i = sheetStack.length - 1; i >= 0; --i) {
+    if (sheetStack[i].modal !== modal) continue;
+    var entry = sheetStack.splice(i, 1)[0];
+    for (var j = 0; j < entry.inerted.length; ++j) {
+      entry.inerted[j].removeAttribute('inert');
+    }
+    var opener = entry.opener;
+    if (opener && document.body.contains(opener) && typeof opener.focus === 'function') {
+      setTimeout(function () {
+        opener.focus();
+      }, 0);
+    }
+    return;
+  }
+}
+
+document.addEventListener('keydown', function (e) {
+  if (!sheetStack.length) return;
+  var top = sheetStack[sheetStack.length - 1].modal;
+  if (e.key === 'Escape') {
+    if (top.id === 'noticeModal' && !top.getAttribute('data-dismissable')) return;
+    e.preventDefault();
+    e.stopPropagation(); // the older window-level Escape handler must not also close the sheet underneath
+    closeTopSheet(top);
+    return;
+  }
+  if (e.key !== 'Tab') return;
+  var f = getFocusable(top);
+  if (!f.length) {
+    e.preventDefault();
+    return;
+  }
+  var first = f[0];
+  var last = f[f.length - 1];
+  if (!top.contains(document.activeElement)) {
+    e.preventDefault();
+    first.focus();
+  } else if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault();
+    first.focus();
+  }
+});
+
+function closeTopSheet(top) {
+  if (top.id === 'settings') closeSettings();
+  else if (top.id === 'studioModal') closeStudio();
+  else closeSheet(top);
+}
+
+function openSheet(sheet, opener) {
+  if (!sheet) return;
+  sheet.hidden = false;
+  trapFocus(sheet, opener);
+}
+
+function closeSheet(sheet) {
+  if (!sheet) return;
+  sheet.hidden = true;
+  releaseFocus(sheet);
+}
+
+// ---- Program quick-switch sheet (MUX-IN-7) ----
+var programMetaCache = {};
+
+function programMetaFromXml(xmlText) {
+  var meta = { name: '', desc: '', mins: 0 };
+  try {
+    var doc = new DOMParser().parseFromString(xmlText, 'application/xml');
+    var root = doc.documentElement;
+    meta.name = root.getAttribute('name') || '';
+    meta.desc = (root.getAttribute('description') || '').replace(/\s*\(\d+\s*minutes?\)\s*$/i, '');
+    var voices = doc.getElementsByTagName('voice');
+    var maxLen = 0;
+    for (var i = 0; i < voices.length; ++i) {
+      maxLen = Math.max(maxLen, parseFloat(voices[i].getAttribute('length')) || 0);
+    }
+    meta.mins = Math.round(maxLen / 60);
+  } catch (e) {}
+  return meta;
+}
+
+function loadProgramMeta(filename) {
+  if (programMetaCache[filename]) return Promise.resolve(programMetaCache[filename]);
+  var done = function (xmlText) {
+    programMetaCache[filename] = programMetaFromXml(xmlText);
+    return programMetaCache[filename];
+  };
+  if (BUILTIN_PROGRAMS_XML[filename]) return Promise.resolve(done(BUILTIN_PROGRAMS_XML[filename]));
+  return fetch(filename)
+    .then(function (r) {
+      if (!r.ok) throw new Error('program');
+      return r.text();
+    })
+    .then(done)
+    .catch(function () {
+      return { name: '', desc: '', mins: 0 };
+    });
+}
+
+function buildProgramRow(value, name, desc, mins) {
+  var li = document.createElement('li');
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'program-row';
+  btn.setAttribute('data-program', value);
+  if (value === currentProgram) {
+    btn.setAttribute('aria-current', 'true');
+    btn.classList.add('current');
+  }
+  var text = document.createElement('span');
+  text.className = 'program-row-text';
+  var n = document.createElement('span');
+  n.className = 'program-row-name';
+  n.textContent = name;
+  text.appendChild(n);
+  if (desc) {
+    var d = document.createElement('span');
+    d.className = 'program-row-desc';
+    d.textContent = desc;
+    text.appendChild(d);
+  }
+  btn.appendChild(text);
+  if (mins) {
+    var m = document.createElement('span');
+    m.className = 'program-row-dur';
+    m.textContent = mins + ' min';
+    btn.appendChild(m);
+  }
+  li.appendChild(btn);
+  return li;
+}
+
+function openProgramSheet() {
+  var sheet = document.getElementById('programSheet');
+  var list = document.getElementById('programSheetList');
+  var select = document.getElementById('selectProgram');
+  if (!sheet || !list || !select) return;
+  list.innerHTML = '';
+  var opener = document.getElementById('title');
+  var opts = select.options;
+  var rows = [];
+  for (var i = 0; i < opts.length; ++i) {
+    var v = opts[i].value;
+    if (v === 'custom' || v.indexOf('programs/') !== 0) continue;
+    var li = buildProgramRow(v, opts[i].textContent, '', 0);
+    list.appendChild(li);
+    rows.push({ value: v, li: li, label: opts[i].textContent });
+  }
+  var saved = typeof savedPresets !== 'undefined' ? savedPresets : [];
+  for (var s2 = 0; s2 < saved.length; ++s2) {
+    list.appendChild(buildProgramRow('saved:' + saved[s2].id, saved[s2].name, 'My saved preset', saved[s2].durationMin || 15));
+  }
+  openSheet(sheet, opener);
+  if (opener) opener.setAttribute('aria-expanded', 'true');
+  rows.forEach(function (r) {
+    loadProgramMeta(r.value).then(function (meta) {
+      var fresh = buildProgramRow(r.value, r.label, meta.desc, meta.mins);
+      if (r.li.parentNode) r.li.parentNode.replaceChild(fresh, r.li);
+      r.li = fresh;
+    });
+  });
+  var cur = list.querySelector('.program-row.current');
+  if (cur && cur.scrollIntoView) cur.scrollIntoView({ block: 'center' });
+}
+
+function chooseProgram(value) {
+  var sheet = document.getElementById('programSheet');
+  var select = document.getElementById('selectProgram');
+  closeSheet(sheet);
+  var opener = document.getElementById('title');
+  if (opener) opener.setAttribute('aria-expanded', 'false');
+  if (value === currentProgram) return;
+  if (select) select.value = value;
+  changeProgram(value); // stops playback if running, never auto-starts
+}
+
+// ---- Slider value text and canvas labels (MUX-VIS-6) ----
+function spokenDuration(totalSec) {
+  var t = Math.max(0, Math.floor(totalSec));
+  var h = Math.floor(t / 3600);
+  var m = Math.floor((t % 3600) / 60);
+  var sec = t % 60;
+  var parts = [];
+  if (h) parts.push(h + (h === 1 ? ' hour' : ' hours'));
+  if (m) parts.push(m + (m === 1 ? ' minute' : ' minutes'));
+  if (sec || !parts.length) parts.push(sec + (sec === 1 ? ' second' : ' seconds'));
+  return parts.join(' ');
+}
+
+function setSliderValueText(slider) {
+  if (!slider || !slider.id) return;
+  var text = '';
+  var val = parseFloat(slider.value) || 0;
+  if (slider.id === 'slider') {
+    text = spokenDuration(val) + ' of ' + spokenDuration(parseFloat(slider.max) || 0);
+  } else if (slider.id === 'quickToneSlider' || slider.id === 'volumeSlider') {
+    text = 'Beats volume ' + Math.round(val * 100) + ' percent';
+  } else if (slider.id === 'quickAmbientSlider' || slider.id === 'ambientSlider') {
+    text = 'Ambient volume ' + Math.round(val * 100) + ' percent';
+  } else {
+    return;
+  }
+  if (slider.getAttribute('aria-valuetext') !== text) slider.setAttribute('aria-valuetext', text);
+}
+
+var canvasLabelPending = false;
+function updateCanvasLabelsSoon() {
+  if (canvasLabelPending) return;
+  canvasLabelPending = true;
+  setTimeout(function () {
+    canvasLabelPending = false;
+    var titleEl = document.getElementById('title');
+    var badge = document.getElementById('liveFreqBadge');
+    var prog = titleEl ? titleEl.textContent : 'Program';
+    var hz = badge ? badge.textContent : '';
+    var chartC = document.getElementById('chartCanvas');
+    var waveC = document.getElementById('waveformCanvas');
+    var chartLabel = prog + ' program, beat frequency over time. Now ' + hz;
+    var waveLabel = prog + ' live waveform and beat envelope. Now ' + hz;
+    if (chartC && chartC.getAttribute('aria-label') !== chartLabel) chartC.setAttribute('aria-label', chartLabel);
+    if (waveC && waveC.getAttribute('aria-label') !== waveLabel) waveC.setAttribute('aria-label', waveLabel);
+  }, 1000);
+}
+
+// ---- First-run notice (MUX-LIFE-10 / -12) ----
+var NOTICE_KEY = 'binalityNoticeAck';
+
+function noticeAcknowledged() {
+  try {
+    return localStorage.getItem(NOTICE_KEY) === '1';
+  } catch (e) {
+    return false;
+  }
+}
+
+function openNotice(fromSettings) {
+  var modal = document.getElementById('noticeModal');
+  var ack = document.getElementById('noticeAckBtn');
+  var close = document.getElementById('noticeCloseBtn');
+  if (!modal) return;
+  var already = noticeAcknowledged();
+  modal.setAttribute('data-dismissable', already ? 'true' : '');
+  if (ack) ack.textContent = already ? 'OK' : 'I understand';
+  if (close) close.hidden = true;
+  openSheet(modal, fromSettings ? document.getElementById('showNoticeBtn') : null);
+  var focusTarget = ack;
+  if (focusTarget) setTimeout(function () { focusTarget.focus(); }, 0);
+}
+
+function acknowledgeNotice() {
+  try {
+    localStorage.setItem(NOTICE_KEY, '1');
+  } catch (e) {}
+  closeSheet(document.getElementById('noticeModal'));
+}
+
+function openInfoSheet(opener) {
+  var carrier = document.getElementById('infoCarrierVal');
+  if (carrier) carrier.textContent = 'Currently ' + baseFreq + ' Hz.';
+  openSheet(document.getElementById('infoSheet'), opener);
+}
+
+function initMobileHud() {
+  // D21: 10 s test timer options are web/dev only
+  if (isNativeApp()) {
+    var dev = document.querySelectorAll('[data-dev-only]');
+    for (var d = 0; d < dev.length; ++d) {
+      if (dev[d].parentNode) dev[d].parentNode.removeChild(dev[d]);
+    }
+  }
+
+  // Program title opens the quick-switch sheet
+  var titleEl = document.getElementById('title');
+  if (titleEl) {
+    titleEl.setAttribute('aria-expanded', 'false');
+    titleEl.addEventListener('click', openProgramSheet);
+    titleEl.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openProgramSheet();
+      }
+    });
+  }
+  var list = document.getElementById('programSheetList');
+  if (list) {
+    list.addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('.program-row') : null;
+      if (btn) chooseProgram(btn.getAttribute('data-program'));
+    });
+  }
+  ['programSheet', 'infoSheet'].forEach(function (id) {
+    var sheet = document.getElementById(id);
+    if (!sheet) return;
+    sheet.addEventListener('click', function (e) {
+      if (e.target.closest && e.target.closest('[data-sheet-close]')) {
+        closeSheet(sheet);
+        if (id === 'programSheet' && titleEl) titleEl.setAttribute('aria-expanded', 'false');
+      }
+    });
+  });
+  // Escape on the program sheet should also reset aria-expanded
+  var progSheet = document.getElementById('programSheet');
+  if (progSheet && window.MutationObserver) {
+    new MutationObserver(function () {
+      if (progSheet.hidden && titleEl) titleEl.setAttribute('aria-expanded', 'false');
+    }).observe(progSheet, { attributes: true, attributeFilter: ['hidden'] });
+  }
+
+  // Info sheet buttons
+  var infoBtn = document.getElementById('infoBtn');
+  if (infoBtn) {
+    infoBtn.addEventListener('click', function () {
+      openInfoSheet(infoBtn);
+    });
+  }
+  var settingsInfoBtn = document.getElementById('settingsInfoBtn');
+  if (settingsInfoBtn) {
+    settingsInfoBtn.addEventListener('click', function () {
+      openInfoSheet(settingsInfoBtn);
+    });
+  }
+
+  // Safety notice
+  var ackBtn = document.getElementById('noticeAckBtn');
+  if (ackBtn) ackBtn.addEventListener('click', acknowledgeNotice);
+  var showBtn = document.getElementById('showNoticeBtn');
+  if (showBtn) {
+    showBtn.addEventListener('click', function () {
+      openNotice(true);
+    });
+  }
+  if (!noticeAcknowledged()) openNotice(false);
+
+  // MUX-HUD-6: icon-only controls with a title get it as their accessible name too
+  var titled = document.querySelectorAll('button[title], [role="button"][title], input[title], select[title]');
+  for (var t = 0; t < titled.length; ++t) {
+    var el = titled[t];
+    if (el.id === 'title') continue;
+    if (!el.getAttribute('aria-label') && !el.getAttribute('aria-labelledby') && !(el.textContent || '').trim()) {
+      el.setAttribute('aria-label', el.getAttribute('title'));
+    }
+  }
+
+  var sl = document.querySelectorAll('input[type="range"]');
+  for (var r = 0; r < sl.length; ++r) setSliderValueText(sl[r]);
+  updateCanvasLabelsSoon();
+}
