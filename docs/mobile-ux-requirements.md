@@ -3,6 +3,11 @@
 Status: draft for engineering. Author: tech-artist (kanban t_277c9e2a).
 Parent plan: `docs/mobile-capacitor-plan.md` (built by t_6a311b6a; this file is the UX input to it).
 
+Consolidation note (t_6a311b6a): this file was written against an older tree. v2 has since been merged into `dev`
+(PR #22, plus the mobile declutter in PR #24), so the "build base" question in 0.2 and 12.1 is settled: the mobile
+build is cut from `dev`. Line references like "v2 ~L4570" are approximate; re-locate them in `js/index.js` on `dev`.
+Decisions in the plan's section 2 override the defaults and open decisions in section 12 here.
+
 ## 0. How to read this
 
 - Every requirement has an ID (`MUX-<area>-<n>`), a priority and a pass/fail check.

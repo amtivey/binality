@@ -1,693 +1,221 @@
 # Binality mobile (Capacitor) plan
 
-This file is assembled from several workstreams. This section is the devops
-workstream (task t_23743c2c). The consolidation task (t_6a311b6a) merges it with
-the feasibility and UX sections and puts the open questions at the top.
+Consolidated plan for shipping Binality to Google Play and the App Store as a
+Capacitor 8 app. Kanban t_6a311b6a (root request t_8ed4721f). Base: `origin/dev`
+at 84ee5d4 (v2 UI, after PRs #22 and #24).
+
+This is the single plan. Three reference documents hold the detail and are
+cited by section number. Where they disagree with this file, this file wins.
+
+- `docs/mobile-capacitor-feasibility-audit.md` ("Audit"), from t_592e7261: code facts, risks R1-R10, canvas performance, plugins, project structure.
+- `docs/mobile-ux-requirements.md` ("UX"), from t_277c9e2a: MUX-* requirements with pass/fail checks, mockups, store assets, device matrix.
+- `docs/mobile-release-pipeline.md` ("Pipeline"), from t_23743c2c: toolchains, local builds, signing, versioning, CI outlines, store accounts, secrets.
+
+Status: plan only. No part of it has been executed. The host used by the agents
+has no JDK, Android SDK, Xcode, Mac or physical device, so every step that
+needs a real device is marked as an owner step.
 
 ---
 
-## Build & release pipeline
+## 0. Open questions and costs for the owner
 
-Scope: how to produce signed debug and release builds of Binality for Android
-(Google Play) and iOS (App Store) from this repo, how CI does it, what secrets
-exist, and what the owner has to buy or sign up for.
+Engineering can start without answers. Phase 0 and Phase 1 are not blocked.
+Each question has a default the team will use until you say otherwise. Two
+gate cards collect the answers (see section 5).
 
-Status of this document: researched and written against the repo at
-`origin/dev` (84ee5d4). Nothing in it has been executed end to end, because
-there is no Capacitor project in the tree and the devops host has no JDK,
-Android SDK or Xcode (see 1.2). Toolchain versions and store policies were
-checked against official sources on 2026-10-19; re-check the ones marked
-"verify" before acting on them.
+### 0.1 Questions (gate G1: engineering scope, card t_b17af878, issue #25)
 
-### 0. Summary and critical path
-
-1. iOS builds need macOS and Xcode 26 or later. Android builds do not.
-2. Both can be built on GitHub-hosted runners. This repo is public, so standard
-   Linux and macOS runners are free. If the repo goes private, macOS minutes are
-   billed at a multiplier (see 1.3).
-3. Plan: Capacitor 8, a GitHub Actions workflow with one Android job (ubuntu)
-   and one iOS job (macOS), and fastlane for upload and iOS signing.
-4. The slowest item is not engineering. A new personal Google Play developer
-   account must run a closed test with at least 12 testers opted in for 14
-   consecutive days before it can apply for production access. Start that
-   clock as early as possible. Account sign-up (Apple review can take days,
-   D-U-N-S for an organisation can take weeks) is the other lead-time item.
-5. Costs: Apple Developer Program USD 99 per year, Google Play Console USD 25
-   one time. Everything else in this plan is free at current usage.
-
-Critical path (calendar time):
-
-    owner: enrol Apple + Google accounts (days to weeks)
-      -> Android: first AAB to internal testing -> closed test, 12 testers x 14 days
-         -> apply for production -> Google review -> release
-      -> iOS: first build to TestFlight -> App Review -> release
-    engineering (Phase 0-2) can run in parallel with account enrolment.
-
-### 1. Environment and toolchains
-
-#### 1.1 Required toolchain (Capacitor 8)
-
-| Tool | Version | Needed for | Notes |
+| # | Question | Default if unanswered | Blocks |
 |---|---|---|---|
-| Node.js | 22 or newer | everything | CLI declares engines.node >= 22. CI already uses Node 20 for the static check; the mobile jobs must use 22. |
-| JDK | 21 | Android | Android Studio bundles one; CLI/CI needs JAVA_HOME = JDK 21. JDK 17 fails with "invalid source release: 21". |
-| Android Studio | Otter 2025.2.1 or newer | Android (local) | Older studio rejects AGP 8.13. |
-| Android SDK | platform 36, build-tools 36.x, cmdline-tools | Android | minSdk 24, compile/target 36 (Capacitor 8 defaults, same as the previous wrapper in commit 23856cf). |
-| Gradle / AGP | wrapper 8.14.x / AGP 8.13 | Android | Pinned by the generated android/ project. Do not use a system Gradle. |
-| Xcode | 26.0 or newer (macOS only) | iOS | Capacitor 8 minimum, and Apple has rejected uploads from older Xcode since 2026-04-28 (iOS 26 SDK required). |
-| iOS deployment target | 15.0 | iOS | Capacitor 8 default. |
-| Swift Package Manager | bundled with Xcode | iOS | Default for new Capacitor 8 iOS projects. Use `npx cap add ios --packagemanager CocoaPods` only if a plugin needs pods. |
-| CocoaPods + Homebrew | optional | iOS | Only if CocoaPods is chosen. With SPM there is no App.xcworkspace; use App.xcodeproj in scripts. |
-| Ruby 3.x + Bundler | 3.2 or newer | fastlane | macOS runners and Ubuntu runners ship Ruby. Pin fastlane in a Gemfile. |
-| fastlane | current 2.x | upload, iOS signing | Free, open source. |
+| Q1 | Do you have a Mac with Xcode 26 and an iPhone for testing? Background audio on iOS can only be proven on a physical iPhone. A free Apple ID is enough for 7-day on-device installs from Xcode. | No. iOS stays CI simulator-only until the Apple account exists. | M0.5, M2.2, M2.4b |
+| Q2 | Which physical Android phone(s) can you run test builds on (model, Android version)? Agents can only use emulators. | Your own phone, one device. | Acceptance of M0.4, M2.1, M2.6 |
+| Q3 | iPad and tablet layout in 1.0? | No. iOS ships iPhone-only (no iPad screenshots). Android tablets get the Medium layout. The Expanded layout (MUX-LAYOUT-5) moves to 1.1. | M1.4, M4.1 |
+| Q4 | Optional 1.0 features: "Keep screen on while playing" (MUX-LIFE-8), "Sleep dim" (MUX-LIFE-9), haptics. | Keep-awake and haptics are in. Sleep dim is deferred to 1.1. | M2.3 |
+| Q5 | Capacitor is the path again (PR #5 removed it in favour of Expo; Expo was dropped in PR #21). Is there anything about the June 2026 wrapper (23856cf) you did not like that this plan should avoid? | Your request on t_8ed4721f is taken as approval. The 23856cf native code is reused. | Nothing |
 
-Decision recorded for the consolidated plan: use SPM, not CocoaPods, unless a
-chosen plugin forces it. The plugin set is expected to be small (a custom
-foreground-audio plugin plus status bar / keep-awake), so SPM is fine.
+### 0.2 Questions (gate G2: accounts and store, card t_1213d078, issue #26)
 
-#### 1.2 What we have available today
-
-- Devops host: Linux x86_64 container, 16 cores, 30 GB RAM, Node 26, npm,
-  Docker, gh. No JDK, Android SDK, adb, Ruby, fastlane, Xcode. No macOS machine
-  or Mac runner is available to the agent.
-- Therefore: iOS builds cannot happen on our own infrastructure. They run on a
-  GitHub-hosted macOS runner, or on a Mac the owner provides.
-- Android builds can run on GitHub-hosted ubuntu runners (preferred), or locally
-  on the devops host after installing JDK 21 and the Android command-line tools
-  (about 3 GB). Local setup, if wanted:
-
-      # as a user with write access to ~/android-sdk
-      apt-get install -y openjdk-21-jdk-headless unzip
-      mkdir -p ~/android-sdk/cmdline-tools && cd ~/android-sdk/cmdline-tools
-      # download "commandlinetools-linux-*_latest.zip" from developer.android.com/studio
-      unzip commandlinetools-linux-*.zip && mv cmdline-tools latest
-      export ANDROID_HOME=~/android-sdk JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
-      yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
-      $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
-
-  There is no emulator or KVM acceleration requirement for building. Running on
-  an emulator is a Phase 0 developer task and is normally done on the owner's
-  laptop (Android Studio) or a Mac (Xcode Simulator).
-- The owner's machine: unknown. Open question O1 below (does the owner have a
-  Mac?). A Mac is not required for the pipeline, but it makes the first iOS
-  run, Simulator testing and debugging on a physical iPhone far easier.
-
-#### 1.3 CI options compared
-
-| Option | Android | iOS | Cost | Verdict |
-|---|---|---|---|---|
-| GitHub Actions, public repo | ubuntu-latest, free | macos-26 (arm64, Xcode 26), free | USD 0 | Recommended. The repo is public today. |
-| GitHub Actions, private repo | free allowance, then per minute | macOS minutes cost 10x Linux minutes | low but non-zero | Fine at 1-2 builds a week; watch usage. |
-| Codemagic / Bitrise | yes | yes (Xcode images, signing UI) | free tier then paid | Fallback if GitHub macOS images lag a new Xcode requirement. |
-| Self-hosted Mac mini runner | n/a | yes | hardware or MacStadium rental | Only if builds become frequent or the repo goes private. |
-| Local builds only | yes (devops host) | no (no Mac) | 0 | Not enough, iOS is blocked. |
-
-Pin runner labels (macos-26, ubuntu-24.04) rather than `-latest`; GitHub
-migrates `-latest` over 1-2 months and the Xcode version moves with it. Verify
-the macos-26 image ships Xcode 26.x before the first run (see runner-images
-readme).
-
-### 2. Repository changes this pipeline expects
-
-These are Phase 0 deliverables of someone else (feasibility/scaffold task), listed
-here because CI depends on them.
-
-- Re-add `package.json`, `package-lock.json` with `@capacitor/core`,
-  `@capacitor/cli`, `@capacitor/android`, `@capacitor/ios` at ^8, and
-  `capacitor.config.json` (appId `com.virtualarenas.binality`, appName
-  `Binality`, webDir `www`). The previous wrapper in commit 23856cf is a working
-  reference: `git show 23856cf:capacitor.config.json` etc.
-- Re-add the build script that assembles `www/` from the static site (previous
-  `scripts/copy-www.mjs`). It copies index.html, manifest, css, js, images,
-  programs, privacypolicy.html and now also `sw.js` and the 404/icons as
-  needed. Web-only files (robots.txt, humans.txt, crossdomain.xml) stay out.
-  The current static site has no build step; `npm run build` must only exist as
-  the www assembler.
-- `android/` and `ios/` are committed (standard Capacitor practice), so CI does
-  not need `cap add`. CI runs `npx cap sync <platform>` to copy `www/` in.
-- Update `scripts/ci-check.sh`. Its "no Capacitor leftovers" block currently
-  fails if `android`, `capacitor.config.json`, `package.json`, `package-lock.json`,
-  `node_modules` or `www` exist, and greps for the word "capacitor" everywhere
-  outside docs/. That block must be removed or inverted in the same PR that
-  re-adds Capacitor, otherwise CI goes red.
-- Self-host the Google Fonts used in index.html (Outfit, Plus Jakarta Sans,
-  JetBrains Mono are loaded from fonts.googleapis.com). Reasons: the app should
-  work offline from the first launch, and a remote font request is the only
-  network traffic the app makes, which affects the store privacy answers
-  (section 7).
-- Service worker: sw.js registration should be skipped inside the native shell
-  (WKWebView with the capacitor scheme does not support it, and the bundled
-  assets are already offline). Feasibility task owns this; noted for the
-  version-stamping rule in section 4.
-- `.gitignore` additions: `node_modules/`, `www/`, `android/app/build/`,
-  `android/.gradle/`, `android/local.properties`, `android/keystore.properties`,
-  `*.jks`, `*.keystore` (except the shared debug keystore, see 3.1), `*.p12`,
-  `*.p8`, `*.mobileprovision`, `ios/App/Pods/`, `ios/App/build/`,
-  `ios/DerivedData/`, `fastlane/report.xml`, `**/google-play-key.json`.
-- Native audio: the previous wrapper needed a foreground service
-  (`AudioForegroundService`, `ForegroundAudioPlugin`, manifest permissions
-  FOREGROUND_SERVICE, FOREGROUND_SERVICE_MEDIA_PLAYBACK, WAKE_LOCK,
-  POST_NOTIFICATIONS, service type mediaPlayback) so Web Audio keeps rendering
-  with the screen off. iOS needs `UIBackgroundModes = audio` in Info.plist and an
-  AVAudioSession playback category. Both have store-review consequences
-  (sections 6 and 7).
-
-### 3. Building locally (the steps a new engineer follows)
-
-Assume Capacitor project exists on the branch (section 2). Commands run from the
-repo root.
-
-    node -v                    # must be 22.x or newer
-    npm ci
-    npm run build              # assembles www/
-    npx cap sync               # copies www/ and plugins into android/ and ios/
-
-#### 3.1 Android: debug build
-
-    export JAVA_HOME=<jdk-21>  ANDROID_HOME=<sdk>
-    cd android
-    ./gradlew assembleDebug
-    # output: android/app/build/outputs/apk/debug/app-debug.apk
-    adb install -r app/build/outputs/apk/debug/app-debug.apk
-
-- Debug builds use applicationId `com.virtualarenas.binality.dev` (the previous
-  wrapper set `applicationIdSuffix ".dev"` and `versionNameSuffix "-dev"` so a
-  debug build installs next to the real or legacy app). Keep that.
-- Debug builds are signed automatically with `~/.android/debug.keystore`. That key
-  differs per machine, so a debug APK from CI cannot be installed over one built
-  locally. Optional fix: commit one shared debug keystore (debug keystores are
-  not secrets, the password is `android`) and point `signingConfigs.debug` at it.
-  This keeps CI-produced debug APKs upgradeable.
-- To run in an emulator: Android Studio > Device Manager > create a Pixel,
-  API 36 image, then `npx cap run android` or open `android/` in Studio.
-
-#### 3.2 Android: release build (signed)
-
-One-time: create the **upload keystore**. Do this once, on a trusted machine, not
-in CI.
-
-    keytool -genkeypair -v -storetype PKCS12 \
-      -keystore binality-upload.jks -alias binality-upload \
-      -keyalg RSA -keysize 2048 -validity 10000
-
-Store the keystore and both passwords in two independent places (password
-manager plus an encrypted offline backup). Never commit it.
-
-How it is used:
-
-- Enrol in **Play App Signing** (default and effectively mandatory for new apps
-  on AAB). Google holds the real app-signing key; our keystore is only the
-  *upload key*. If it is ever lost, Google can reset the upload key through
-  support, so a lost keystore is recoverable. This is the main reason to use
-  Play App Signing.
-- `android/app/build.gradle` reads signing material from environment variables
-  (CI) or `android/keystore.properties` (local, gitignored), and only applies the
-  release signing config when they are present:
-
-      def ks = System.getenv('ANDROID_KEYSTORE_PATH') ?: findProperty('storeFile')
-      signingConfigs {
-        release {
-          if (ks) {
-            storeFile file(ks)
-            storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD') ?: findProperty('storePassword')
-            keyAlias      System.getenv('ANDROID_KEY_ALIAS')         ?: findProperty('keyAlias')
-            keyPassword   System.getenv('ANDROID_KEY_PASSWORD')      ?: findProperty('keyPassword')
-          }
-        }
-      }
-      // buildTypes.release: signingConfig signingConfigs.release  (only when ks is set)
-      // versionCode / versionName come from env, see section 4
-
-Build:
-
-    cd android
-    ./gradlew bundleRelease     # Play Store: android/app/build/outputs/bundle/release/app-release.aab
-    ./gradlew assembleRelease   # sideloadable signed APK for device smoke testing
-
-Verify signature before uploading:
-
-    $ANDROID_HOME/build-tools/36.0.0/apksigner verify --print-certs app-release.apk
-    keytool -printcert -jarfile app-release.aab
-
-Release build settings to confirm: `minifyEnabled` stays false unless the team
-adds proguard rules for the Capacitor bridge and the custom plugin; target SDK
-must be 36 or higher (Play requires API 36 for new apps and updates from
-2026-08-31, verify at submission time).
-
-#### 3.3 iOS: debug build
-
-Needs macOS with Xcode 26.
-
-    cd ios/App
-    # simulator, no signing, works with no Apple account:
-    xcodebuild -project App.xcodeproj -scheme App -configuration Debug \
-      -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
-      CODE_SIGNING_ALLOWED=NO build
-    # (use -workspace App.xcworkspace if the project was created with CocoaPods)
-
-    npx cap run ios            # picks a simulator and launches
-
-A **signed debug build on a physical iPhone** needs:
-
-1. A paid Apple Developer Program membership (free Apple IDs give 7-day profiles
-   and cannot be used for CI).
-2. The App ID `com.virtualarenas.binality` registered (Certificates, Identifiers
-   & Profiles).
-3. The test iPhone's UDID registered in the developer account.
-4. An Apple Development certificate and a development provisioning profile.
-   Easiest: open `ios/App/App.xcodeproj` in Xcode once, Signing & Capabilities,
-   tick "Automatically manage signing", choose the Team. Xcode creates all of it.
-   For CI use fastlane match type `development` (section 5.4).
-
-#### 3.4 iOS: release build (signed, App Store / TestFlight)
-
-Needs: Apple Distribution certificate, App Store provisioning profile for
-`com.virtualarenas.binality`, the app record in App Store Connect.
-
-Manual path (first time, Mac with Xcode): Product > Archive > Distribute App >
-App Store Connect > Upload.
-
-Scripted path (what CI does), fastlane in `ios/fastlane/Fastfile`:
-
-    default_platform(:ios)
-    platform :ios do
-      desc "Build and upload to TestFlight"
-      lane :beta do
-        api_key = app_store_connect_api_key(
-          key_id: ENV["ASC_KEY_ID"], issuer_id: ENV["ASC_ISSUER_ID"],
-          key_content: ENV["ASC_KEY_P8_BASE64"], is_key_content_base64: true)
-        setup_ci                                   # temp keychain on CI
-        match(type: "appstore", readonly: true, api_key: api_key)
-        build_app(
-          project: "App/App.xcodeproj", scheme: "App", export_method: "app-store",
-          xcargs: "MARKETING_VERSION=#{ENV['MARKETING_VERSION']} CURRENT_PROJECT_VERSION=#{ENV['BUILD_NUMBER']}")
-        upload_to_testflight(api_key: api_key, skip_waiting_for_build_processing: true)
-      end
-    end
-
-Info.plist items required for review: `ITSAppUsesNonExemptEncryption` = false
-(app only uses HTTPS/OS crypto, avoids the export-compliance prompt on every
-upload), `UIBackgroundModes` = [audio], launch screen, icon set (1024x1024
-without alpha).
-
-### 4. Versioning strategy
-
-Single source of truth: the `version` field in `package.json` (SemVer, e.g.
-2.1.0). It is the marketing version on both platforms and is bumped by a human
-in the release PR.
-
-Build number (Android `versionCode`, iOS `CFBundleVersion`): derived, never
-hand-edited, strictly increasing integer:
-
-    BUILD_NUMBER = GITHUB_RUN_NUMBER of the release workflow + BUILD_OFFSET
-
-- The release workflow is a single named workflow file, so its `run_number` is
-  monotonic. Both platforms use the same number, which makes support easier.
-- `BUILD_OFFSET` is a repo variable (Actions variable, not secret). Set it above
-  the highest versionCode ever uploaded under this package name. If a legacy
-  Play listing exists (open question O2) take its current versionCode and add a
-  margin. Play rejects equal or lower codes; max is 2,100,000,000.
-- Android: `build.gradle` reads `BINALITY_VERSION_CODE` and `BINALITY_VERSION_NAME`
-  env vars (defaults 1 and `dev` locally). iOS: xcodebuild overrides
-  `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` (no project-file edits, no
-  git diff in CI).
-- Tie to the web build: the release workflow writes a small
-  `www/build-info.json` ({ version, build, commit, builtAt }) and sets the
-  service-worker `CACHE_VERSION` (currently `binality-v2.0.5` in sw.js) to
-  `binality-v<version>` so the web and mobile builds identify the same
-  content. The app's About / settings screen may show it. Native builds are
-  always rebuilt from a git tag, so tag name = release identity.
-- Tags: `mobile-v<version>` (for example `mobile-v2.1.0`) triggers a release
-  build. Web hosting deploys are unaffected.
-- Native-only fixes (plugin, signing, store metadata) bump the patch version
-  and are built from a new tag the same way.
-
-### 5. CI workflow outline
-
-#### 5.1 Workflows
-
-| File | Trigger | Does | Secrets? |
+| # | Question | Default if unanswered | Blocks |
 |---|---|---|---|
-| `.github/workflows/ci.yml` (exists) | push, PR | static-site checks | none |
-| `.github/workflows/mobile-build.yml` | PR touching android/ ios/ capacitor.config.json package*.json www sources; push to dev; manual | unsigned/debug Android build, iOS simulator build; uploads debug APK artifact | none |
-| `.github/workflows/mobile-release.yml` | tag `mobile-v*`, manual `workflow_dispatch` | signed AAB + APK, signed IPA, upload to Play internal and TestFlight | yes, via protected environment |
+| Q6 | Apple Developer Program: when will you enrol, and as an individual (seller name "Mat Tivey") or an organisation (needs a legal entity and D-U-N-S, takes weeks)? | Individual, enrolled once Android is in closed testing. | M3.3, M3.5b, M4.3 |
+| Q7 | Google Play: (a) Was the developer account created before 2023-11-13? It published the 2014 app, so it should be, which exempts it from the "12 testers for 14 days" closed-test rule. Please confirm. (b) Is `com.virtualarenas.binality` already enrolled in Play App Signing? (c) Are you ready to export the 2017 key for Play App Signing if it is not? | (a) Yes, exempt. (b) Not enrolled. Enrol on the first AAB upload (section 2, D12). | M3.1, M3.5a |
+| Q8 | Store name: is "Binality" free on the App Store? (Play already has the listing.) | "Binality", with "Binality: Binaural Beats" as the fallback. | M4.1, M4.3 |
+| Q9 | Support email and support URL for both listings, and the copyright/seller line (README says "(c) 2014 Alexis Matthew Tivey"). | support@virtualarenas.com, https://binality.virtualarenas.com/, "(c) 2014-2026 Alexis Matthew Tivey". | M3.4, M4.1 |
+| Q10 | Beta testers: Gmail addresses for Play closed testing, and Apple IDs for TestFlight. | You plus 2-5 friends. 12 or more if Q7a turns out to be "no". | M3.5a, M3.5b |
+| Q11 | Does the repo stay public, and does the app stay free with no ads or in-app purchases? | Yes to both. Public repo means free macOS CI minutes. Free with no SDKs means the "no data collected" privacy answers hold. | M3.2, M3.3, M4.x |
 
-Rules:
+### 0.3 Costs and lead times
 
-- Secrets are only available to `mobile-release.yml`, and that job declares
-  `environment: mobile-release`. In GitHub: Settings > Environments >
-  mobile-release with required reviewer = owner. Public-repo forks never receive
-  secrets, and the release workflow only triggers on tags and manual runs.
-- Add a branch/tag protection rule so only the owner can create `mobile-v*` tags.
-- Debug workflow never touches release secrets.
-- Add `concurrency: group: mobile-release` so two tags cannot race build numbers.
+| Item | Cost | Lead time | Notes |
+|---|---|---|---|
+| Apple Developer Program | USD 99 per year | Days (individual) to weeks (organisation) | Needed for TestFlight, App Store and CI signing. |
+| Google Play Console | Already paid | None | The existing account and the unpublished `com.virtualarenas.binality` listing are reused. |
+| Play closed test | Free | 14 days, only if Q7a is "no" | The longest calendar item if it applies. Start it as soon as M3.2 is green. |
+| CI (GitHub Actions) | Free while the repo is public | None | macOS minutes are billed at 10x if the repo goes private. |
+| Mac and iPhone | Optional hardware | None | Makes iOS debugging faster. Not required for the pipeline. |
+| Everything else | Free | | Capacitor, plugins and fastlane are open source. |
 
-#### 5.2 mobile-release.yml outline
+---
 
-    name: Mobile release
-    on:
-      push: { tags: ["mobile-v*"] }
-      workflow_dispatch:
-    permissions: { contents: read }
-    concurrency: { group: mobile-release, cancel-in-progress: false }
+## 1. Scope and target
 
-    env:
-      MARKETING_VERSION: ${{ ... }}    # from package.json via a first step
-      BUILD_NUMBER: ${{ github.run_number + vars.BUILD_OFFSET }}   # use format/fromJSON for arithmetic
+- One codebase. The repo root stays the static website deployed to https://binality.virtualarenas.com/. Capacitor is added next to it (Audit section 7), and the native apps bundle a copy of the site.
+- Platforms: Android (minSdk 24, target/compile SDK 36) and iOS (deployment target 15.0, iPhone only for 1.0 per Q3).
+- Version: 3.0.0 (Pipeline section 4). Android versionCode starts at 48 or higher, because the last published build was 47 (versionName 2.27, 2017).
+- 1.0 feature set: everything in the web app, plus background/screen-off playback, interruption handling, lock-screen controls, the native share sheet, a back-button handler, safe areas, and the touch/layout requirements marked P0 in UX. P1 UX items are in 1.0 unless deferred in section 2. P2 items are 1.1 or later.
+- Out of 1.0: deep links for `#preset=` (Audit section 8 task 12), "Open in Binality" XML import (MUX-IN-8 native part), sleep dim, home-screen widgets and shortcuts, the Expanded tablet layout, the iPad build, and a 30 fps battery-saver toggle.
 
-    jobs:
-      android:
-        runs-on: ubuntu-24.04
-        environment: mobile-release
-        steps:
-          - uses: actions/checkout@v4
-          - uses: actions/setup-node@v4
-            with: { node-version: 22, cache: npm }
-          - uses: actions/setup-java@v4
-            with: { distribution: temurin, java-version: 21 }
-          - run: npm ci && npm run build && npx cap sync android
-          - name: Decode upload keystore
-            run: echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload.jks"
-            env: { ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }} }
-          - name: Build AAB + APK
-            working-directory: android
-            run: ./gradlew bundleRelease assembleRelease
-            env:
-              ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/upload.jks
-              ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-              ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-              ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-              BINALITY_VERSION_CODE: ${{ env.BUILD_NUMBER }}
-              BINALITY_VERSION_NAME: ${{ env.MARKETING_VERSION }}
-          - uses: actions/upload-artifact@v4   # keep AAB/APK 30 days
-            with: { name: android-release, path: "android/app/build/outputs/**/*.aab\nandroid/app/build/outputs/**/*.apk" }
-          - name: Upload to Play internal testing
-            run: bundle exec fastlane android internal      # supply: track internal, release_status draft until first approval
-            env: { PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }} }
-          - if: always()
-            run: rm -f "$RUNNER_TEMP/upload.jks"
+---
 
-      ios:
-        runs-on: macos-26
-        environment: mobile-release
-        steps:
-          - uses: actions/checkout@v4
-          - uses: actions/setup-node@v4
-            with: { node-version: 22, cache: npm }
-          - run: sudo xcode-select -s /Applications/Xcode_26.app   # confirm exact path/version on the image
-          - uses: ruby/setup-ruby@v1
-            with: { bundler-cache: true }
-          - run: npm ci && npm run build && npx cap sync ios
-          - name: Build, sign, upload to TestFlight
-            working-directory: ios
-            run: bundle exec fastlane beta
-            env:
-              ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
-              ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-              ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
-              MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-              MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
-              MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
-              MARKETING_VERSION: ${{ env.MARKETING_VERSION }}
-              BUILD_NUMBER: ${{ env.BUILD_NUMBER }}
-          - uses: actions/upload-artifact@v4
-            with: { name: ios-ipa, path: "ios/*.ipa" }
+## 2. Decisions (conflicts and gaps resolved)
 
-Android fastlane lane (`android/fastlane/Fastfile`):
+These are settled for implementers. Card bodies repeat the ones they depend on.
 
-    lane :internal do
-      upload_to_play_store(
-        track: "internal",
-        aab: "app/build/outputs/bundle/release/app-release.aab",
-        json_key_data: ENV["PLAY_SERVICE_ACCOUNT_JSON"],
-        skip_upload_metadata: true, skip_upload_images: true, skip_upload_screenshots: true)
-    end
+| # | Topic | Decision | Why / source |
+|---|---|---|---|
+| D1 | Build base | `dev` (v2 UI). | UX 0.2 assumed v2 was not on `dev`. It is now (PRs #22 and #24), so that open decision is closed. |
+| D2 | Wrapper | Capacitor 8.5.x, Node 22, JDK 21, Xcode 26, SPM (no CocoaPods). | Audit section 6, Pipeline 1.1. |
+| D3 | Project layout | Repo root = web app. New: `package.json`, `capacitor.config.json`, `scripts/copy-www.mjs`, `js/platform.js`, committed `android/` and `ios/`, gitignored `www/`, source art in `assets/`. | Audit section 7. UX says `assets/`, Audit says `resources/`: `assets/` wins, with the UX 10.1 file names, which `@capacitor/assets` reads. |
+| D4 | `www/` allowlist | index.html, privacypolicy.html, manifest.webmanifest, favicon.ico, apple-touch-icon-precomposed.png, css/, js/, images/, programs/, fonts/. Not `sw.js`, 404.html, robots.txt, humans.txt, crossdomain.xml, docs/, scripts/. | Audit and Pipeline disagreed on `sw.js`. It is excluded because it is never registered on native (D6). |
+| D5 | IDs | appId `com.virtualarenas.binality`, appName "Binality". Debug builds use `applicationIdSuffix ".dev"`. Keep `server.androidScheme` = https and hostname = localhost forever, and never set `server.url`. | G1/G2 answers (issues #7, #8). Audit R9: changing the origin wipes stored data. |
+| D6 | Native detection | `js/platform.js` exposes `window.BinalityPlatform` from `window.Capacitor`, with no imports and no bundler. On native it skips `initPwaServiceWorker()` and hides the install, update and "offline PWA" UI. | Audit 5.1 and R3, MUX-NATIVE-3. |
+| D7 | Background audio | Android: port `AudioForegroundService` + `ForegroundAudioPlugin` from 23856cf (FGS type mediaPlayback, partial wake lock, ongoing notification with a Stop action). iOS: `UIBackgroundModes` audio, `AVAudioSession` category `.playback`, non-mixing, set in `AppDelegate`, plus `navigator.audioSession.type = 'playback'`. Fallback if WKWebView still suspends: a looping silent `<audio>` keep-alive. | Audit R1, MUX-LIFE-1. The G1 answer to Q7 was "ignore the silent switch". The UX doc recommends non-mixing. |
+| D8 | Timers | The sleep timer, program end and fades are scheduled on the audio clock (`osc.stop(t)`, gain ramps). The UI is re-synced from `context.currentTime` on resume. Tick counting is not allowed. | Audit R2, MUX-LIFE-2. |
+| D9 | Orientation | No lock on any device. iPhone: portrait plus both landscapes. Android: `screenOrientation="fullUser"` and the `configChanges` set from 23856cf. No screen-orientation plugin. | UX 4. Audit listed the plugin as "only if UX locks", and UX does not lock. |
+| D10 | Lock-screen controls | In 1.0, after background audio works. Android: MediaSession in the FGS notification. iOS: `MPNowPlayingInfoCenter` + `MPRemoteCommandCenter`. Play/pause only, no seek. Required for store submission, not for beta. | UX made this P0 (MUX-LIFE-6). Audit made it P2. Resolved toward the UX doc because it supports the App Store 4.2 review argument. |
+| D11 | Fonts | Self-host Outfit, Plus Jakarta Sans and JetBrains Mono as woff2 in `fonts/`, drop the Google Fonts links, and update `sw.js` precache. This benefits the web build too. | All three docs. It is required for "Data Not Collected". |
+| D12 | Android signing | Reuse the owner's 2017 key. If the app is not in Play App Signing, enrol on the first AAB upload using that key as the app signing key (PEPK export, owner only). Then create a new upload key for CI. Never generate a different app-signing key, because that would orphan the listing. The original key never goes into CI or chat. `BUILD_OFFSET` is set so the first versionCode is 48 or higher. | G2 answer. Supersedes Pipeline 3.2, which assumed a fresh account. |
+| D13 | iOS signing | fastlane `match` with a private `amtivey/binality-certs` repo, bootstrapped from a manual macOS workflow. No Mac required. | Pipeline 5.4. |
+| D14 | CI | `ci.yml` stays for static checks. `scripts/ci-check.sh`'s anti-Capacitor guard is inverted (www/ and node_modules/ must be untracked, capacitor.config.json must be valid JSON). New `mobile-build.yml` (debug, no secrets) and `mobile-release.yml` (tag `mobile-v*`, `mobile-release` environment, owner as required reviewer). Runners pinned to ubuntu-24.04 and macos-26. | Pipeline 5, Audit 5.6. |
+| D15 | Versioning | `package.json` `version` is the marketing version (3.0.0). The build number is the release workflow run_number plus `BUILD_OFFSET`, shared by both platforms. | Pipeline 4. |
+| D16 | Program names | Keep "Pain Relief" and "Universal Healing" with the existing disclaimer, shown in the app and at the top of both store descriptions. Rename only if a reviewer rejects them. | G2 answer to Q8. |
+| D17 | Category, rating, audience | Health & Fitness on both stores. Expected rating 4+ / Everyone. Play target audience 13+. | UX 10.4, Pipeline 6.1. |
+| D18 | Privacy | Rewrite `privacypolicy.html` to describe what the app actually does (offline, no accounts, no analytics, localStorage only) and publish it at https://binality.virtualarenas.com/privacypolicy.html. That URL currently returns 404, while the site root returns 200 (checked 2026-10-19). Store answers: "Data Not Collected" (Apple) and "no data collected or shared" (Play). | All three docs, G2 Q3 answer. |
+| D19 | Layout classes | Compact under 600 px, Medium 600-899 px, Expanded 900 px and up, plus a "short" modifier below 500 px height. They replace the existing 640/600 px breakpoints. Expanded is deferred (Q3). | UX 3. PR #24's mobile declutter is the starting point. |
+| D20 | Canvas | Fix the fractional-DPR realloc bug (`Math.floor`, as `renderStudioPreview` already does), cap DPR at 2, skip `chart.replot()` when hidden or not the active view, and reduce `shadowBlur` on low-power devices. | Audit section 4, MUX-LAYOUT-3. |
+| D21 | Dev timer option | Hide the "10s Test" timer entries (index.html:311, :543) in native release builds. | UX 10.5. |
+| D22 | Base frequency range | 20-1500 Hz, clamped on blur with an inline message. | Owner answer to issue #7 Q4. UX MUX-IN-10 said 100-1000; the owner's answer wins. |
 
-These are outlines to be validated, not tested workflows. Expect one or two
-iterations on the first real run (arithmetic expression for BUILD_NUMBER, the
-Xcode path, the generated IPA path).
+---
 
-mobile-build.yml (debug) outline: ubuntu job runs `npm ci`, `npm run build`,
-`npx cap sync android`, `./gradlew assembleDebug`, uploads `app-debug.apk`; a
-macOS job runs the simulator `xcodebuild ... CODE_SIGNING_ALLOWED=NO build`. Gate
-the macOS job to PRs that touch `ios/` or plugin code to save minutes.
+## 3. Phased plan
 
-#### 5.3 Android store upload prerequisites
+Sizes: S is half a day or less, M is 1-2 days, L is 3-5 days. Owners are
+board profiles. "Owner" means the human owner (amtivey).
 
-- Google Play Developer API service account: Cloud project, enable "Google Play
-  Android Developer API", create a service account and JSON key, then in Play
-  Console > Users and permissions invite the service-account email with release
-  permissions for this app only.
-- The app must already exist in Play Console and have passed initial app setup.
-  The first AAB is uploaded **manually** in the Console (internal testing); API
-  uploads work after that.
+Hotspot: `js/index.js` (5.1k lines) and `css/index.css` are touched by almost
+every web card. The software-engineer-webdev cards are chained in one serial
+lane (M0.2, M0.4, M1.1 ... M1.5, M2.1, M2.3, M2.4a, M2.6) so they never run in
+parallel against the same files. Each card is a separate PR against `dev`.
 
-#### 5.4 iOS signing management
+### Phase 0: Capacitor scaffold, running in an emulator/simulator
 
-Recommended: fastlane `match`. Certificates and profiles live encrypted in a
-private git repo (for example `amtivey/binality-certs`, private), decrypted in CI
-with `MATCH_PASSWORD`. One-time bootstrap can be run on a macOS GitHub runner
-via a manual `workflow_dispatch` job (non-readonly `match appstore` and
-`match development`), so no personal Mac is strictly required. CI release runs
-use `readonly: true`.
+Goal: an Android debug APK that runs offline in an emulator, an iOS simulator
+build that compiles in CI, and a go/no-go on background audio.
 
-Alternative with fewer moving parts: Xcode automatic signing in CI using an App
-Store Connect API key (`xcodebuild -allowProvisioningUpdates
--authenticationKeyPath ... -authenticationKeyID ... -authenticationKeyIssuerID ...`).
-Works with Apple cloud-managed distribution certificates and avoids the certs
-repo, but is less proven for headless CI. Start with match; fall back if it
-becomes a burden.
+- M0.1 CI unlock (devops, S). Invert the guard in `scripts/ci-check.sh`, move `ci.yml` to Node 22, and add the `.gitignore` entries from Pipeline section 2. Done when CI is green on `dev` with a placeholder `capacitor.config.json` and fails if `www/` or `node_modules/` is committed.
+- M0.2 Capacitor scaffold (software-engineer-webdev, M; after M0.1). Add `package.json` with Capacitor 8.5.x and scripts (build, sync, android, ios, cap:doctor), `capacitor.config.json` (D5), `scripts/copy-www.mjs` (D4, ported from 23856cf), `npx cap add android` and `npx cap add ios` (SPM), `js/platform.js` (D6) and the SW/PWA suppression, SystemBars light style on #070314, and a temporary splash and icon. Done when `npm run build && npx cap sync` is clean, `./gradlew assembleDebug` produces an APK that runs in an API 36 emulator in airplane mode (program loads, chart draws, audio plays), there is no install/update toast on native, and the web build is unchanged.
+- M0.3 Debug CI workflow (devops, S-M; after M0.2). Add `mobile-build.yml`: an Android debug APK artifact on ubuntu-24.04, and an iOS simulator `xcodebuild ... CODE_SIGNING_ALLOWED=NO` on macos-26, gated to native-touching PRs. Done when both jobs are green on a PR and the APK is downloadable. This is the first proof that the iOS project builds.
+- M0.4 Android background audio (go/no-go) (software-engineer-webdev, S-M; after M0.2). Port the FGS and plugin from 23856cf, add the POST_NOTIFICATIONS prompt at first Start with a pre-prompt, and wire `BinalityPlatform.keepAlive.start/stop` into `start()`/`stop()`. Done when an emulator run passes 10 minutes with the screen off, and the owner runs the debug APK on a real phone (Q2) for 30 minutes screen-off with no dropout, and the result is recorded on the card.
+- M0.5 iOS background audio spike (software-engineer-webdev, M; after M0.2 and G1). Add `UIBackgroundModes` audio, `AVAudioSession .playback` in `AppDelegate.swift` and `navigator.audioSession`. Run on a physical iPhone with iOS 17 or later: 30 minutes locked, the silent switch on, an app switch, and a call interruption. If it fails, try the silent-`<audio>` keep-alive. Done when the result is recorded as go, go-with-fallback or no-go. A no-go stops the iOS track and is escalated to the owner.
 
-Apple distribution certificates expire after one year and profiles follow;
-`match` renews with `match(force: true)` (calendar this).
+### Phase 1: touch controls and layout (web code, testable in browser device emulation)
 
-### 6. Store accounts, tracks and review requirements
+All Phase 1 work also improves the PWA. Requirement IDs refer to the UX doc.
 
-#### 6.1 Google Play
+- M1.1 Web hardening (software-engineer-webdev, M; after M0.2). Self-host fonts (D11), the DPR fix, cap and redraw gating (D20), `context.suspend()` on stop (Audit R10), and `@media (hover: hover)` around hover rules (MUX-TAP-5). Done when the first launch in airplane mode looks identical (MUX-VIS-4), canvas width stays stable across frames at DPR 2.625 in DevTools, and there are no Google Fonts requests in the network log.
+- M1.2 Timers and lifecycle (software-engineer-webdev, M; after M1.1). Audio-clock sleep timer and program end (D8), `onstatechange`/`visibilitychange` handling, pausing rAF and DOM writes while hidden (MUX-LIFE-3), re-syncing on resume, persisting position (MUX-LIFE-7), and the 3 s fade-in and 300 ms fade-out (MUX-LIFE-10). Done when a 10-minute timer in a backgrounded Chrome tab ends within 2 s, a suspended context never shows "stop", and a cold start restores program and position without autoplay.
+- M1.3 Touch input and tap targets (software-engineer-webdev, M; after M1.2). Pointer-event chart scrub and tap-to-seek (MUX-IN-1..3), `touch-action` and scroll containment (MUX-IN-6), visible close buttons (MUX-IN-5), input sizing (MUX-IN-10), all MUX-TAP-* items, and the hit-area extensions for header, scope and Studio controls (MUX-STU-1). Done when UX acceptance script steps 6 and 10 pass in Chrome device emulation at 360x800.
+- M1.4 Responsive layout and safe areas (software-engineer-webdev, L; after M1.3). Width classes (D19), MUX-LAYOUT-1..4, 6, 7, MUX-SAFE-1..4, 6, 7, full-screen sheets on Compact and Medium, and the short-landscape layout B. The Expanded layout is deferred (Q3). Done when every size in MUX-LAYOUT-4 renders without clipping or horizontal scroll and survives 200% font scale.
+- M1.5 HUD, accessibility and first-run (software-engineer-webdev, M; after M1.4). The UX section 7 HUD table, MUX-HUD-1..6, the program quick-switch sheet (MUX-IN-7), the MUX-VIS-* items including reduced motion and screen-reader labels, the first-run notice and disclaimer access (MUX-LIFE-10, 12), and hiding the 10s test timer on native (D21). Done when the 320x568 header has no overflow, there is no title-only information, and VoiceOver/TalkBack can complete a session in emulators.
+- M1.6 UX QA pass in emulators (tech-artist, M; after M1.5 and M0.3). Run UX section 11 steps 1, 5, 6, 9, 10 and 12 on emulators/simulators (devices A-H where they can be emulated), file defects as comments or child cards, and capture reference screenshots. Done when there are no open P0 layout or touch defects.
 
-- Account: Play Console developer account, one-time USD 25. Personal or
-  organisation. Identity verification is required (government ID; organisations
-  need a D-U-N-S number).
-- Personal accounts created after 2023-11-13: before applying for production, run
-  a **closed test with at least 12 testers opted in continuously for 14 days**,
-  then answer questions in Play Console to apply for production access.
-  Organisation accounts are not subject to this rule. Plan for recruiting 12+
-  testers (friends, a Google Group of testers, the open-source community).
-- Tracks: Internal testing (up to 100 testers, no review, minutes to publish) ->
-  Closed testing (the 12-tester gate) -> Open testing (optional) -> Production.
-  CI uploads to Internal; promotion between tracks is a manual Console click (or
-  fastlane `upload_to_play_store` with `track_promote_to`).
-- App content declarations required before any non-internal release:
-  - Privacy policy URL (must be a public web page, not the GitHub repo page).
-  - Data safety form.
-  - Content rating questionnaire (IARC).
-  - Target audience: choose 13+ or 18+, not children, to stay out of the Families
-    policy. The existing privacy policy already says children under 13 are not
-    addressed.
-  - Ads declaration (none), government app, financial features, health apps
-    declaration (required for apps in Health & Fitness or with health content).
-  - Foreground service declaration: `FOREGROUND_SERVICE_MEDIA_PLAYBACK` needs a
-    use-case description and sometimes a short demo video (screen-off audio is a
-    legitimate mediaPlayback use). Prepare the video from the emulator.
-- Store listing: 512x512 icon, 1024x500 feature graphic, at least 2 phone
-  screenshots (prefer 4+), short (80) and full (4000) descriptions.
-- Technical: AAB format, target API 36, 64-bit (the app has no native libs, so
-  automatic).
+### Phase 2: native polish, plugins and performance
 
-#### 6.2 Apple
+- M2.1 Android native integration (software-engineer-webdev, M; after M0.4, M1.2, M1.5). Audio focus (transient loss pauses, permanent loss stops), `ACTION_AUDIO_BECOMING_NOISY` stops with a toast, all routed through the same `start()`/`stop()` paths (MUX-LIFE-4); back-button priority (MUX-IN-4); manifest orientation and `singleTask` (D9, MUX-NATIVE-5); edge-to-edge bars (MUX-SAFE-5); and a monochrome notification icon. Done when UX steps 3, 4, 5 and 7 pass on an emulator and on the owner's phone.
+- M2.2 iOS native audio session and interruptions (software-engineer-webdev, M; after M0.5 and M1.2). Interruption and route-change observers bridged to the web layer (MUX-LIFE-4), status bar style, orientation plist keys (MUX-ORI-1), iPhone-only device family, and `ITSAppUsesNonExemptEncryption=false`. Done when UX steps 2, 3, 4 and 8 pass on a physical iPhone. It needs Q1, or the Apple account plus a tester.
+- M2.3 Cross-platform plugins (software-engineer-webdev, M; after M2.1). `@capacitor/browser` for external links (MUX-NATIVE-4); Filesystem + Share for XML export and preset links with the canonical `https://binality.virtualarenas.com/#preset=` base (Audit R5, MUX-IN-9); a Preferences mirror of `binalityCustomPresets` (Audit R9); splash hidden after first paint (MUX-NATIVE-1); keep-awake setting (MUX-LIFE-8, Q4); haptics (MUX-TAP-8). Done when export, share and links work on the Android emulator and the iOS simulator, and presets survive clearing WebView data.
+- M2.4a Android lock-screen controls (software-engineer-webdev, M; after M2.3). MediaSession on the FGS notification with title, artwork, and play/pause/stop, plus headset button support (D10). Done when lock-screen and Bluetooth play/pause work on the owner's phone and the UI state matches.
+- M2.4b iOS Now Playing (software-engineer-webdev, M; after M2.2). `MPNowPlayingInfoCenter` and `MPRemoteCommandCenter` play/pause (D10). Done when the lock screen and Control Center show the program and the controls work on a physical iPhone.
+- M2.5 App icon, splash and notification art (tech-artist, M; after M0.2). Masters from UX 10.1 in `assets/`, generated with `@capacitor/assets`, a notification small icon, a regenerated 180 px apple-touch-icon, and the Play 512 px icon. Done when no Capacitor placeholder art is left, the adaptive and themed icons look right on API 33 or later, and the iOS icon is 1024 px with no alpha channel.
+- M2.6 Performance and battery pass (software-engineer-webdev, M; after M2.4a). A `.native-lowpower` class (Audit 4.6), `shadowBlur` reduction (Audit 4.3), and profiling on a low-end Android device or emulator. Done when the scope holds 50 fps or more on the reference device, and a 60-minute screen-off run on the owner's phone uses 6% battery per hour or less (MUX-LIFE-1, -3).
 
-- Account: Apple Developer Program, USD 99 per year, auto-renews. Individual
-  (name appears as seller: "Mat Tivey" or similar) or Organisation (needs a legal
-  entity and D-U-N-S, seller name = organisation, enrolment can take weeks).
-  Decide before enrolling because conversion later is painful (O3).
-- Roles needed: Account Holder enrols; create an App Store Connect API key
-  (Users and Access > Integrations > Keys) with App Manager (or Admin) access for
-  CI.
-- Register Bundle ID `com.virtualarenas.binality` and create the app record in App
-  Store Connect (name, primary language, SKU). Note the name "Binality" must be
-  unique across the App Store; check availability early (O4).
-- TestFlight: internal testing (up to 100 App Store Connect users, no review, build
-  available after processing) and external testing (up to 10,000 testers via
-  email or public link; first build of each version goes through Beta App
-  Review, usually about a day). TestFlight builds expire after 90 days.
-- Submission requirements: privacy policy URL, App Privacy ("nutrition label")
-  answers, age rating questionnaire, screenshots (6.9-inch iPhone set required;
-  iPad set required only if the app supports iPad, so set the device family to
-  iPhone only if iPad is not a goal), description, keywords, support URL, review
-  notes, demo steps (no login, so none needed), category (Health & Fitness is the
-  natural fit; Music is the alternative).
-- App Review risk areas for this app:
-  - Guideline 4.2 (minimum functionality): wrappers around a website can be
-    rejected. Mitigations: the app is fully offline and bundled, uses native
-    background audio, and has a real interactive canvas; say this in the review
-    notes. The UX/feasibility workstreams should keep native integrations
-    (background audio, keep-awake, haptics, native share) on the list to
-    strengthen the case.
-  - Guideline 1.4.1 (health): wording like "healing", "pain relief", "treatment"
-    (program names such as Pain Relief and Universal Healing) invites scrutiny. The
-    in-app health-claims disclaimer added in commit 7fc63dd helps. Review all
-    store text and screenshots for medical claims.
-  - Background audio: must actually play audio while backgrounded.
+### Phase 3: CI builds, signing and beta testing
 
-#### 6.3 Privacy and policy work (blocks both stores)
+- M3.1 Android release signing and versioning (devops, M; after M0.3 and G2). Gradle signing from env/`keystore.properties`, version env vars, `BUILD_OFFSET` giving a versionCode of 48 or higher, and the D12 key procedure with the owner. Done when `apksigner verify` passes with the upload key, the owner has uploaded the first AAB to internal testing by hand, and Play App Signing is confirmed.
+- M3.2 Release workflow and Play internal upload (devops, M; after M3.1). `mobile-release.yml` Android job, fastlane `internal` lane, Play service account, the `mobile-release` environment with the owner as reviewer, and tag protection. Done when tag `mobile-v3.0.0-rc1` lands a build in Play internal testing with no manual steps.
+- M3.3 iOS signing and TestFlight (devops, M; after M0.3 and G2, once Apple enrolment is done). Bundle ID and App Store Connect app record (owner), API key, `match` bootstrap, the fastlane `beta` lane, and the iOS job in `mobile-release.yml`. Done when a tagged build is processed in TestFlight.
+- M3.4 Privacy policy (software-engineer-webdev, S; no dependencies). Rewrite `privacypolicy.html` (D18) and add the safety content from Pipeline 6.3. The owner approves and publishes it at the stable URL. Done when the URL returns 200 with the new text and the Data Safety and App Privacy draft answers are attached to the card.
+- M3.5a Android beta and device QA (tech-artist, M plus calendar time; after M3.2, M2.6, M2.5, M1.6, M3.4). Fill in the Play app-content forms needed for closed testing, run the closed track with Q10 testers (14 days with 12 testers only if Q7a is "no"), run the full UX section 11 script on devices A and B, and triage feedback. Done when there are no P0 defects open and the tester feedback summary is posted on the card.
+- M3.5b iOS beta and device QA (tech-artist, M; after M3.3, M2.4b, M2.5, M1.6, M3.4). Internal TestFlight, then external TestFlight (Beta App Review), and UX section 11 on devices C and D. Done when there are no P0 defects open.
 
-- `privacypolicy.html` in this repo is a generic template. It claims the service
-  collects name, phone number and postal address and "Log Data", which the app
-  does not do, and refers to "website visitors". It must be rewritten before
-  submission to match reality (offline, no accounts, no analytics, settings kept
-  in local storage, no data transmitted). Wrong policy text creates a mismatch
-  with the store questionnaires and is a rejection risk.
-- The policy must be hosted at a stable public URL (for example
-  https://www.virtualarenas.com/binality/privacypolicy.html or GitHub Pages),
-  not a path inside the app bundle only. The in-app copy can be the same file.
-- Expected store answers, if the app stays as it is: Apple "Data Not Collected";
-  Google Data safety "no data collected, no data shared". This holds only if the
-  Google Fonts request is removed (section 2) and no analytics or ads are added.
-  Re-do the forms when any SDK is added.
-- Safety content to consider adding to listing and onboarding: use with
-  headphones, do not use while driving or operating machinery, not a medical
-  device, consult a doctor (especially for epilepsy or photosensitivity if any
-  visuals flicker; the owner should confirm whether any visual mode flashes).
-- Developer contact: a support email address and a support URL are required by
-  both stores. A role address (for example support@virtualarenas.com) is better
-  than a personal one.
+### Phase 4: store submission
 
-### 7. Secrets and variables
+- M4.1 Store listing assets and copy (tech-artist, M; after M1.6 and M2.5). The six-scene screenshot set (UX 10.3) for Android phones and the 6.9-inch iPhone, the 1024x500 feature graphic, short and full descriptions with the disclaimer at the top (D16), and review notes. No medical claims in captions. Done when the assets are attached to the card and the owner has approved the copy.
+- M4.2 Google Play production submission (devops, M; after M3.5a, M4.1, M3.4). Data safety, IARC rating, target audience, health-apps declaration, the FGS mediaPlayback declaration with a demo video, the listing upload, and production with a staged rollout. Form answers are the owner's legal statements, so devops prepares them and the owner confirms. Done when 3.0.0 is live in production, starting with a staged rollout.
+- M4.3 App Store submission (devops, M; after M3.5b, M4.1, M3.4). App Privacy label, age rating, screenshots, review notes (offline, native background audio, not a medical device; the 4.2 and 1.4.1 arguments from Pipeline 6.2), and submit with a phased release. Done when the app is approved and released.
 
-Nothing below is created yet. All secrets live in GitHub Environment
-`mobile-release`; values are never put in the repo, commit messages, logs or
-PRs. Base64 encode with `base64 -w0 file` (Linux) or `base64 -i file` (macOS).
+### Critical path
 
-| Name | Kind | What | Who creates | Used by |
+    Android:  M0.1 -> M0.2 -> M0.4 -> M1.1..M1.5 -> M2.1 -> M2.3 -> M2.4a -> M2.6 -> M3.5a -> M4.2
+              M0.3 -> M3.1 (G2) -> M3.2 --------------------------------------^
+    iOS:      M0.2 -> M0.5 (G1) -> M2.2 -> M2.4b -> M3.5b -> M4.3
+              M3.3 (G2, Apple enrolment) ---------------^
+    Parallel: M3.4 (now), M2.5 (after M0.2), M1.6, M4.1
+
+The Android track finishes first. The iOS track is limited by Q1 and Q6, not by
+engineering. Engineering on the webdev lane is about 15-20 working days. The
+other lanes run in parallel with it.
+
+---
+
+## 4. Risks (top five)
+
+1. iOS background Web Audio in WKWebView (Audit R1). Mitigation: M0.5 spike with a fallback. If that fails, a native audio engine is a separate re-plan.
+2. Timers drifting in the background (Audit R2). Handled in M1.2 before any device work.
+3. App Store 4.2 "website wrapper" rejection. Mitigation: offline bundle, native background audio, lock-screen controls (D10), native share and haptics, all explained in the review notes.
+4. Health-claim review under guideline 1.4.1 and Play health policy (D16). The fallback is a rename if a reviewer rejects the names.
+5. The Play listing key (D12). If the 2017 key were lost, the listing could not be updated. The owner confirmed he has it, and it must be backed up in two places before M3.1.
+
+---
+
+## 5. Board and GitHub tracking
+
+Each work item is a kanban card with a matching GitHub issue labelled
+`capacitor-mobile`. The two gates are labelled `decision-needed` and start
+blocked; the owner answers on the gate card or issue, and software-architect
+folds the answers into section 0 and section 2 of this file.
+
+All cards also depend on t_6a311b6a (this plan), so they wait until it is done.
+
+| ID | Card | Issue | Owner profile | Depends on |
 |---|---|---|---|---|
-| ANDROID_KEYSTORE_BASE64 | secret | base64 of upload keystore (.jks) | owner / devops (section 3.2) | android |
-| ANDROID_KEYSTORE_PASSWORD | secret | keystore password | same | android |
-| ANDROID_KEY_ALIAS | secret | `binality-upload` | same | android |
-| ANDROID_KEY_PASSWORD | secret | key password | same | android |
-| PLAY_SERVICE_ACCOUNT_JSON | secret | Play Developer API service-account key (JSON) | owner (Cloud + Play Console, 5.3) | android upload |
-| ASC_KEY_ID | secret | App Store Connect API key ID | owner (ASC > Integrations) | ios |
-| ASC_ISSUER_ID | secret | App Store Connect issuer ID | owner | ios |
-| ASC_KEY_P8_BASE64 | secret | base64 of the AuthKey_XXXX.p8 file (downloadable once) | owner | ios |
-| MATCH_PASSWORD | secret | passphrase encrypting the certs repo | devops | ios |
-| MATCH_GIT_URL | secret or variable | https URL of the private certs repo | devops | ios |
-| MATCH_GIT_BASIC_AUTHORIZATION | secret | base64 of `user:PAT` with read access to the certs repo | owner (fine-grained PAT, repo-scoped, read-only) | ios |
-| APPLE_TEAM_ID | variable | 10-character team ID | owner | ios |
-| BUILD_OFFSET | variable | integer, see section 4 | devops | both |
-
-Handling rules:
-
-- The Android upload keystore and the `.p8` key are the crown jewels. The `.p8`
-  can be downloaded only once; store a copy in the owner's password manager.
-- Rotate: PATs yearly; the Apple distribution certificate yearly; revoke the
-  App Store Connect key and Play service account if a runner or log leak is
-  suspected.
-- The existing local `GITHUB_TOKEN` in the devops profile is for repo/PR work
-  and must not be reused as MATCH_GIT_BASIC_AUTHORIZATION; make a separate,
-  narrowly scoped token.
-- Do not echo secrets; the workflow files use `env:` per step, not `set -x`.
-
-### 8. Owner checklist (actions only the owner can do)
-
-Costs: Apple USD 99 per year; Google USD 25 once. No other mandatory spend.
-Optional: a Mac or cloud Mac (about USD 0 if using GitHub runners), a custom
-domain page for the privacy policy (likely already available at
-virtualarenas.com).
-
-1. Decide account type for Apple and Google: individual or organisation
-   (organisation needs a legal entity + D-U-N-S, longer lead time; Google
-   organisation accounts also skip the 12-tester rule). Record the answer on the
-   board.
-2. Enrol: Apple Developer Program (USD 99) and Google Play Console (USD 25).
-   Complete Google identity verification and (if prompted) phone/device
-   verification.
-3. Confirm the bundle/package ID `com.virtualarenas.binality` (open question
-   O2: is there an existing legacy Play or App Store listing under this ID or
-   under this developer?). If yes, tell devops which account owns it and its
-   current versionCode.
-4. Confirm the public app name "Binality" is available in both stores (or pick
-   a fallback name such as "Binality: Binaural Beats").
-5. Create the Play Console app and the App Store Connect app records (devops can
-   supply field values).
-6. Create the App Store Connect API key (App Manager), the Play service account,
-   and add the secrets from section 7 to the `mobile-release` GitHub
-   environment. Add yourself as required reviewer. Devops will generate the
-   Android keystore and match passphrase and hand over the keystore to the
-   owner's password manager.
-7. Provide a private repo for iOS certificates (`binality-certs`) or approve
-   devops creating it under `amtivey`.
-8. Approve the rewritten privacy policy and publish it at a public URL.
-9. Recruit 12 or more Google Play closed-test testers (Gmail addresses) and
-   keep them opted in 14 days. Add 1-5 internal testers to TestFlight.
-10. Provide support email/URL, store screenshots approval, and age/health-claims
-    answers (questionnaires are the owner's legal statements).
-11. Optional: lend a Mac / iPhone for one-off debugging; register the iPhone UDID.
-
-### 9. Step-by-step setup order (devops execution plan)
-
-Each step lists its precondition. Steps 1-4 can start now.
-
-1. (no precondition) Owner starts enrolments (section 8 items 1-2).
-2. Devops: add `.gitignore` entries, update `scripts/ci-check.sh` allowlist
-   (section 2) in the PR that adds Capacitor.
-3. Devops (after scaffold PR merges): local Android debug build per 3.1 on the
-   devops host or CI; confirm `app-debug.apk` installs and the web content loads
-   offline.
-4. Devops: add `mobile-build.yml` (debug) and confirm artifacts on a PR.
-   Acceptance: green run, downloadable debug APK; iOS simulator build green.
-5. Devops: generate upload keystore (3.2), add Gradle signing config and
-   versioning env, produce a signed AAB and APK locally or via manual workflow;
-   `apksigner verify` passes. Owner stores keystore backup.
-6. After Play account is active: owner creates the app, uploads the first AAB
-   manually to Internal testing, enables Play App Signing; devops wires the
-   service account, then CI uploads to Internal.
-7. After Apple account is active: owner registers the bundle ID and API key;
-   devops bootstraps `match` (development + appstore) from a manual macOS
-   workflow; produces first signed IPA; owner or CI uploads to TestFlight.
-8. Add `mobile-release.yml`, tag `mobile-v0.1.0-rc1` (a pre-release tag to prove
-   the pipeline), confirm builds appear in Play Internal testing and TestFlight.
-9. Start the Play closed test (12 testers, 14 days) and TestFlight external beta
-   in parallel with Phase 2 polish.
-10. Store listing, privacy forms, and review notes; submit to Apple, apply for
-    production on Google; release with staged rollout (Play) and phased release
-    (Apple).
-
-Definition of done for "a signed debug and release build on both platforms":
-
-- Android: `app-debug.apk` installs on an emulator/device (id ending `.dev`);
-  `app-release.aab` and `app-release.apk` pass `apksigner verify` with the upload
-  key; the AAB is accepted by Play Internal testing.
-- iOS: simulator debug build runs; a development-signed build installs on a
-  registered iPhone; an App Store-signed IPA is accepted and processed by
-  TestFlight.
-
-### 10. Open questions for the owner (forward to the top of the consolidated plan)
-
-- O1. Do you have a Mac and an iPhone? (Not required, but changes who debugs
-  iOS-specific issues.)
-- O2. Is there an existing Play Store or App Store listing for Binality, or any
-  published build under `com.virtualarenas.binality`? (The Capacitor commit
-  mentions a "legacy app"; if it is on a store the package name, signing key and
-  versionCode are already fixed.)
-- O3. Individual or organisation developer accounts? (Seller name, D-U-N-S,
-  12-tester rule.)
-- O4. Final app name and bundle ID; confirm "Binality" is free on both stores.
-- O5. Is the repo staying public? (Drives free macOS CI minutes and whether
-  secrets-in-forks exposure matters.)
-- O6. iPhone only, or iPhone + iPad? (Screenshots, layout work.)
-- O7. Is the app free with no in-app purchases and no ads, permanently? (The
-  donation section was removed; any payments change store forms and fees.)
-
-### 11. Sources checked (2026-10-19)
-
-- Capacitor environment setup and Capacitor 8 requirements:
-  https://capacitorjs.com/docs/getting-started/environment-setup
-- Apple SDK minimum requirements (Xcode 26 since 2026-04-28):
-  https://developer.apple.com/news/upcoming-requirements/
-- Google Play new personal account testing requirement:
-  https://support.google.com/googleplay/android-developer/answer/14151465
-- Google Play target API level requirement (API 36 from 2026-08-31):
-  https://support.google.com/googleplay/android-developer/answer/11926878
-- GitHub-hosted runner labels and pricing: GitHub Docs, "GitHub-hosted runners"
-  reference; runner images at https://github.com/actions/runner-images
-- Prior wrapper reference: commit 23856cf and docs/capacitor-inventory.md in the
-  main checkout.
+| G1 | t_b17af878 | #25 | software-architect (owner answers) | - |
+| G2 | t_1213d078 | #26 | software-architect (owner answers) | - |
+| M0.1 | t_ce9694f7 | #27 | devops | - |
+| M0.2 | t_bccdefe5 | #28 | software-engineer-webdev | M0.1 |
+| M0.3 | t_85cd6feb | #29 | devops | M0.2 |
+| M0.4 | t_04189ed4 | #30 | software-engineer-webdev | M0.2 |
+| M0.5 | t_7c384c70 | #31 | software-engineer-webdev | M0.2, G1 |
+| M1.1 | t_a4960ff1 | #32 | software-engineer-webdev | M0.2 |
+| M1.2 | t_a2416d8d | #33 | software-engineer-webdev | M1.1 |
+| M1.3 | t_143e1fc6 | #34 | software-engineer-webdev | M1.2 |
+| M1.4 | t_208dc861 | #35 | software-engineer-webdev | M1.3 |
+| M1.5 | t_21b576a2 | #36 | software-engineer-webdev | M1.4 |
+| M1.6 | t_9963e204 | #37 | tech-artist | M1.5, M0.3 |
+| M2.1 | t_80a0916a | #38 | software-engineer-webdev | M0.4, M1.2, M1.5 |
+| M2.2 | t_e8f15492 | #39 | software-engineer-webdev | M0.5, M1.2 |
+| M2.3 | t_a8a3a55a | #40 | software-engineer-webdev | M2.1 |
+| M2.4a | t_906d759a | #41 | software-engineer-webdev | M2.3 |
+| M2.4b | t_99cd7d40 | #42 | software-engineer-webdev | M2.2 |
+| M2.5 | t_3f37bfd9 | #43 | tech-artist | M0.2 |
+| M2.6 | t_688df000 | #44 | software-engineer-webdev | M2.4a |
+| M3.1 | t_4a229fed | #45 | devops | M0.3, G2 |
+| M3.2 | t_f3a895de | #46 | devops | M3.1 |
+| M3.3 | t_01172391 | #47 | devops | M0.3, G2 |
+| M3.4 | t_495792c3 | #48 | software-engineer-webdev | - |
+| M3.5a | t_88c695f4 | #49 | tech-artist | M3.2, M2.6, M2.5, M1.6, M3.4 |
+| M3.5b | t_3a62b784 | #50 | tech-artist | M3.3, M2.4b, M2.5, M1.6, M3.4 |
+| M4.1 | t_e1ad1114 | #51 | tech-artist | M1.6, M2.5 |
+| M4.2 | t_04968fa4 | #52 | devops | M3.5a, M4.1, M3.4 |
+| M4.3 | t_db68cf9c | #53 | devops | M3.5b, M4.1, M3.4 |
