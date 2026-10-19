@@ -90,3 +90,27 @@ jobs:
           path: qa-out
           if-no-files-found: warn
           retention-days: 14
+
+  ios-sim:
+    needs: build
+    runs-on: macos-26
+    timeout-minutes: 45
+    env:
+      XCODE_APP: /Applications/Xcode_26.6.app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Select Xcode 26
+        run: sudo xcode-select -s "$XCODE_APP"
+      - run: npm ci && npm run build && npx cap sync ios
+      - run: bash scripts/qa/ios_sim.sh qa-out-ios
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qa-out-ios
+          path: qa-out-ios
+          if-no-files-found: warn
+          retention-days: 14
