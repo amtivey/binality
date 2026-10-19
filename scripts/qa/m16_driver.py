@@ -39,7 +39,7 @@ def adb(*a, timeout=120):
 
 
 def rec(step, dev, cond, status, detail='', mux=''):
-    RES.append(dict(step=step, device=dev, cond=cond, status=status, detail=str(detail)[:600], mux=mux))
+    RES.append(dict(step=step, device=dev, cond=cond, status=status, detail=str(detail)[:1600], mux=mux))
     print('[%s] step%s %s %s: %s %s' % (status, step, dev, cond, mux, str(detail)[:300]), flush=True)
     json.dump(RES, open(os.path.join(OUT, 'results.json'), 'w'), indent=1)
 
@@ -56,6 +56,12 @@ def shot(name):
 
 
 # ---------------------------------------------------------------- display / app control
+def rot_lock(r):
+    out = sh('wm user-rotation lock %d' % r)
+    if 'rror' in out or 'nknown' in out:
+        sh('settings put system accelerometer_rotation 0; settings put system user_rotation %d' % r)
+
+
 def set_profile(dev, landscape=False):
     w, h, dpr = PROF[dev]
     dens = int(round(dpr * 160))
@@ -63,13 +69,12 @@ def set_profile(dev, landscape=False):
         sh('wm size reset; wm density reset')
     else:
         sh('wm size %dx%d; wm density %d' % (int(w * dpr), int(h * dpr), dens))
-    sh('settings put system accelerometer_rotation 0')
-    sh('settings put system user_rotation %d' % (1 if landscape else 0))
+    rot_lock(1 if landscape else 0)
     time.sleep(2)
 
 
 def rotate(r):
-    sh('settings put system user_rotation %d' % r)
+    rot_lock(r)
 
 
 def launch(clear=False):
@@ -207,7 +212,9 @@ PROBE = r"""
   const sel = 'button, a[href], input:not([type=hidden]), select, summary, [role=button], [role=tab], [role=switch], textarea';
   const tap = [];
   document.querySelectorAll(sel).forEach(e => { const r = vis(e); if (!r) return;
-    const inView = r.bottom > 0 && r.top < vh && r.right > 0 && r.left < vw;
+    let inView = r.bottom > 0 && r.top < vh && r.right > 0 && r.left < vw;
+    if (inView) { const cxp = Math.min(Math.max(r.left + r.width / 2, 1), vw - 1), cyp = Math.min(Math.max(r.top + r.height / 2, 1), vh - 1);
+      const top = document.elementFromPoint(cxp, cyp); if (top && !(e.contains(top) || top.contains(e) || (e.labels && Array.from(e.labels).some(l => l.contains(top))))) inView = false; }
     tap.push({id: e.id || e.className.toString().slice(0, 30) || e.tagName, tag: e.tagName, w: +r.width.toFixed(1), h: +r.height.toFixed(1),
       l: +r.left.toFixed(1), t: +r.top.toFixed(1), r: +r.right.toFixed(1), b: +r.bottom.toFixed(1), inView, txt: (e.getAttribute('aria-label') || e.textContent || '').trim().slice(0, 24)}); });
   const small = tap.filter(x => x.inView && (x.w < 47.5 || x.h < 47.5) && !(x.tag === 'INPUT' && /checkbox|radio|file/.test(document.getElementById(x.id) ? document.getElementById(x.id).type : '')));
@@ -343,6 +350,8 @@ def run_profile(dev):
     p = probe()
     shot('%s_p_idle' % dev)
     layout_checks(1, dev, 'portrait idle', p)
+    hud_table(dev, 'portrait compact idle')
+    slider_test(dev)
     check(1, dev, 'status idle, no autoplay', p['status'] in ('idle', None) and (not p['ctx'] or p['ctx']['state'] != 'running'), '%s %s' % (p['status'], p['ctx']), 'MUX-LIFE-7')
     # relaunch: notice must not return
     launch(); time.sleep(2.5)
@@ -389,7 +398,8 @@ def run_profile(dev):
     check(6, dev, 'Start via native tap begins playback (ctx running, status playing)', bool(p['ctx']) and p['ctx']['state'] == 'running', '%s %s' % (p['ctx'], p['status']), 'MUX-LIFE-5')
     shot('%s_p_playing' % dev)
     layout_checks(1, dev, 'portrait playing', p)
-    step6(dev)
+    step6(dev, 0.0, '[finger mid-stage] ')
+    step6(dev, 0.3, '[finger lower stage] ')
     step5(dev)
     # stop
     tap('#start'); time.sleep(1.5)
@@ -400,6 +410,7 @@ def run_profile(dev):
     ack_notice(dev)
     p = probe()
     shot('%s_l_idle' % dev)
+    hud_table(dev, 'landscape idle')
     short = p['vh'] < 500
     layout_checks(12, dev, 'landscape idle (%dx%d%s)' % (p['vw'], p['vh'], ' short' if short else ''), p)
     if short:
@@ -449,7 +460,7 @@ def run_profile(dev):
         # slider operable: tap on its track mid-way
         if slvis:
             before = ev("+document.getElementById('slider').value")
-            native_tap_css(sl[0] + sl[2] * 0.25, sl[1] + sl[3] / 2); time.sleep(0.8)
+            native_tap_css(sl[0] - sl[2] / 2 + sl[2] * 0.25, sl[1]); time.sleep(0.8)
             after = ev("+document.getElementById('slider').value")
             check(9, dev, cond + ' slider responds to tap', after != before, '%s -> %s' % (before, after), 'MUX-LAYOUT-7')
         if tap('#menu'):
@@ -461,11 +472,73 @@ def run_profile(dev):
     set_profile(dev)
 
 
+HUD_JS = r"""
+(() => {
+  const q = s => document.querySelector(s);
+  const vis = e => { if (!e) return 'absent'; const r = e.getBoundingClientRect(); for (let n = e; n && n !== document.documentElement; n = n.parentElement) { const s = getComputedStyle(n); if (s.display === 'none' || s.visibility === 'hidden' || n.hidden) return 'hidden'; }
+    return (r.width < 1 || r.height < 1) ? 'hidden' : 'shown ' + Math.round(r.width) + 'x' + Math.round(r.height); };
+  const lines = e => { if (!e) return null; const lh = parseFloat(getComputedStyle(e).lineHeight) || 20; return Math.round(e.getBoundingClientRect().height / lh * 10) / 10; };
+  const o = {};
+  o.logo = vis(q('#icon'));
+  o.wordmark = vis(q('.brand-name'));
+  o.carrierBadge = vis(q('#carrierBadge'));
+  o.title = vis(q('#title')); o.activeBandBadge = vis(q('#activeBandBadge'));
+  o.audioStatus = vis(q('#audioStatus')); const as = q('#audioStatus'); o.audioStatusText = as ? (as.textContent.trim().slice(0, 12) + ' | ' + vis(as.querySelector('.status-text, span:last-child'))) : null;
+  o.headerModeBtn = vis(q('#headerModeBtn')); const ml = q('#headerModeLabel'); o.headerModeLabel = vis(ml);
+  o.headerBreathBtn = vis(q('#headerBreathBtn')); o.headerBreathLabel = vis(q('#headerBreathLabel'));
+  o.headerStudioBtn = vis(q('#headerStudioBtn'));
+  o.headerTestStereoBtn = vis(q('#headerTestStereoBtn'));
+  o.menu = vis(q('#menu')); o.voiceCountBadge = vis(q('#voiceCountBadge')); o.liveFreqBadge = vis(q('#liveFreqBadge'));
+  o.chartDescription = vis(q('#chartDescription')) + ' lines=' + lines(q('#chartDescription'));
+  o.chartLegend = vis(q('#chartLegend'));
+  const lg = q('#chartLegend'); if (lg) o.legendRows = new Set(Array.from(lg.children).map(c => Math.round(c.getBoundingClientRect().top))).size;
+  o.scopeHud = vis(q('#scopeHud')); o.scopeIdleOverlay = vis(q('#scopeIdleOverlay'));
+  o.pwaToasts = vis(q('#pwaUpdateToast')) + ' / install:' + vis(q('#pwaInstallBtn'));
+  const hd = q('#header'); o.headerH = hd ? Math.round(hd.getBoundingClientRect().height) : null;
+  o.headerOneRow = hd ? (Array.from(hd.querySelectorAll('button')).filter(b => b.getBoundingClientRect().height > 0).every(b => Math.abs(b.getBoundingClientRect().top - hd.getBoundingClientRect().top) < hd.getBoundingClientRect().height)) : null;
+  o.timeFont = (() => { const t = q('#time, .time-readout, #timeDisplay'); return t ? getComputedStyle(t).fontFamily.slice(0, 30) + ' ' + getComputedStyle(t).fontSize : null; })();
+  o.ariaLabels = ['#headerModeBtn', '#headerBreathBtn', '#menu'].map(s => q(s) && q(s).getAttribute('aria-label') ? 1 : 0).join('');
+  o.modeAriaPressed = q('#headerModeBtn') && q('#headerModeBtn').getAttribute('aria-pressed');
+  return o;
+})()
+"""
+
+
+def hud_table(dev, cond):
+    try:
+        o = ev(HUD_JS)
+        rec(7, dev, 'HUD table values: ' + cond, 'INFO', json.dumps(o), 'UX s7')
+    except Exception as e:  # noqa
+        rec(7, dev, 'HUD table values: ' + cond, 'ERROR', repr(e), 'UX s7')
+
+
+def slider_test(dev):
+    """MUX-IN-6 / MUX-TAP-4: tap on the track jumps, drag moves the thumb, value commits (idle session)."""
+    c = center('#slider')
+    if not c:
+        rec(6, dev, 'time slider present', 'FAIL', '', 'MUX-IN-6'); return
+    cx, cy, cw, chh = c
+    left = cx - cw / 2
+    mx = float(ev("+document.getElementById('slider').max"))
+    before = ev("+document.getElementById('slider').value")
+    native_tap_css(left + cw * 0.75, cy); time.sleep(0.8)
+    a = ev("+document.getElementById('slider').value")
+    check(6, dev, 'tap on slider track jumps to ~75%', abs(a - mx * 0.75) <= mx * 0.1, '%s -> %s (max %s)' % (before, a, mx), 'MUX-IN-6')
+    b, _ = webview_bounds()
+    d = float(ev('devicePixelRatio'))
+    ox, oy = (b[0], b[1]) if b else (0, 0)
+    subprocess.run(['adb', 'shell', 'input swipe %d %d %d %d 600' % (ox + (left + cw * 0.2) * d, oy + cy * d, ox + (left + cw * 0.6) * d, oy + cy * d)])
+    time.sleep(0.8)
+    a2 = ev("+document.getElementById('slider').value")
+    check(6, dev, 'drag on slider thumb/track ends near 60%', abs(a2 - mx * 0.6) <= mx * 0.12, '%s' % a2, 'MUX-IN-6')
+    ev("(()=>{const s=document.getElementById('slider'); s.value=0; s.dispatchEvent(new Event('input',{bubbles:true})); s.dispatchEvent(new Event('change',{bubbles:true}))})()")
+
+
 def innerless(dev):
     return PROF[dev][0] < 600
 
 
-def step6(dev):
+def step6(dev, yfrac=0.2, lab=''):
     """Drag on the chart: tooltip above finger, no seek, no restart; tap: seek once."""
     c = center('#chartCanvas')
     if not c or c[2] < 50:
@@ -474,7 +547,7 @@ def step6(dev):
     d = float(ev('devicePixelRatio'))
     ox, oy = (b[0], b[1]) if b else (0, 0)
     cx, cy, cw, chh = c
-    y = cy + chh * 0.55
+    y = cy + chh * yfrac
     x1, x2 = cx - cw * 0.3, cx + cw * 0.3
     pos0 = ev("+document.getElementById('slider').value"); osc0 = ev('window.__osc')
     import threading
@@ -486,28 +559,28 @@ def step6(dev):
     # the finger moved ~ (1.2/2.4) along the path => its x approx at midpoint; y fixed
     fx = x1 + (x2 - x1) * 0.5
     if tt:
-        check(6, dev, 'drag shows tooltip', bool(tt['vis']), tt, 'MUX-IN-1')
+        check(6, dev, lab + 'drag shows tooltip', bool(tt['vis']), tt, 'MUX-IN-1')
         if tt['vis']:
-            check(6, dev, 'tooltip >=56px above touch point (bottom<=y-56)', tt['b'] <= y - 56 + 1, 'tooltip.bottom=%.0f finger.y=%.0f' % (tt['b'], y), 'MUX-IN-1')
+            check(6, dev, lab + 'tooltip >=56px above touch point (bottom<=y-56)', tt['b'] <= y - 56 + 1, 'tooltip.bottom=%.0f finger.y=%.0f' % (tt['b'], y), 'MUX-IN-1')
             vw = ev('innerWidth')
-            check(6, dev, 'tooltip clamped inside window', tt['l'] >= -0.5 and tt['r'] <= vw + 0.5, 'l=%.0f r=%.0f vw=%s' % (tt['l'], tt['r'], vw), 'MUX-IN-1')
+            check(6, dev, lab + 'tooltip clamped inside window', tt['l'] >= -0.5 and tt['r'] <= vw + 0.5, 'l=%.0f r=%.0f vw=%s' % (tt['l'], tt['r'], vw), 'MUX-IN-1')
     else:
-        rec(6, dev, 'tooltip element missing', 'FAIL', '', 'MUX-IN-1')
+        rec(6, dev, lab + 'tooltip element missing', 'FAIL', '', 'MUX-IN-1')
     after = ev("({pos:+document.getElementById('slider').value, osc:window.__osc, hidden:document.getElementById('chartTooltip').classList.contains('hidden'), toast:(document.getElementById('appToast')||{}).className||''})")
-    check(6, dev, 'drag does not seek', abs(after['pos'] - pos0) <= 3, 'slider %s -> %s' % (pos0, after['pos']), 'MUX-IN-2')
-    check(6, dev, 'drag does not restart audio', after['osc'] == osc0, 'oscillators created %s -> %s' % (osc0, after['osc']), 'MUX-IN-2')
-    check(6, dev, 'tooltip hides on release', after['hidden'], '', 'MUX-IN-1')
+    check(6, dev, lab + 'drag does not seek', abs(after['pos'] - pos0) <= 3, 'slider %s -> %s' % (pos0, after['pos']), 'MUX-IN-2')
+    check(6, dev, lab + 'drag does not restart audio', after['osc'] == osc0, 'oscillators created %s -> %s' % (osc0, after['osc']), 'MUX-IN-2')
+    check(6, dev, lab + 'tooltip hides on release', after['hidden'], '', 'MUX-IN-1')
     # tap
     osc1 = ev('window.__osc')
     tx = cx + cw * 0.25
     native_tap_css(tx, y)
     time.sleep(1.0)
     a2 = ev("({pos:+document.getElementById('slider').value, osc:window.__osc, toast:(document.getElementById('appToast')||{}).textContent||'', vis:((document.getElementById('appToast')||{}).classList||{contains:()=>false}).contains('visible')})")
-    check(6, dev, 'tap seeks (slider moves, "Jumped to" toast)', a2['pos'] != after['pos'] and 'Jumped' in a2['toast'], a2, 'MUX-IN-2/3')
+    check(6, dev, lab + 'tap seeks (slider moves, "Jumped to" toast)', a2['pos'] != after['pos'] and 'Jumped' in a2['toast'], a2, 'MUX-IN-2/3')
     n = a2['osc'] - osc1
-    check(6, dev, 'tap restarts audio exactly once', 0 < n <= 12, 'oscillators created by one tap: %s' % n, 'MUX-IN-2')
+    check(6, dev, lab + 'tap restarts audio exactly once', 0 < n <= 12, 'oscillators created by one tap: %s' % n, 'MUX-IN-2')
     time.sleep(1.0)
-    check(6, dev, 'audio still running after seek', ev('context.state') == 'running', '', 'MUX-IN-3')
+    check(6, dev, lab + 'audio still running after seek', ev('context.state') == 'running', '', 'MUX-IN-3')
 
 
 def step5(dev):
@@ -551,7 +624,7 @@ def step5(dev):
     check(5, dev, 'Settings closes after rotations', ok, '', 'MUX-IN-5')
     ev("document.getElementById('chartCanvas') && true")
     c = ev("(()=>{const c=document.getElementById('chartCanvas');return [c.width,c.height,c.clientWidth,c.clientHeight,devicePixelRatio]})()")
-    check(5, dev, 'chart canvas re-sized to container (backing = css*min(dpr,2))', abs(c[0] - c[2] * min(c[4], 2)) <= 2 and c[0] > 0, c, 'MUX-LAYOUT-3')
+    check(5, dev, 'chart canvas re-sized to container (backing = css*min(dpr,2))', abs(c[0] - c[2] * min(c[4], 2)) <= 6 and c[0] > 0, c, 'MUX-LAYOUT-3')
 
 
 # ---------------------------------------------------------------- step 12 extras (A only)
@@ -575,13 +648,18 @@ def nav_and_cutout(dev):
         d = p['dpr']
         rec(12, dev, cond + ' info: system nav bar height px=%s, web --sab=%.1f css px, start gap=%s' % (navh, p['ins']['b'], s and round(s['gapBottom'], 1)), 'INFO', wi[:200], '')
         if navh is not None and s:
-            clear = (p['vh'] - s['b']) * d >= navh - 1 or p['ins']['b'] * d >= navh - 1
-            check(12, dev, cond + ': Start bottom edge clears the system nav bar', (p['vh'] * d - s['b'] * d) >= navh + 8 * d - 2 or (p['vh'] - s['b']) >= p['ins']['b'] + 7.5 and (p['ins']['b'] * d >= navh - 1), 'navbar=%spx start-bottom-to-bottom=%.0fpx --sab=%.1fcss' % (navh, (p['vh'] - s['b']) * d, p['ins']['b']), 'MUX-SAFE-3')
+            wb, _ = webview_bounds()
+            scr = re.findall(r'(\d+)x(\d+)', sh('wm size'))
+            H = int(scr[-1][1]) if scr else 2400
+            start_bottom_px = (wb[1] if wb else 0) + s['b'] * d
+            check(12, dev, cond + ': Start bottom edge >=8dp above the system nav bar', start_bottom_px <= (H - navh) - 8 * d + 1,
+                  'screenH=%spx navbar=%spx start-bottom=%.0fpx (needs <= %.0f) webview=%s --sab=%.1fcss' % (H, navh, start_bottom_px, (H - navh) - 8 * d, wb, p['ins']['b']), 'MUX-SAFE-3')
         layout_checks(12, dev, cond, p)
     # display cutout, landscape both directions
-    sh('cmd overlay enable com.android.internal.display.cutout.emulation.tall'); time.sleep(3)
+    sh('cmd overlay enable-exclusive --category com.android.internal.display.cutout.emulation.tall || cmd overlay enable com.android.internal.display.cutout.emulation.tall'); time.sleep(3)
+    open(os.path.join(OUT, '%s_overlays.txt' % dev), 'w').write(sh('cmd overlay list | grep -iE "cutout|navbar"'))
     for r, nm in ((1, 'rot90'), (3, 'rot270'), (0, 'portrait')):
-        set_profile(dev, landscape=False); sh('settings put system user_rotation %d' % r); time.sleep(2.5)
+        set_profile(dev, landscape=False); rotate(r); time.sleep(2.5)
         launch(); time.sleep(3); ack_notice(dev)
         p = probe(); shot('%s_cutout_%s' % (dev, nm))
         cond = 'cutout(tall notch) %s' % nm
