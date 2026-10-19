@@ -770,7 +770,7 @@ function createProgramChart() {
 
     // 2. Grid lines & Axis Ticks
     ctx.lineWidth = 1;
-    ctx.font = '500 10px "JetBrains Mono", monospace';
+    ctx.font = '500 11px "JetBrains Mono", monospace';
 
     var yTickCount = height < 220 ? 4 : 5;
     var rawYStep = yMax / yTickCount;
@@ -812,7 +812,7 @@ function createProgramChart() {
 
     if (height >= 180) {
       ctx.fillStyle = 'rgba(203, 213, 225, 0.65)';
-      ctx.font = '500 10px "JetBrains Mono", monospace';
+      ctx.font = '500 11px "JetBrains Mono", monospace';
       ctx.textAlign = 'center';
       ctx.fillText('frequency/time(s)', padLeft + plotW / 2, height - 8);
     }
@@ -1234,7 +1234,7 @@ function drawScopeFrame() {
     ctx.stroke();
 
     // Axis Labels
-    ctx.font = '500 10px "JetBrains Mono", monospace';
+    ctx.font = '500 11px "JetBrains Mono", monospace';
     ctx.fillStyle = '#38bdf8';
     ctx.textAlign = 'right';
     ctx.fillText('Left Ear (X) →', cx + maxR * 1.1, cy - 6);
@@ -1339,7 +1339,7 @@ function drawScopeFrame() {
     ctx.lineTo(width, midY + plotAmp);
     ctx.stroke();
 
-    ctx.font = '500 10px "JetBrains Mono", monospace';
+    ctx.font = '500 11px "JetBrains Mono", monospace';
     ctx.fillStyle = '#64748b';
     ctx.textAlign = 'left';
     ctx.fillText('+1.0', 10, midY - plotAmp - 4);
@@ -1489,7 +1489,7 @@ function drawScopeFrame() {
     // Vertical time grid lines
     var gridStepMs = spanMs <= 200 ? 25 : spanMs <= 400 ? 50 : 100;
     var numSteps = Math.floor(spanMs / gridStepMs);
-    ctx.font = '500 10px "JetBrains Mono", monospace';
+    ctx.font = '500 11px "JetBrains Mono", monospace';
     ctx.fillStyle = '#64748b';
     ctx.textAlign = 'center';
 
@@ -1595,7 +1595,7 @@ function drawScopeFrame() {
         ctx.stroke();
 
         ctx.fillStyle = '#f472b6';
-        ctx.font = '600 10px "JetBrains Mono", monospace';
+        ctx.font = '600 11px "JetBrains Mono", monospace';
         ctx.textAlign = 'center';
         ctx.fillText('λ = ' + cycleMs.toFixed(1) + 'ms (' + beatRate.toFixed(1) + ' Hz ' + bandName + ' Entrainment)', (calX1 + calX2) / 2, calY - 6);
         ctx.restore();
@@ -4380,7 +4380,7 @@ function renderStudioPreview() {
   // Subtle horizontal grid lines
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
   ctx.lineWidth = 1;
-  ctx.font = '500 10px "JetBrains Mono", monospace';
+  ctx.font = '500 11px "JetBrains Mono", monospace';
   ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
   ctx.textAlign = 'right';
   ctx.textBaseline = 'middle';
@@ -4463,7 +4463,7 @@ function renderStudioPreview() {
 
       var freqStr =
         rawPts[rp].freq % 1 === 0 ? rawPts[rp].freq.toFixed(0) + 'Hz' : rawPts[rp].freq.toFixed(1) + 'Hz';
-      ctx.font = '600 9.5px "JetBrains Mono", monospace';
+      ctx.font = '600 11px "JetBrains Mono", monospace';
       ctx.fillStyle = '#ffffff';
       ctx.textAlign = rp === 0 ? 'left' : rp === rawPts.length - 1 ? 'right' : 'center';
       var labelY = dy - 9 < padT + 4 ? dy + 11 : dy - 9;
@@ -5241,6 +5241,19 @@ document.addEventListener('DOMContentLoaded', function () {
       if (typeof clientResize === 'function') {
         clientResize();
       }
+    });
+  }
+
+  // Mixer drawer (Compact/Medium only; the button is display:none elsewhere). Layout itself is pure CSS (MUX-LAYOUT-2).
+  var mixerToggleEl = document.getElementById('mixerToggle');
+  if (mixerToggleEl) {
+    mixerToggleEl.addEventListener('click', function () {
+      var dock = document.querySelector('.transport-dock');
+      var open = !(dock && dock.classList.contains('mixer-open'));
+      if (dock) {
+        dock.classList.toggle('mixer-open', open);
+      }
+      mixerToggleEl.setAttribute('aria-expanded', open ? 'true' : 'false');
     });
   }
 

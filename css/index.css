@@ -278,7 +278,7 @@ body {
 
 .pill-badge {
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: 0.75rem;
   font-weight: 500;
   padding: 2px 7px;
   border-radius: 9999px;
@@ -312,7 +312,7 @@ body {
 
 .band-badge {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 600;
   padding: 2px 8px;
   border-radius: 8px;
@@ -339,7 +339,7 @@ body {
   background: rgba(15, 23, 42, 0.65);
   border: 1px solid rgba(255, 255, 255, 0.08);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   transition: all 0.25s ease;
 }
@@ -637,7 +637,7 @@ body {
 
 .meta-badge {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 500;
   padding: 4px 10px;
   border-radius: 10px;
@@ -683,7 +683,7 @@ body {
   border-radius: 12px;
   padding: 8px 11px;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: var(--text-primary);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65);
   white-space: nowrap;
@@ -831,7 +831,7 @@ body {
 
 .scope-group-label {
   font-family: var(--font-mono);
-  font-size: 0.64rem;
+  font-size: 0.75rem;
   color: #64748b;
   font-weight: 500;
   padding: 0 4px 0 6px;
@@ -845,7 +845,7 @@ body {
   padding: 5px 9px;
   border-radius: 9px;
   font-family: var(--font-mono);
-  font-size: 0.70rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #94a3b8;
   background: transparent;
@@ -946,7 +946,7 @@ body {
   padding: 4px 10px;
   border-radius: 9px;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   background: rgba(9, 4, 24, 0.88);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -958,7 +958,7 @@ body {
 .hud-label {
   color: #64748b;
   font-weight: 600;
-  font-size: 0.62rem;
+  font-size: 0.75rem;
   letter-spacing: 0.04em;
 }
 
@@ -973,7 +973,7 @@ body {
   padding: 1px 5px;
   border-radius: 4px;
   background: rgba(244, 114, 182, 0.18);
-  font-size: 0.64rem;
+  font-size: 0.75rem;
 }
 
 .hud-mode .status-dot {
@@ -1115,7 +1115,7 @@ body {
 
 .breath-cycle-badge {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 600;
   padding: 2px 7px;
   border-radius: 9999px;
@@ -1268,7 +1268,7 @@ body {
 }
 
 .breath-overlay.compact-dock .breath-countdown-text {
-  font-size: 0.68rem;
+  font-size: 0.75rem;
 }
 
 .breath-steps-row {
@@ -1286,7 +1286,7 @@ body {
 
 .breath-step-pill {
   font-family: var(--font-mono);
-  font-size: 0.64rem;
+  font-size: 0.75rem;
   font-weight: 600;
   padding: 2px 7px;
   border-radius: 8px;
@@ -1321,7 +1321,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -1381,7 +1381,7 @@ body {
 
 .legend-hint {
   color: var(--text-muted);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
 }
 
 /* ==========================================================================
@@ -1543,7 +1543,7 @@ body {
 }
 
 .ambient-quick-label {
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-secondary);
   white-space: nowrap;
@@ -1558,7 +1558,7 @@ body {
 .tone-val-badge,
 .ambient-val-badge {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: #f9a8d4;
   background: rgba(236, 72, 153, 0.14);
@@ -1594,7 +1594,7 @@ body {
   padding: 3px 8px;
   color: var(--text-primary);
   font-family: var(--font-body);
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   font-weight: 600;
   outline: none;
   cursor: pointer;
@@ -1618,7 +1618,7 @@ body {
 
 .timer-val-badge {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: #a5b4fc;
   background: rgba(99, 102, 241, 0.15);
@@ -1738,7 +1738,7 @@ body {
 .settings-eyebrow {
   display: block;
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.1em;
   color: var(--accent-pink);
@@ -1851,7 +1851,7 @@ body {
   border: 1px solid rgba(255, 112, 217, 0.4);
   color: #f9a8d4;
   font-family: var(--font-body);
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1929,7 +1929,7 @@ body {
   border: 1px solid rgba(56, 189, 248, 0.35);
   color: #bae6fd;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -2023,7 +2023,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -2044,7 +2044,7 @@ body {
 
 .settings-hint {
   margin: 0;
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   line-height: 1.4;
 }
@@ -2077,7 +2077,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -2105,7 +2105,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -2189,7 +2189,7 @@ body {
 }
 
 .mode-btn-content small {
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: #94a3b8;
   line-height: 1.3;
 }
@@ -2200,7 +2200,7 @@ body {
   padding: 3px 9px;
   border-radius: 9999px;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 600;
   background: rgba(168, 85, 247, 0.16);
   border: 1px solid rgba(168, 85, 247, 0.38);
@@ -2271,7 +2271,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.14);
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -2303,7 +2303,7 @@ body {
   border: 1px solid rgba(236, 72, 153, 0.32);
   color: #f9a8d4;
   font-family: var(--font-body);
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -2332,7 +2332,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -2368,7 +2368,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -2460,7 +2460,7 @@ body {
 
 .channel-pill {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 600;
   padding: 5px 10px;
   border-radius: 10px;
@@ -2599,7 +2599,7 @@ body {
   align-items: center;
   gap: 8px;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -2783,7 +2783,7 @@ body {
 
 .studio-field-label {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -2829,7 +2829,7 @@ body {
 
 .studio-preview-stats {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   color: #f9a8d4;
 }
 
@@ -2858,7 +2858,7 @@ body {
   border: 1px solid rgba(168, 85, 247, 0.45);
   color: #e9d5ff;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -2923,7 +2923,7 @@ body {
   padding: 4px 8px;
   border-radius: 7px;
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -2993,7 +2993,7 @@ body {
 .studio-point-time label,
 .studio-point-freq label {
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
 }
 
@@ -3007,7 +3007,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: #ffffff;
   font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   font-weight: 600;
   outline: none;
 }
@@ -3029,7 +3029,7 @@ body {
 .studio-pt-badge,
 .studio-time-mmss {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   padding: 2px 6px;
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.05);
@@ -3041,7 +3041,7 @@ body {
 .studio-pt-band,
 .studio-band-pill {
   font-family: var(--font-mono);
-  font-size: 0.64rem;
+  font-size: 0.75rem;
   font-weight: 600;
   padding: 2px 7px;
   border-radius: 999px;
@@ -3086,7 +3086,7 @@ body {
 
 .studio-saved-hint {
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
 }
 
@@ -3102,7 +3102,7 @@ body {
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.02);
   border: 1px dashed rgba(255, 255, 255, 0.1);
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   text-align: center;
 }
@@ -3135,7 +3135,7 @@ body {
 
 .studio-saved-meta {
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
 }
 
@@ -3154,7 +3154,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.14);
   color: var(--text-primary);
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -3183,7 +3183,7 @@ body {
   padding: 8px 12px;
   border-radius: 10px;
   font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-align: center;
   background: rgba(16, 185, 129, 0.14);
@@ -3223,7 +3223,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.14);
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -3305,7 +3305,7 @@ body {
    Responsive Breakpoints (Mobile / Compact Viewports)
    ========================================================================== */
 
-@media (max-width: 640px) {
+@media (max-width: 899px) {
   html,
   body {
     height: auto;
@@ -3389,13 +3389,13 @@ body {
   }
 
   .band-badge {
-    font-size: 0.62rem;
+    font-size: 0.75rem;
     padding: 2px 6px;
     border-radius: 6px;
   }
 
   .pill-carrier {
-    font-size: 0.62rem;
+    font-size: 0.75rem;
     padding: 2px 6px;
     display: inline-block;
   }
@@ -3426,7 +3426,7 @@ body {
   }
 
   .chart-description {
-    font-size: 0.74rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
     line-height: 1.35;
     display: -webkit-box;
@@ -3470,7 +3470,7 @@ body {
     flex: 1 1 50%;
     justify-content: center;
     padding: 5px 10px;
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     font-weight: 600;
     gap: 5px;
   }
@@ -3503,7 +3503,7 @@ body {
   }
 
   .legend-item {
-    font-size: 0.62rem;
+    font-size: 0.75rem;
     gap: 4px;
   }
 
@@ -3537,7 +3537,7 @@ body {
 
   .scope-hud-badge {
     padding: 2px 7px;
-    font-size: 0.62rem;
+    font-size: 0.75rem;
   }
 
   .transport-dock {
@@ -3555,7 +3555,7 @@ body {
 
   .time-readout {
     padding: 4px 8px;
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     gap: 3px;
   }
 
@@ -3589,7 +3589,7 @@ body {
   }
 
   .ambient-quick-label {
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     white-space: nowrap;
   }
 
@@ -3603,7 +3603,7 @@ body {
 
   .tone-val-badge,
   .ambient-val-badge {
-    font-size: 0.58rem;
+    font-size: 0.75rem;
     padding: 1px 3px;
     min-width: 24px;
     text-align: right;
@@ -3633,7 +3633,7 @@ body {
   .timer-quick-select {
     flex: 1 1 auto;
     min-width: 0;
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     padding: 4px 6px;
     border-radius: 8px;
   }
@@ -3710,7 +3710,7 @@ body {
 
 .pwa-subtitle {
   display: block;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: #94a3b8;
   margin-top: 2px;
 }
@@ -4176,7 +4176,7 @@ a:active,
   background: rgba(225, 29, 72, 0.85);
 }
 
-@media (min-width: 641px) {
+@media (min-width: 900px) {
   .confirm-sheet {
     align-items: center;
   }
@@ -4196,7 +4196,7 @@ a:active,
 }
 
 /* ---- 48 px hit areas with 8 px spacing: touch screens and Compact widths (MUX-TAP-1/2/3) ---- */
-@media (pointer: coarse), (max-width: 640px) {
+@media (pointer: coarse), (max-width: 899px) {
   .studio-quick-btn,
   .breath-quick-btn,
   #menu,
@@ -4410,5 +4410,503 @@ a:active,
   .studio-header {
     padding-top: 8px;
     padding-bottom: 8px;
+  }
+}
+
+/* ==========================================================================
+   Responsive layout and safe areas (M1.4: MUX-LAYOUT-1/2/4/6/7, MUX-SAFE-1..4/6/7, MUX-ORI-3..5)
+
+   Width classes (D19), window width only, re-evaluated live by the browser on resize / rotate / fold:
+     Compact  < 600     single column (sketch A)
+     Medium   600-899   single column, wider rows
+     Expanded >= 900    desktop look (stage + dock); no tablet two-panel layout in 1.0
+   "Short" modifier: window height < 500 (every phone in landscape) -> 44 px header, stage left,
+   control column right (sketch B). Height thresholds below are in em so they follow the user's
+   default font size too. No JS layout maths.
+   ========================================================================== */
+
+/* MUX-SAFE-1: env() first (iOS, Chrome), then the --safe-area-inset-* CSS vars that a native Android WebView host injects. */
+:root {
+  --sat: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px));
+  --sab: max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px));
+  --sal: max(env(safe-area-inset-left, 0px), var(--safe-area-inset-left, 0px));
+  --sar: max(env(safe-area-inset-right, 0px), var(--safe-area-inset-right, 0px));
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  font-size: 16px; /* MUX-LAYOUT-7 */
+}
+
+/* MUX-LAYOUT-1 / SAFE-2: fixed flex shell, padded by the insets; backgrounds (.ambient-bg) stay full-bleed. */
+.app-shell {
+  position: fixed;
+  inset: 0;
+  height: 100vh;
+  height: -webkit-fill-available;
+  height: 100dvh;
+  min-height: 0;
+  margin: 0 auto;
+  padding: calc(12px + var(--sat)) calc(16px + var(--sar)) calc(12px + var(--sab)) calc(16px + var(--sal));
+  overflow-x: hidden;
+  overflow-y: auto; /* last resort only (extreme font scale / split-screen); contained, never the page */
+  overscroll-behavior: contain;
+}
+
+.mixer-toggle {
+  display: none;
+}
+
+.settings-dialog,
+.studio-dialog {
+  max-height: 90vh;
+  max-height: 90dvh;
+}
+
+/* ---- Compact + Medium, and every short window: single-row header (sketch A / B) ---- */
+@media (max-width: 899px), (max-height: 499px) {
+  #header {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 10px;
+    row-gap: 0;
+    padding: 6px 10px;
+    min-height: 60px;
+  }
+
+  .header-top-row {
+    display: contents;
+  }
+
+  .header-brand {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .brand-name {
+    display: none;
+  }
+
+  .brand-logo-wrap {
+    width: 36px;
+    height: 36px;
+  }
+
+  .header-sub-row {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .header-sub-left {
+    max-width: 100%;
+  }
+
+  #title {
+    margin: 0;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 1rem;
+    line-height: 1.25;
+  }
+
+  .header-sub-right {
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .header-actions {
+    grid-column: 3;
+    grid-row: 1;
+    flex-shrink: 0;
+  }
+
+  .menu-label,
+  .breath-quick-label,
+  .studio-quick-label {
+    display: none;
+  }
+}
+
+/* ---- Compact + Medium (not short): stacked column, sketch A ---- */
+@media (max-width: 899px) {
+  .app-shell {
+    padding: calc(8px + var(--sat)) calc(10px + var(--sar)) calc(8px + var(--sab)) calc(10px + var(--sal));
+    gap: 8px;
+  }
+
+  /* Studio is also reachable from Settings; 3 x 48 px icons + 8 px gaps are all a 320 px header can hold. */
+  #headerStudioBtn {
+    display: none;
+  }
+
+  #body {
+    flex: 1 1 0;
+    min-height: 0;
+    padding: 8px;
+  }
+
+  #chart {
+    flex: 1 1 0;
+    min-height: 160px;
+  }
+
+  .transport-dock {
+    flex-shrink: 0;
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  /* Start is at least 8 px above the bottom inset: shell padding-bottom = 8 px + --sab (MUX-SAFE-3). */
+  #start {
+    min-height: 56px;
+  }
+
+  .mixer-toggle {
+    min-height: 48px;
+    width: 100%;
+    align-items: center;
+    gap: 10px;
+    padding: 0 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    text-align: left;
+  }
+
+  .mixer-toggle-label {
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .mixer-toggle-hint {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 0.75rem;
+  }
+
+  .mixer-toggle-chevron {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+  }
+
+  .transport-dock.mixer-open .mixer-toggle-chevron {
+    transform: rotate(180deg);
+  }
+}
+
+/* Medium: wider rows, volume sliders side by side, timer beside Start. */
+@media (min-width: 600px) and (max-width: 899px) {
+  .dock-quick-sliders {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dock-actions-row {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .timer-quick-control {
+    width: auto;
+    flex: 1 1 0;
+  }
+
+  #footer {
+    flex: 1 1 0;
+    width: auto;
+  }
+}
+
+/* ---- MUX-LAYOUT-2 collapse order (Compact/Medium portrait): legend, description, then the mixer drawer. ---- */
+@media (max-width: 899px) and (min-height: 500px) {
+  /* Mixer drawer closed by default on short-ish heights; the toggle only exists there. */
+  @media (max-height: 43.75em) {
+    .mixer-toggle {
+      display: flex;
+    }
+
+    .transport-dock:not(.mixer-open) .dock-quick-sliders,
+    .transport-dock:not(.mixer-open) .timer-quick-control {
+      display: none;
+    }
+  }
+
+  @media (max-height: 39.9em) {
+    .chart-legend {
+      display: none;
+    }
+  }
+
+  @media (max-height: 37.5em) {
+    .chart-description {
+      display: none;
+    }
+  }
+}
+
+/* ---- Short modifier (height < 500): sketch B. Header 44 px, stage left, control column 240-280 px right. ---- */
+@media (max-height: 499px) {
+  .app-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(240px, 34vw, 280px);
+    grid-template-rows: 44px minmax(0, 1fr);
+    gap: 6px 8px;
+    padding: calc(4px + var(--sat)) calc(8px + var(--sar)) calc(4px + var(--sab)) calc(8px + var(--sal));
+  }
+
+  #header {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    height: 44px;
+    min-height: 44px;
+    padding: 0 8px;
+    border-radius: 12px;
+  }
+
+  .brand-logo-wrap {
+    width: 28px;
+    height: 28px;
+  }
+
+  #title {
+    font-size: 0.9375rem;
+  }
+
+  /* Icon buttons keep their 48 px hit area (M1.3); they overhang the 44 px bar by 2 px, invisibly. */
+  .header-actions {
+    margin: -2px 0;
+  }
+
+  #body {
+    grid-column: 1;
+    grid-row: 2;
+    min-height: 0;
+    min-width: 0;
+    padding: 6px 8px;
+    gap: 6px;
+  }
+
+  #chart {
+    flex: 1 1 0;
+    min-height: 0;
+  }
+
+  .chart-description {
+    display: none;
+  }
+
+  .chart-header {
+    flex-wrap: nowrap;
+  }
+
+  .transport-dock {
+    grid-column: 2;
+    grid-row: 2;
+    flex-direction: column;
+    align-items: stretch;
+    min-height: 0;
+    padding: 8px;
+    gap: 8px;
+    border-radius: 16px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  #control {
+    width: 100%;
+    flex: 0 0 auto;
+    gap: 8px;
+  }
+
+  .dock-quick-sliders {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    width: 100%;
+    flex: 0 0 auto;
+  }
+
+  .dock-actions-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+    flex: 0 0 auto;
+  }
+
+  .timer-quick-control {
+    width: 100%;
+    min-width: 0;
+  }
+
+  #footer {
+    position: sticky;
+    bottom: 0;
+    width: 100%;
+  }
+
+  #start {
+    width: 100%;
+    min-height: 56px;
+  }
+}
+
+@media (max-height: 419px) {
+  .chart-legend {
+    display: none;
+  }
+}
+
+/* ---- MUX-LAYOUT-6: Settings / Studio are full-screen sheets on Compact + Medium (and short windows) ---- */
+@media (max-width: 899px), (max-height: 499px) {
+  #settings,
+  #studioModal {
+    padding: 0;
+    align-items: stretch;
+  }
+
+  .settings-dialog,
+  .studio-dialog {
+    width: 100%;
+    max-width: none;
+    height: 100vh;
+    height: 100dvh;
+    max-height: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  /* Sticky header (title + Close) and sticky footer sit outside the scrolling body. */
+  .settings-header {
+    min-height: 56px;
+    padding: calc(8px + var(--sat)) calc(16px + var(--sar)) 8px calc(16px + var(--sal));
+  }
+
+  #settingsBody,
+  #studioBody {
+    padding-left: calc(20px + var(--sal));
+    padding-right: calc(20px + var(--sar));
+  }
+
+  #settingsFooter,
+  .studio-footer {
+    padding: 10px calc(16px + var(--sar)) calc(10px + var(--sab)) calc(16px + var(--sal));
+  }
+
+  /* Overrides the 16 px side padding of the old Compact block. */
+  .settings-header,
+  #settingsFooter,
+  .studio-footer {
+    padding-left: calc(16px + var(--sal));
+    padding-right: calc(16px + var(--sar));
+  }
+}
+
+/* Transient toasts / sheets clear the home indicator and the cut-outs (MUX-SAFE-3/4). */
+.pwa-update-toast {
+  bottom: calc(24px + var(--sab));
+  right: calc(24px + var(--sar));
+}
+
+@media (max-width: 599px) {
+  .pwa-update-toast {
+    left: calc(16px + var(--sal));
+    right: calc(16px + var(--sar));
+    bottom: calc(80px + var(--sab));
+  }
+}
+
+.confirm-card {
+  padding-bottom: calc(20px + var(--sab));
+}
+
+/* Compact: the carrier badge lives in Settings; the header keeps title + band (sketch A). */
+@media (max-width: 599px) {
+  .pill-carrier {
+    display: none;
+  }
+}
+
+/* Expanded but narrow (900-1199): six items do not fit one dock row, so the time row gets its own line. */
+@media (min-width: 900px) and (max-width: 1199px) and (min-height: 500px) {
+  .transport-dock {
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+
+  #control {
+    flex: 1 1 100%;
+  }
+}
+
+/* Touch laptops / tablets at Expanded width: the Compact full-width Start/timer rules must not stretch the one-row dock. */
+@media (min-width: 900px) and (min-height: 500px) {
+  #footer {
+    width: auto;
+  }
+
+  #start {
+    width: auto;
+    min-width: 150px;
+  }
+
+  .timer-quick-control {
+    width: auto;
+  }
+}
+
+/* Large text (Android font scale 200%, iOS AX3): the time readout and slider may stack, and the short header may grow
+   instead of overlapping its neighbours (MUX-LAYOUT-7). Start and the time slider stay visible. */
+#control {
+  flex-wrap: wrap;
+}
+
+#divSlider {
+  flex: 1 1 96px;
+}
+
+@media (max-height: 499px) {
+  .app-shell {
+    grid-template-rows: minmax(44px, auto) minmax(0, 1fr);
+  }
+
+  #header {
+    height: auto;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 899px), (max-height: 499px) {
+  .header-sub-right {
+    min-width: 0;
+  }
+
+  .band-badge {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 }
