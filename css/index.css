@@ -3340,7 +3340,7 @@ body {
    Responsive Breakpoints (Mobile / Compact Viewports)
    ========================================================================== */
 
-@media (max-width: 899px) {
+@media (max-width: 899px), (min-width: 900px) and (pointer: coarse) {
   html,
   body {
     height: auto;
@@ -4242,7 +4242,7 @@ a:active,
 }
 
 /* ---- 48 px hit areas with 8 px spacing: touch screens and Compact widths (MUX-TAP-1/2/3) ---- */
-@media (pointer: coarse), (max-width: 899px) {
+@media (pointer: coarse), (max-width: 899px), (min-width: 900px) and (pointer: coarse) {
   .studio-quick-btn,
   .breath-quick-btn,
   #menu,
@@ -4521,7 +4521,7 @@ body {
 }
 
 /* ---- Compact + Medium, and every short window: single-row header (sketch A / B) ---- */
-@media (max-width: 899px), (max-height: 499px) {
+@media (max-width: 899px), (min-width: 900px) and (pointer: coarse), (max-height: 499px) {
   #header {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
@@ -4592,7 +4592,7 @@ body {
 }
 
 /* ---- Compact + Medium (not short): stacked column, sketch A ---- */
-@media (max-width: 899px) {
+@media (max-width: 899px), (min-width: 900px) and (pointer: coarse) {
   .app-shell {
     padding: calc(8px + var(--sat)) calc(10px + var(--sar)) calc(8px + var(--sab)) calc(10px + var(--sal));
     gap: 8px;
@@ -4667,7 +4667,7 @@ body {
 }
 
 /* Medium: wider rows, volume sliders side by side, timer beside Start. */
-@media (min-width: 600px) and (max-width: 899px) {
+@media (min-width: 600px) and (max-width: 899px), (min-width: 900px) and (pointer: coarse) {
   .dock-quick-sliders {
     grid-template-columns: 1fr 1fr;
   }
@@ -4689,7 +4689,7 @@ body {
 }
 
 /* ---- MUX-LAYOUT-2 collapse order (Compact/Medium portrait): legend, description, then the mixer drawer. ---- */
-@media (max-width: 899px) and (min-height: 500px) {
+@media (max-width: 899px) and (min-height: 500px), (min-width: 900px) and (pointer: coarse) and (min-height: 500px) {
   /* Mixer drawer closed by default on short-ish heights; the toggle only exists there. */
   @media (max-height: 43.75em) {
     .mixer-toggle {
@@ -4831,7 +4831,7 @@ body {
 }
 
 /* ---- MUX-LAYOUT-6: Settings / Studio are full-screen sheets on Compact + Medium (and short windows) ---- */
-@media (max-width: 899px), (max-height: 499px) {
+@media (max-width: 899px), (min-width: 900px) and (pointer: coarse), (max-height: 499px) {
   #settings,
   #studioModal {
     padding: 0;
@@ -4903,7 +4903,7 @@ body {
 }
 
 /* Expanded but narrow (900-1199): six items do not fit one dock row, so the time row gets its own line. */
-@media (min-width: 900px) and (max-width: 1199px) and (min-height: 500px) {
+@media (min-width: 900px) and (max-width: 1199px) and (min-height: 500px) and (not (pointer: coarse)) {
   .transport-dock {
     flex-wrap: wrap;
     row-gap: 10px;
@@ -4915,14 +4915,15 @@ body {
 }
 
 /* Touch laptops / tablets at Expanded width: the Compact full-width Start/timer rules must not stretch the one-row dock. */
-@media (min-width: 900px) and (min-height: 500px) {
+@media (min-width: 900px) and (min-height: 500px) and (not (pointer: coarse)) {
   #footer {
     width: auto;
   }
 
   #start {
     width: auto;
-    min-width: 150px;
+    min-width: 280px;
+    min-height: 56px;
   }
 
   .timer-quick-control {
@@ -4951,7 +4952,7 @@ body {
   }
 }
 
-@media (max-width: 899px), (max-height: 499px) {
+@media (max-width: 899px), (min-width: 900px) and (pointer: coarse), (max-height: 499px) {
   .header-sub-right {
     min-width: 0;
   }
@@ -5090,7 +5091,7 @@ body {
   cursor: pointer;
 }
 
-@media (pointer: coarse), (max-width: 899px) {
+@media all {
   .info-btn {
     width: 48px;
     height: 48px;
@@ -5190,7 +5191,7 @@ body {
   padding: 12px 16px;
 }
 
-@media (pointer: coarse), (max-width: 899px) {
+@media all {
   .sheet-header .close-icon-btn {
     width: 48px;
     height: 48px;
@@ -5308,7 +5309,7 @@ body {
 }
 
 /* ---- Compact + Medium and short windows: HUD per width class (UX section 7) ---- */
-@media (max-width: 899px) and (min-height: 500px) {
+@media (max-width: 899px) and (min-height: 500px), (min-width: 900px) and (pointer: coarse) and (min-height: 500px) {
   #header {
     height: 56px;
     min-height: 56px;
@@ -5317,7 +5318,7 @@ body {
   }
 }
 
-@media (max-width: 899px), (max-height: 499px) {
+@media (max-width: 899px), (min-width: 900px) and (pointer: coarse), (max-height: 499px) {
   .header-actions {
     gap: 0;
   }
@@ -5469,7 +5470,7 @@ body {
   }
 }
 
-@media (max-width: 899px), (max-height: 499px) {
+@media (max-width: 899px), (min-width: 900px) and (pointer: coarse), (max-height: 499px) {
   .scope-idle-text {
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -5487,7 +5488,7 @@ body {
 }
 
 /* Expanded: dot and text status, labelled buttons */
-@media (min-width: 900px) and (min-height: 500px) {
+@media (min-width: 900px) and (min-height: 500px) and (not (pointer: coarse)) {
   #audioStatus {
     padding: 6px 12px;
   }
