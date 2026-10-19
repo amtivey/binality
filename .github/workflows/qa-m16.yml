@@ -1,0 +1,89 @@
+name: QA M1.6 emulator run
+
+# QA harness for card t_9963e204 (M1.6). Throwaway: runs only on the qa/m1.6-* branches.
+# Builds the debug APK from this branch and drives it on Android emulators with
+# scripts/qa/m16_driver.py. Uses no secrets.
+on:
+  push:
+    branches: ["qa/m1.6-*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - id: key
+        run: echo "h=$(git ls-files android js css index.html programs fonts images package-lock.json scripts/copy-www.mjs capacitor.config.json | xargs sha1sum | sha1sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
+      - id: apkcache
+        uses: actions/cache@v4
+        with:
+          path: apk-out
+          key: qa-apk-${{ steps.key.outputs.h }}
+      - if: steps.apkcache.outputs.cache-hit != 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - if: steps.apkcache.outputs.cache-hit != 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - if: steps.apkcache.outputs.cache-hit != 'true'
+        run: npm ci && npm run build && npx cap sync android
+      - if: steps.apkcache.outputs.cache-hit != 'true'
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+      - if: steps.apkcache.outputs.cache-hit != 'true'
+        run: mkdir -p apk-out && cp android/app/build/outputs/apk/debug/app-debug.apk apk-out/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: qa-debug-apk
+          path: apk-out/app-debug.apk
+          retention-days: 14
+
+  qa:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { tag: api34, api: 34, profiles: "A,F,G,H" }
+          - { tag: api30, api: 30, profiles: "B" }
+          - { tag: api35, api: 35, profiles: "A" }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: qa-debug-apk
+          path: apk
+      - run: pip install websocket-client
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules >/dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          arch: x86_64
+          target: default
+          profile: pixel_6
+          ram-size: 4096M
+          heap-size: 512M
+          disable-animations: true
+          script: python3 scripts/qa/m16_driver.py apk/app-debug.apk qa-out ${{ matrix.profiles }} ${{ matrix.tag }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qa-out-${{ matrix.tag }}
+          path: qa-out
+          if-no-files-found: warn
+          retention-days: 14
