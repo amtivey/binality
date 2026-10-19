@@ -11,6 +11,8 @@ android/local.properties
 android/keystore.properties
 *.jks
 *.keystore
+# Shared debug keystore (public by design, password "android"; never a release key)
+!android/app/debug.keystore
 *.p12
 *.p8
 *.mobileprovision
