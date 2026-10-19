@@ -1,0 +1,69 @@
+M1.6 UX QA pass - Phase 1 exit gate
+Build under test: M0.3 native scaffold (ci/m0.3-mobile-build, #57) merged locally with the M1.5 web stack (wt/t_21b576a2 = PR #64, includes M1.1-M1.5). dev has neither, so there is no green dev run with an APK; the debug APK was built by the QA workflow (qa/m1.6-emulator, runs 39325167294 / 39326640744 / 39328781962) from that combination. Harness: scripts/qa/m16_driver.py (real adb touch/rotation/font scale on Android emulators, WebView DevTools reads) and Chrome device emulation with touch events + CDP safe-area insets for the iOS sizes.
+
+Environments
+  A  Android 14 (API 34) and Android 15 (API 35) x86_64 emulator, Pixel 6 profile, 412x915 dp, gesture nav and 3-button nav, current WebView
+  B  Android 11 (API 30) emulator, 360x760 dp (wm size), 3-button nav, WebView 83 (stock image)
+  C  iPhone 393x852 @3x, safe area 59/34 (landscape 59 left+right, 21 bottom): Chrome device emulation only
+  D  iPhone SE 375x667 @2x: Chrome device emulation only
+  F  Android tablet 800x1280 @2x (API 34): portrait and landscape 1212x716 after bars
+  G  Foldable 673x841 (API 34), live resize 360x800 -> 673x841 -> 1104x841 while playing
+  H  Small window 320x480 dp (API 34)
+  iOS simulator: see the iOS section below (CI macos-26, launch-state only).
+Not run: step 1 airplane-mode on iOS, any step on a real device, TalkBack/VoiceOver, Accessibility Scanner / Xcode Accessibility Inspector (the DOM and uiautomator trees were used instead), steps 2, 3, 4, 7, 8, 11, 13, 14 (not in this card's scope: real hardware or native audio events, M2.x).
+iOS simulator (CI macos-26, Xcode 26.6, iOS 26.5; iPhone 16 Pro = C, iPhone SE 3rd gen = D; run 39328781962): the Mac runner has no input injection, so only the launch state was captured, in portrait. Result: first-run notice shown on fresh install and fully readable, "I understand" is 44 pt above the home-indicator edge on C and 9.5 pt above the bottom on D (no indicator), content starts below the Dynamic Island, status bar light on dark (MUX-SAFE-5 iOS OK), Outfit loaded. Setting content size AX3 changes nothing: the web UI ignores iOS Dynamic Type (P1 below). Taps, rotation and the notice-acknowledged states were NOT run on the simulator; those rows rely on Chrome emulation.
+
+RESULT TABLE (PASS = every check of the step passed on that device; FAIL cites the defect card; ~ = passed with a caveat)
+Step                                A         B         C(emu)    D(emu)    F         G         H
+1 Fresh install, notice, fonts      FAIL D3   FAIL D3   FAIL D3   FAIL D3   FAIL D3   FAIL D3   FAIL D1
+  (functional part: notice shown, acknowledged, not shown again, no autoplay, fonts local, PWA UI and 10 s test hidden: PASS on every Android profile; C/D emulated: PASS, no external requests)
+5 Rotate 4x, Settings open          PASS      PASS      PASS~     PASS~     PASS      PASS      FAIL D1 (canvas 36 px)
+6 Drag = tooltip, tap = seek        FAIL D2   FAIL D2   FAIL D2   FAIL D2   ~ flaky   ~ flaky   FAIL D1
+9 Font scale 200%                   PASS      PASS      n/a       n/a       PASS      PASS      FAIL D1 (landscape)
+10 Tap targets >= 48 x 48           FAIL D3   FAIL D3   FAIL D3   FAIL D3   FAIL D3,D4 FAIL D3,D4 FAIL D1
+12 Safe areas, nav bars, notch      ~ SAFE-5  PASS      PASS      PASS      PASS      PASS      FAIL D1 (Start clipped)
+12b Layout sweep, both orientations FAIL D6   PASS      FAIL D6   FAIL D6   PASS      PASS      FAIL D1
+Chrome sweep of the MUX-LAYOUT-4 sizes (360x800, 390x844, 430x932, 320x568, 768x1024, 1024x768, 1280x800, 844x390, 932x430, 673x841, 320x480): no horizontal or vertical page scroll, Start fully in view at every size; 320x480 overlaps the Chart/Scope toggle with the info button (D1). 820x1180 and 1180x820 were not run (harness lost its socket).
+Notes on ~ cells
+  5 C/D: viewport swap by CDP, the AudioContext kept running (clock monotonic, position monotonic, Settings open, notice not re-shown, volume kept, canvas re-sized within 120 ms). Real rotation was only tested on A/B/F/G.
+  6 F/G: under an adb swipe on a tablet the tooltip was not visible in 3 of 8 samples and one tap did not restart audio; Chrome touch drag at 800x1280 and 673x841 shows the tooltip. Re-test on real hardware; geometry still violates D2 near the top of the stage.
+  12 A: Start is 16.5 px above the bottom of the window with gesture nav and with 3-button nav, never under the bar. That holds only because the app is NOT edge-to-edge and the bars are white: MUX-SAFE-5 is open (comment on M2.1, t_80a0916a). Landscape with a notch: emulated cutout run did not rotate, so unverified.
+  12 C landscape: no control inside the 59 px side insets, Start 13 px above the bottom inset, Settings Done clears the 34 px inset (D6 is reported in row 12b).
+  12 B: no layout failure on the stock API 30 emulator, but see P1 card t_3f87b2d8 (program sheet on WebView 83).
+  12b A: the overlap only appears at 866x364 (reference capture); 818x388 is clean.
+
+P0 DEFECT CARDS (software-engineer-webdev) - all open
+  D1 t_a11c1cca  Narrow short windows (320x480 split-screen, 407x296): side-dock layout collapses the stage and clips Start (MUX-LAYOUT-1/2/4/7, HUD-1)
+  D2 t_3f2677e5  Chart scrub tooltip is covered by the finger in the upper stage (MUX-IN-1)
+  D3 t_180f2a40  Header buttons have 0 px gaps; program title hit area is 24 px tall (MUX-TAP-1/2)
+  D4 t_c2317c2d  Windows >= 900 px (Android tablet landscape, wide foldable) use desktop control sizes: 33 px buttons, 36 px close, 45 px Start (MUX-TAP-1/3)
+  D6 t_d62475f5  Short landscape: sticky Start overlaps the Timer select (MUX-LAYOUT-4, TAP-2)
+P1 card
+  t_3f87b2d8  Program sheet is 560 px wide on WebView 83 (stock API 30 image): rows clipped, Close off screen (MUX-IN-5). Promote to P0 if WebView < 87 is supported.
+P0 owned by an existing card
+  MUX-SAFE-5 white system bars, app not edge-to-edge: M2.1 (t_80a0916a), comment posted.
+
+P1 / P2 FINDINGS (no card, do not block)
+  P1  Chart description ("tap to expand") hit area is 32-34 px high (uiautomator, A/B/F/G).
+  P1  iOS ignores Dynamic Type (AX3 launch identical to the default size, simulator C/D). MUX-VIS-7 asks for up to 200% on iOS too; needs a decision (honour `-apple-system-body` text size or document an exception).
+  P2  First-run notice shows a cyan focus ring on "I understand" on iOS from the programmatic focus.
+  P1  Expanded two-panel layout (MUX-LAYOUT-5) not built: single column at 1024x768 and 1280x800, header 103 px tall (sketch C: 64). Deferred by Q3, so not a defect for 1.0.
+  P1  Re-layout after a live rotation was still the old frame in one capture 4 s after the rotation (REF_05, API 35 emulator); correct 2 s later. Software-rendered emulator, so unconfirmed; MUX-ORI-5 needs a real-device check.
+  P2  `#liveFreqBadge` is hidden on Compact and short (spec 7: shown as a chip under the stage toggle); the legend shows the live Hz per voice instead.
+  P2  Compact legend is a two-row text legend (spec: single row of colour dots); hidden below ~600 px height.
+  P2  Short landscape scope controls are a scrolling row (spec 7: "View" sheet); scrolling works, a clipped "Wi..." label hints at it; add an edge fade.
+  P2  Short landscape header is 46 px (spec 44).
+  P2  Mixer toggle row touches the slider row and Start on 360 dp (see D3 item 3).
+  P2  Settings sticky footer covers the last 6 px of the Base Frequency field at some scroll positions (not a tap conflict).
+  P2  Accessibility tree on Android: partially scrolled nodes report clipped sizes, so uiautomator is not a reliable 48 dp check; use the DOM scan.
+
+SECTION 7 HUD TABLE vs BUILD (Compact 393/412, 320, short 844x390, Expanded 1280)
+  Compact: logo 36 OK, wordmark hidden OK, FOSS/carrier badge hidden OK, title + band shown with chevron, tap opens the program sheet OK, status dot only (12 px, text off-screen) OK, mode/breathe/settings icon-only 48x48 with aria-label and aria-pressed OK, Studio and Test L/R moved into Settings OK, voice count hidden OK, description 2 lines OK (hidden at 320x568), scope badges max 2 OK, breath card 50% of stage (max 55%) OK, update/install toasts hidden in the native shell OK, time readout JetBrains Mono tabular 16 px fixed width OK. Deviations: liveFreqBadge hidden, legend format, see P2 list.
+  Short landscape: logo 28 OK, one-line title OK, dot only OK, description and legend hidden OK, 2 scope badges, idle overlay icon only OK, breath compact card 51% OK. Header 46 px, scope controls row.
+  Expanded 1280: wordmark, carrier badge, voice count, live Hz chip, status dot + text, labelled header buttons all shown OK; control sizes fail (D4).
+Section 3.3 sketches: A (Compact) matches except the live Hz chip; B (short landscape) matches except the Timer overlap (D6) and the narrow-window variant (D1); C (Expanded) not built (Q3); D (Settings sheet) matches (sticky header with close, scroll body, sticky Done clearing the inset, Test L/R in Settings). "Keep screen on" row (MUX-LIFE-8) not present yet (M2.3).
+
+REFERENCE SCREENSHOT SET (for M4.1 framing)
+  Android API 35 emulator, Pixel 6 profile, 1080x2400 @420 dpi, demo-mode status bar 9:41 full battery: REF_01 first-run notice, REF_02 Compact portrait playing, REF_03 Compact portrait scope, REF_04 settings sheet, REF_05 short landscape playing (2400x1080).
+  iPhone-size (Chrome emulation 393x852 @3x, 1179x2556; no status bar or Dynamic Island drawn): REF_iOS-size C_01 notice, C_02 playing, C_04 settings, C_05 short landscape, D_02 (375x667 @2x).
+  CAVEAT: Android bars are white until M2.1 (MUX-SAFE-5); Chrome-emulated sets have no system chrome. M4.1 must re-shoot from the simulator/emulator after M2.1 and the P0 fixes; keep the framing (Compact portrait playing with the Mixer collapsed, settings sheet from the gear, notice at first launch) and the 6.9 in iPhone size 1320x2868.
