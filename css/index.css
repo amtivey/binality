@@ -1,3 +1,32 @@
+/* Self-hosted fonts (latin subset, variable woff2). Licences: fonts/OFL-*.txt */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url('../fonts/jetbrains-mono-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url('../fonts/outfit-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('../fonts/plus-jakarta-sans-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+
 :root {
   --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -200,8 +229,10 @@ body {
   transition: transform 0.3s ease;
 }
 
-.brand-logo-wrap:hover #icon {
-  transform: scale(1.06);
+@media (hover: hover) {
+  .brand-logo-wrap:hover #icon {
+    transform: scale(1.06);
+  }
 }
 
 .brand-name {
@@ -247,7 +278,7 @@ body {
 
 .pill-badge {
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: 0.75rem;
   font-weight: 500;
   padding: 2px 7px;
   border-radius: 9999px;
@@ -281,7 +312,7 @@ body {
 
 .band-badge {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 600;
   padding: 2px 8px;
   border-radius: 8px;
@@ -308,7 +339,7 @@ body {
   background: rgba(15, 23, 42, 0.65);
   border: 1px solid rgba(255, 255, 255, 0.08);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   transition: all 0.25s ease;
 }
@@ -373,11 +404,13 @@ body {
   transition: all 0.2s ease;
 }
 
-.studio-quick-btn:hover {
-  background: rgba(236, 72, 153, 0.22);
-  border-color: rgba(255, 112, 217, 0.6);
-  color: #ffffff;
-  box-shadow: 0 0 18px rgba(236, 72, 153, 0.28);
+@media (hover: hover) {
+  .studio-quick-btn:hover {
+    background: rgba(236, 72, 153, 0.22);
+    border-color: rgba(255, 112, 217, 0.6);
+    color: #ffffff;
+    box-shadow: 0 0 18px rgba(236, 72, 153, 0.28);
+  }
 }
 
 .studio-icon {
@@ -403,11 +436,13 @@ body {
   transition: all 0.2s ease;
 }
 
-.breath-quick-btn:hover {
-  background: rgba(56, 189, 248, 0.2);
-  border-color: rgba(125, 211, 252, 0.55);
-  color: #ffffff;
-  box-shadow: 0 0 18px rgba(56, 189, 248, 0.25);
+@media (hover: hover) {
+  .breath-quick-btn:hover {
+    background: rgba(56, 189, 248, 0.2);
+    border-color: rgba(125, 211, 252, 0.55);
+    color: #ffffff;
+    box-shadow: 0 0 18px rgba(56, 189, 248, 0.25);
+  }
 }
 
 .breath-quick-btn.active {
@@ -440,11 +475,13 @@ body {
   transition: all 0.2s ease;
 }
 
-.stereo-quick-btn:hover:not(:disabled) {
-  background: rgba(99, 102, 241, 0.22);
-  border-color: rgba(165, 180, 252, 0.55);
-  color: #ffffff;
-  box-shadow: 0 0 18px rgba(99, 102, 241, 0.25);
+@media (hover: hover) {
+  .stereo-quick-btn:hover:not(:disabled) {
+    background: rgba(99, 102, 241, 0.22);
+    border-color: rgba(165, 180, 252, 0.55);
+    color: #ffffff;
+    box-shadow: 0 0 18px rgba(99, 102, 241, 0.25);
+  }
 }
 
 .stereo-quick-btn:disabled {
@@ -474,11 +511,13 @@ body {
   transition: all 0.2s ease;
 }
 
-.mode-quick-btn:hover {
-  background: rgba(168, 85, 247, 0.22);
-  border-color: rgba(216, 180, 254, 0.6);
-  color: #ffffff;
-  box-shadow: 0 0 18px rgba(168, 85, 247, 0.28);
+@media (hover: hover) {
+  .mode-quick-btn:hover {
+    background: rgba(168, 85, 247, 0.22);
+    border-color: rgba(216, 180, 254, 0.6);
+    color: #ffffff;
+    box-shadow: 0 0 18px rgba(168, 85, 247, 0.28);
+  }
 }
 
 .mode-quick-btn.is-isochronic {
@@ -513,11 +552,13 @@ body {
   transition: all 0.2s ease;
 }
 
-#menu:hover {
-  background: rgba(255, 112, 217, 0.14);
-  border-color: rgba(255, 112, 217, 0.45);
-  color: #ffffff;
-  box-shadow: 0 0 20px rgba(255, 112, 217, 0.2);
+@media (hover: hover) {
+  #menu:hover {
+    background: rgba(255, 112, 217, 0.14);
+    border-color: rgba(255, 112, 217, 0.45);
+    color: #ffffff;
+    box-shadow: 0 0 20px rgba(255, 112, 217, 0.2);
+  }
 }
 
 #menu:active {
@@ -531,8 +572,10 @@ body {
   transition: transform 0.35s ease;
 }
 
-#menu:hover .gear-icon {
-  transform: rotate(45deg);
+@media (hover: hover) {
+  #menu:hover .gear-icon {
+    transform: rotate(45deg);
+  }
 }
 
 /* ==========================================================================
@@ -594,7 +637,7 @@ body {
 
 .meta-badge {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 500;
   padding: 4px 10px;
   border-radius: 10px;
@@ -640,7 +683,7 @@ body {
   border-radius: 12px;
   padding: 8px 11px;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: var(--text-primary);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65);
   white-space: nowrap;
@@ -715,9 +758,11 @@ body {
   white-space: nowrap;
 }
 
-.stage-view-btn:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.08);
+@media (hover: hover) {
+  .stage-view-btn:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+  }
 }
 
 .stage-view-btn.active {
@@ -786,7 +831,7 @@ body {
 
 .scope-group-label {
   font-family: var(--font-mono);
-  font-size: 0.64rem;
+  font-size: 0.75rem;
   color: #64748b;
   font-weight: 500;
   padding: 0 4px 0 6px;
@@ -800,7 +845,7 @@ body {
   padding: 5px 9px;
   border-radius: 9px;
   font-family: var(--font-mono);
-  font-size: 0.70rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #94a3b8;
   background: transparent;
@@ -810,11 +855,13 @@ body {
   white-space: nowrap;
 }
 
-.scope-mode-btn:hover,
-.scope-zoom-btn:hover,
-.scope-ch-btn:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.08);
+@media (hover: hover) {
+  .scope-mode-btn:hover,
+  .scope-zoom-btn:hover,
+  .scope-ch-btn:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+  }
 }
 
 .scope-mode-btn.active {
@@ -899,7 +946,7 @@ body {
   padding: 4px 10px;
   border-radius: 9px;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   background: rgba(9, 4, 24, 0.88);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -911,7 +958,7 @@ body {
 .hud-label {
   color: #64748b;
   font-weight: 600;
-  font-size: 0.62rem;
+  font-size: 0.75rem;
   letter-spacing: 0.04em;
 }
 
@@ -926,7 +973,7 @@ body {
   padding: 1px 5px;
   border-radius: 4px;
   background: rgba(244, 114, 182, 0.18);
-  font-size: 0.64rem;
+  font-size: 0.75rem;
 }
 
 .hud-mode .status-dot {
@@ -1068,7 +1115,7 @@ body {
 
 .breath-cycle-badge {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 600;
   padding: 2px 7px;
   border-radius: 9999px;
@@ -1104,10 +1151,12 @@ body {
   height: 13px;
 }
 
-.breath-icon-btn:hover {
-  background: rgba(56, 189, 248, 0.2);
-  border-color: rgba(56, 189, 248, 0.45);
-  color: #ffffff;
+@media (hover: hover) {
+  .breath-icon-btn:hover {
+    background: rgba(56, 189, 248, 0.2);
+    border-color: rgba(56, 189, 248, 0.45);
+    color: #ffffff;
+  }
 }
 
 .breath-visual-wrap {
@@ -1219,7 +1268,7 @@ body {
 }
 
 .breath-overlay.compact-dock .breath-countdown-text {
-  font-size: 0.68rem;
+  font-size: 0.75rem;
 }
 
 .breath-steps-row {
@@ -1237,7 +1286,7 @@ body {
 
 .breath-step-pill {
   font-family: var(--font-mono);
-  font-size: 0.64rem;
+  font-size: 0.75rem;
   font-weight: 600;
   padding: 2px 7px;
   border-radius: 8px;
@@ -1272,18 +1321,26 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.breath-mode-btn:hover,
 .breath-mode-btn.active {
   background: rgba(236, 72, 153, 0.22);
   border-color: var(--accent-pink);
   color: #ffffff;
   box-shadow: 0 0 10px rgba(255, 112, 217, 0.25);
+}
+
+@media (hover: hover) {
+  .breath-mode-btn:hover {
+    background: rgba(236, 72, 153, 0.22);
+    border-color: var(--accent-pink);
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(255, 112, 217, 0.25);
+  }
 }
 
 .chart-legend {
@@ -1324,7 +1381,7 @@ body {
 
 .legend-hint {
   color: var(--text-muted);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
 }
 
 /* ==========================================================================
@@ -1406,12 +1463,14 @@ body {
   transition: background 0.2s ease;
 }
 
-#slider:hover,
-.tone-range:hover,
-#quickToneSlider:hover,
-.ambient-range:hover,
-#quickAmbientSlider:hover {
-  background: rgba(255, 255, 255, 0.22);
+@media (hover: hover) {
+  #slider:hover,
+  .tone-range:hover,
+  #quickToneSlider:hover,
+  .ambient-range:hover,
+  #quickAmbientSlider:hover {
+    background: rgba(255, 255, 255, 0.22);
+  }
 }
 
 #slider::-webkit-slider-thumb,
@@ -1431,13 +1490,15 @@ body {
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-#slider::-webkit-slider-thumb:hover,
-.tone-range::-webkit-slider-thumb:hover,
-#quickToneSlider::-webkit-slider-thumb:hover,
-.ambient-range::-webkit-slider-thumb:hover,
-#quickAmbientSlider::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
-  box-shadow: 0 0 18px rgba(255, 112, 217, 1);
+@media (hover: hover) {
+  #slider::-webkit-slider-thumb:hover,
+  .tone-range::-webkit-slider-thumb:hover,
+  #quickToneSlider::-webkit-slider-thumb:hover,
+  .ambient-range::-webkit-slider-thumb:hover,
+  #quickAmbientSlider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 18px rgba(255, 112, 217, 1);
+  }
 }
 
 #slider::-moz-range-thumb,
@@ -1482,7 +1543,7 @@ body {
 }
 
 .ambient-quick-label {
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-secondary);
   white-space: nowrap;
@@ -1497,7 +1558,7 @@ body {
 .tone-val-badge,
 .ambient-val-badge {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: #f9a8d4;
   background: rgba(236, 72, 153, 0.14);
@@ -1533,16 +1594,21 @@ body {
   padding: 3px 8px;
   color: var(--text-primary);
   font-family: var(--font-body);
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   font-weight: 600;
   outline: none;
   cursor: pointer;
   transition: border-color 0.2s ease;
 }
 
-.timer-quick-select:hover,
 .timer-quick-select:focus {
   border-color: var(--accent-pink);
+}
+
+@media (hover: hover) {
+  .timer-quick-select:hover {
+    border-color: var(--accent-pink);
+  }
 }
 
 .timer-quick-select option {
@@ -1552,7 +1618,7 @@ body {
 
 .timer-val-badge {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: #a5b4fc;
   background: rgba(99, 102, 241, 0.15);
@@ -1606,10 +1672,12 @@ body {
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-#start:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 12px 28px -4px rgba(255, 112, 217, 0.65);
-  filter: brightness(1.08);
+@media (hover: hover) {
+  #start:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 28px -4px rgba(255, 112, 217, 0.65);
+    filter: brightness(1.08);
+  }
 }
 
 #start:active {
@@ -1670,7 +1738,7 @@ body {
 .settings-eyebrow {
   display: block;
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.1em;
   color: var(--accent-pink);
@@ -1704,10 +1772,12 @@ body {
   height: 18px;
 }
 
-.close-icon-btn:hover {
-  background: rgba(255, 112, 217, 0.15);
-  border-color: rgba(255, 112, 217, 0.4);
-  color: #ffffff;
+@media (hover: hover) {
+  .close-icon-btn:hover {
+    background: rgba(255, 112, 217, 0.15);
+    border-color: rgba(255, 112, 217, 0.4);
+    color: #ffffff;
+  }
 }
 
 #settingsBody {
@@ -1753,10 +1823,16 @@ body {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-#selectProgram:focus,
-#selectProgram:hover {
+#selectProgram:focus {
   border-color: var(--accent-pink);
   box-shadow: 0 0 0 3px rgba(255, 112, 217, 0.15);
+}
+
+@media (hover: hover) {
+  #selectProgram:hover {
+    border-color: var(--accent-pink);
+    box-shadow: 0 0 0 3px rgba(255, 112, 217, 0.15);
+  }
 }
 
 #selectProgram option,
@@ -1775,7 +1851,7 @@ body {
   border: 1px solid rgba(255, 112, 217, 0.4);
   color: #f9a8d4;
   font-family: var(--font-body);
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1786,11 +1862,13 @@ body {
   height: 13px;
 }
 
-.open-studio-pill-btn:hover {
-  background: rgba(236, 72, 153, 0.28);
-  border-color: var(--accent-pink);
-  color: #ffffff;
-  box-shadow: 0 0 14px rgba(255, 112, 217, 0.3);
+@media (hover: hover) {
+  .open-studio-pill-btn:hover {
+    background: rgba(236, 72, 153, 0.28);
+    border-color: var(--accent-pink);
+    color: #ffffff;
+    box-shadow: 0 0 14px rgba(255, 112, 217, 0.3);
+  }
 }
 
 #selectCustom {
@@ -1851,16 +1929,18 @@ body {
   border: 1px solid rgba(56, 189, 248, 0.35);
   color: #bae6fd;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.clone-studio-btn:hover {
-  background: rgba(56, 189, 248, 0.25);
-  border-color: var(--accent-cyan);
-  color: #ffffff;
+@media (hover: hover) {
+  .clone-studio-btn:hover {
+    background: rgba(56, 189, 248, 0.25);
+    border-color: var(--accent-cyan);
+    color: #ffffff;
+  }
 }
 
 #name {
@@ -1943,21 +2023,28 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.harmonic-btn:hover,
 .harmonic-btn.active {
   background: rgba(236, 72, 153, 0.2);
   border-color: var(--accent-pink);
   color: #ffffff;
 }
 
+@media (hover: hover) {
+  .harmonic-btn:hover {
+    background: rgba(236, 72, 153, 0.2);
+    border-color: var(--accent-pink);
+    color: #ffffff;
+  }
+}
+
 .settings-hint {
   margin: 0;
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   line-height: 1.4;
 }
@@ -1990,17 +2077,25 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.soundscape-btn:hover,
 .soundscape-btn.active {
   background: rgba(168, 85, 247, 0.22);
   border-color: var(--accent-violet);
   color: #ffffff;
   box-shadow: 0 0 12px rgba(168, 85, 247, 0.25);
+}
+
+@media (hover: hover) {
+  .soundscape-btn:hover {
+    background: rgba(168, 85, 247, 0.22);
+    border-color: var(--accent-violet);
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(168, 85, 247, 0.25);
+  }
 }
 
 .tone-vol-btn {
@@ -2010,17 +2105,25 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.tone-vol-btn:hover,
 .tone-vol-btn.active {
   background: rgba(236, 72, 153, 0.22);
   border-color: var(--accent-pink);
   color: #ffffff;
   box-shadow: 0 0 12px rgba(255, 112, 217, 0.25);
+}
+
+@media (hover: hover) {
+  .tone-vol-btn:hover {
+    background: rgba(236, 72, 153, 0.22);
+    border-color: var(--accent-pink);
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(255, 112, 217, 0.25);
+  }
 }
 
 /* Entrainment Synthesis Mode Selector */
@@ -2045,10 +2148,12 @@ body {
   transition: all 0.2s ease;
 }
 
-.mode-toggle-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.22);
-  color: #ffffff;
+@media (hover: hover) {
+  .mode-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.22);
+    color: #ffffff;
+  }
 }
 
 .mode-toggle-btn.active {
@@ -2084,7 +2189,7 @@ body {
 }
 
 .mode-btn-content small {
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: #94a3b8;
   line-height: 1.3;
 }
@@ -2095,7 +2200,7 @@ body {
   padding: 3px 9px;
   border-radius: 9999px;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 600;
   background: rgba(168, 85, 247, 0.16);
   border: 1px solid rgba(168, 85, 247, 0.38);
@@ -2132,10 +2237,16 @@ body {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.timer-select-input:focus,
-.timer-select-input:hover {
+.timer-select-input:focus {
   border-color: var(--accent-pink);
   box-shadow: 0 0 0 3px rgba(255, 112, 217, 0.16);
+}
+
+@media (hover: hover) {
+  .timer-select-input:hover {
+    border-color: var(--accent-pink);
+    box-shadow: 0 0 0 3px rgba(255, 112, 217, 0.16);
+  }
 }
 
 .timer-select-input option {
@@ -2160,7 +2271,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.14);
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -2192,17 +2303,19 @@ body {
   border: 1px solid rgba(236, 72, 153, 0.32);
   color: #f9a8d4;
   font-family: var(--font-body);
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.chime-preview-btn:hover {
-  background: rgba(236, 72, 153, 0.24);
-  border-color: var(--accent-pink);
-  color: #ffffff;
-  box-shadow: 0 0 14px rgba(255, 112, 217, 0.28);
+@media (hover: hover) {
+  .chime-preview-btn:hover {
+    background: rgba(236, 72, 153, 0.24);
+    border-color: var(--accent-pink);
+    color: #ffffff;
+    box-shadow: 0 0 14px rgba(255, 112, 217, 0.28);
+  }
 }
 
 .timer-presets {
@@ -2219,17 +2332,25 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.timer-preset-btn:hover,
 .timer-preset-btn.active {
   background: rgba(56, 189, 248, 0.2);
   border-color: var(--accent-cyan);
   color: #ffffff;
   box-shadow: 0 0 12px rgba(56, 189, 248, 0.22);
+}
+
+@media (hover: hover) {
+  .timer-preset-btn:hover {
+    background: rgba(56, 189, 248, 0.2);
+    border-color: var(--accent-cyan);
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.22);
+  }
 }
 
 /* Visual Breathing Pacer Settings */
@@ -2247,17 +2368,25 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.settings-breath-btn:hover,
 .settings-breath-btn.active {
   background: rgba(56, 189, 248, 0.22);
   border-color: var(--accent-cyan);
   color: #ffffff;
   box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+}
+
+@media (hover: hover) {
+  .settings-breath-btn:hover {
+    background: rgba(56, 189, 248, 0.22);
+    border-color: var(--accent-cyan);
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+  }
 }
 
 /* Stereo Headset Verification Card */
@@ -2331,7 +2460,7 @@ body {
 
 .channel-pill {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 600;
   padding: 5px 10px;
   border-radius: 10px;
@@ -2368,10 +2497,12 @@ body {
   transition: all 0.2s ease;
 }
 
-.stereo-test-btn:hover:not(:disabled) {
-  background: rgba(236, 72, 153, 0.22);
-  border-color: var(--accent-pink);
-  box-shadow: 0 0 18px rgba(255, 112, 217, 0.3);
+@media (hover: hover) {
+  .stereo-test-btn:hover:not(:disabled) {
+    background: rgba(236, 72, 153, 0.22);
+    border-color: var(--accent-pink);
+    box-shadow: 0 0 18px rgba(255, 112, 217, 0.3);
+  }
 }
 
 .stereo-test-btn:disabled {
@@ -2446,8 +2577,10 @@ body {
   word-break: break-all;
 }
 
-.info-card a:hover {
-  color: #fbcfe8;
+@media (hover: hover) {
+  .info-card a:hover {
+    color: #fbcfe8;
+  }
 }
 
 /* Medical & Safety Disclaimer Card */
@@ -2466,7 +2599,7 @@ body {
   align-items: center;
   gap: 8px;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -2514,9 +2647,11 @@ body {
   transition: all 0.2s ease;
 }
 
-#done:hover {
-  filter: brightness(1.1);
-  box-shadow: 0 8px 24px -4px rgba(255, 112, 217, 0.65);
+@media (hover: hover) {
+  #done:hover {
+    filter: brightness(1.1);
+    box-shadow: 0 8px 24px -4px rgba(255, 112, 217, 0.65);
+  }
 }
 
 /* ==========================================================================
@@ -2586,12 +2721,20 @@ body {
   transition: all 0.15s ease;
 }
 
-.studio-template-btn:hover,
 .studio-template-btn.active {
   background: rgba(236, 72, 153, 0.2);
   border-color: var(--accent-pink);
   color: #ffffff;
   box-shadow: 0 0 12px rgba(255, 112, 217, 0.22);
+}
+
+@media (hover: hover) {
+  .studio-template-btn:hover {
+    background: rgba(236, 72, 153, 0.2);
+    border-color: var(--accent-pink);
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(255, 112, 217, 0.22);
+  }
 }
 
 .studio-clone-active-btn {
@@ -2607,11 +2750,18 @@ body {
   transition: all 0.15s ease;
 }
 
-.studio-clone-active-btn:hover,
 .studio-clone-active-btn.active {
   background: rgba(56, 189, 248, 0.25);
   border-color: var(--accent-cyan);
   color: #ffffff;
+}
+
+@media (hover: hover) {
+  .studio-clone-active-btn:hover {
+    background: rgba(56, 189, 248, 0.25);
+    border-color: var(--accent-cyan);
+    color: #ffffff;
+  }
 }
 
 .studio-meta-grid {
@@ -2633,7 +2783,7 @@ body {
 
 .studio-field-label {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -2679,7 +2829,7 @@ body {
 
 .studio-preview-stats {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   color: #f9a8d4;
 }
 
@@ -2708,16 +2858,18 @@ body {
   border: 1px solid rgba(168, 85, 247, 0.45);
   color: #e9d5ff;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.studio-add-voice-btn:hover:not(:disabled) {
-  background: rgba(168, 85, 247, 0.3);
-  border-color: var(--accent-violet);
-  color: #ffffff;
+@media (hover: hover) {
+  .studio-add-voice-btn:hover:not(:disabled) {
+    background: rgba(168, 85, 247, 0.3);
+    border-color: var(--accent-violet);
+    color: #ffffff;
+  }
 }
 
 .studio-add-voice-btn:disabled {
@@ -2771,7 +2923,7 @@ body {
   padding: 4px 8px;
   border-radius: 7px;
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -2784,10 +2936,12 @@ body {
   color: #7dd3fc;
 }
 
-.studio-pt-add-btn:hover,
-.studio-point-add-btn:hover {
-  background: rgba(56, 189, 248, 0.25);
-  color: #ffffff;
+@media (hover: hover) {
+  .studio-pt-add-btn:hover,
+  .studio-point-add-btn:hover {
+    background: rgba(56, 189, 248, 0.25);
+    color: #ffffff;
+  }
 }
 
 .studio-voice-del-btn,
@@ -2797,10 +2951,12 @@ body {
   color: #fda4af;
 }
 
-.studio-voice-del-btn:hover,
-.studio-voice-remove-btn:hover {
-  background: rgba(244, 63, 94, 0.24);
-  color: #ffffff;
+@media (hover: hover) {
+  .studio-voice-del-btn:hover,
+  .studio-voice-remove-btn:hover {
+    background: rgba(244, 63, 94, 0.24);
+    color: #ffffff;
+  }
 }
 
 .studio-points-grid,
@@ -2837,7 +2993,7 @@ body {
 .studio-point-time label,
 .studio-point-freq label {
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
 }
 
@@ -2851,7 +3007,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: #ffffff;
   font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   font-weight: 600;
   outline: none;
 }
@@ -2873,7 +3029,7 @@ body {
 .studio-pt-badge,
 .studio-time-mmss {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   padding: 2px 6px;
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.05);
@@ -2885,7 +3041,7 @@ body {
 .studio-pt-band,
 .studio-band-pill {
   font-family: var(--font-mono);
-  font-size: 0.64rem;
+  font-size: 0.75rem;
   font-weight: 600;
   padding: 2px 7px;
   border-radius: 999px;
@@ -2914,11 +3070,13 @@ body {
   justify-content: center;
 }
 
-.studio-pt-del-btn:hover:not(:disabled),
-.studio-point-del-btn:hover:not(:disabled) {
-  background: rgba(244, 63, 94, 0.22);
-  border-color: rgba(244, 63, 94, 0.45);
-  color: #ffffff;
+@media (hover: hover) {
+  .studio-pt-del-btn:hover:not(:disabled),
+  .studio-point-del-btn:hover:not(:disabled) {
+    background: rgba(244, 63, 94, 0.22);
+    border-color: rgba(244, 63, 94, 0.45);
+    color: #ffffff;
+  }
 }
 
 .studio-point-del-btn:disabled {
@@ -2928,7 +3086,7 @@ body {
 
 .studio-saved-hint {
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
 }
 
@@ -2944,7 +3102,7 @@ body {
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.02);
   border: 1px dashed rgba(255, 255, 255, 0.1);
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   text-align: center;
 }
@@ -2977,7 +3135,7 @@ body {
 
 .studio-saved-meta {
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
 }
 
@@ -2996,24 +3154,28 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.14);
   color: var(--text-primary);
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.studio-saved-btn:hover,
-.studio-saved-load-btn:hover {
-  background: rgba(236, 72, 153, 0.22);
-  border-color: var(--accent-pink);
-  color: #ffffff;
+@media (hover: hover) {
+  .studio-saved-btn:hover,
+  .studio-saved-load-btn:hover {
+    background: rgba(236, 72, 153, 0.22);
+    border-color: var(--accent-pink);
+    color: #ffffff;
+  }
 }
 
-.studio-saved-btn-del:hover,
-.studio-saved-del-btn:hover {
-  background: rgba(244, 63, 94, 0.24);
-  border-color: #f43f5e;
-  color: #ffffff;
+@media (hover: hover) {
+  .studio-saved-btn-del:hover,
+  .studio-saved-del-btn:hover {
+    background: rgba(244, 63, 94, 0.24);
+    border-color: #f43f5e;
+    color: #ffffff;
+  }
 }
 
 .studio-status-msg {
@@ -3021,7 +3183,7 @@ body {
   padding: 8px 12px;
   border-radius: 10px;
   font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-align: center;
   background: rgba(16, 185, 129, 0.14);
@@ -3061,16 +3223,18 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.14);
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.studio-sec-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.28);
-  color: #ffffff;
+@media (hover: hover) {
+  .studio-sec-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.28);
+    color: #ffffff;
+  }
 }
 
 .studio-save-btn {
@@ -3086,11 +3250,13 @@ body {
   transition: all 0.2s ease;
 }
 
-.studio-save-btn:hover {
-  background: rgba(56, 189, 248, 0.28);
-  border-color: var(--accent-cyan);
-  color: #ffffff;
-  box-shadow: 0 0 16px rgba(56, 189, 248, 0.3);
+@media (hover: hover) {
+  .studio-save-btn:hover {
+    background: rgba(56, 189, 248, 0.28);
+    border-color: var(--accent-cyan);
+    color: #ffffff;
+    box-shadow: 0 0 16px rgba(56, 189, 248, 0.3);
+  }
 }
 
 .studio-apply-btn {
@@ -3107,9 +3273,11 @@ body {
   transition: all 0.2s ease;
 }
 
-.studio-apply-btn:hover {
-  filter: brightness(1.1);
-  box-shadow: 0 8px 22px -4px rgba(255, 112, 217, 0.7);
+@media (hover: hover) {
+  .studio-apply-btn:hover {
+    filter: brightness(1.1);
+    box-shadow: 0 8px 22px -4px rgba(255, 112, 217, 0.7);
+  }
 }
 
 /* Custom Scrollbar */
@@ -3127,15 +3295,17 @@ body {
   border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(244, 114, 182, 0.5);
+@media (hover: hover) {
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(244, 114, 182, 0.5);
+  }
 }
 
 /* ==========================================================================
    Responsive Breakpoints (Mobile / Compact Viewports)
    ========================================================================== */
 
-@media (max-width: 640px) {
+@media (max-width: 899px) {
   html,
   body {
     height: auto;
@@ -3219,13 +3389,13 @@ body {
   }
 
   .band-badge {
-    font-size: 0.62rem;
+    font-size: 0.75rem;
     padding: 2px 6px;
     border-radius: 6px;
   }
 
   .pill-carrier {
-    font-size: 0.62rem;
+    font-size: 0.75rem;
     padding: 2px 6px;
     display: inline-block;
   }
@@ -3256,7 +3426,7 @@ body {
   }
 
   .chart-description {
-    font-size: 0.74rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
     line-height: 1.35;
     display: -webkit-box;
@@ -3300,7 +3470,7 @@ body {
     flex: 1 1 50%;
     justify-content: center;
     padding: 5px 10px;
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     font-weight: 600;
     gap: 5px;
   }
@@ -3333,7 +3503,7 @@ body {
   }
 
   .legend-item {
-    font-size: 0.62rem;
+    font-size: 0.75rem;
     gap: 4px;
   }
 
@@ -3367,7 +3537,7 @@ body {
 
   .scope-hud-badge {
     padding: 2px 7px;
-    font-size: 0.62rem;
+    font-size: 0.75rem;
   }
 
   .transport-dock {
@@ -3385,7 +3555,7 @@ body {
 
   .time-readout {
     padding: 4px 8px;
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     gap: 3px;
   }
 
@@ -3419,7 +3589,7 @@ body {
   }
 
   .ambient-quick-label {
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     white-space: nowrap;
   }
 
@@ -3433,7 +3603,7 @@ body {
 
   .tone-val-badge,
   .ambient-val-badge {
-    font-size: 0.58rem;
+    font-size: 0.75rem;
     padding: 1px 3px;
     min-width: 24px;
     text-align: right;
@@ -3463,7 +3633,7 @@ body {
   .timer-quick-select {
     flex: 1 1 auto;
     min-width: 0;
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     padding: 4px 6px;
     border-radius: 8px;
   }
@@ -3540,7 +3710,7 @@ body {
 
 .pwa-subtitle {
   display: block;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: #94a3b8;
   margin-top: 2px;
 }
@@ -3588,11 +3758,13 @@ body {
   stroke: #34d399;
 }
 
-.pwa-install-btn:hover {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.4), rgba(56, 189, 248, 0.4));
-  border-color: rgba(52, 211, 153, 0.7);
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
-  transform: translateY(-1px);
+@media (hover: hover) {
+  .pwa-install-btn:hover {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.4), rgba(56, 189, 248, 0.4));
+    border-color: rgba(52, 211, 153, 0.7);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+    transform: translateY(-1px);
+  }
 }
 
 .pwa-offline-notice {
@@ -3675,8 +3847,10 @@ body {
   transition: opacity 0.2s ease;
 }
 
-.pwa-reload-btn:hover {
-  opacity: 0.9;
+@media (hover: hover) {
+  .pwa-reload-btn:hover {
+    opacity: 0.9;
+  }
 }
 
 .pwa-dismiss-btn {
@@ -3689,8 +3863,10 @@ body {
   line-height: 1;
 }
 
-.pwa-dismiss-btn:hover {
-  color: #ffffff;
+@media (hover: hover) {
+  .pwa-dismiss-btn:hover {
+    color: #ffffff;
+  }
 }
 
 @media (max-width: 600px) {
@@ -3699,6 +3875,1610 @@ body {
     right: 16px;
     bottom: 80px;
     justify-content: space-between;
+  }
+}
+
+/* Audio taken by the system (call, route loss, suspended context): amber ring until the user restarts (MUX-LIFE-5). */
+#start[data-state="interrupted"] {
+  box-shadow: 0 0 0 2px #f59e0b, 0 0 14px rgba(245, 158, 11, 0.55);
+}
+
+/* ==========================================================================
+   Touch input and tap targets (M1.3: MUX-IN-1/2/5/6/10, MUX-TAP-1..7, MUX-STU-1)
+   ========================================================================== */
+
+/* MUX-TAP-6: no OS tap flash / callout; selection stays on in text areas (Settings body, Studio body, inputs). */
+html,
+body {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  overscroll-behavior: none;
+}
+
+#settingsBody,
+#studioBody,
+.settings-dialog,
+.studio-dialog {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* MUX-IN-1/6: canvases and sliders own their drags; the OS never scrolls or back-swipes from them. */
+#chartCanvas,
+#waveformCanvas,
+#slider,
+#quickToneSlider,
+#quickAmbientSlider,
+.tone-range,
+.ambient-range,
+.studio-freq-slider {
+  touch-action: none;
+}
+
+/* MUX-TAP-5: no 300 ms delay / double-tap zoom on controls; hover-only styles already live in @media (hover: hover). */
+button,
+select,
+input,
+label,
+summary,
+a,
+[role="button"] {
+  touch-action: manipulation;
+}
+
+#slider,
+#quickToneSlider,
+#quickAmbientSlider,
+.tone-range,
+.ambient-range,
+.studio-freq-slider {
+  touch-action: none;
+}
+
+/* MUX-TAP-5: pressed feedback inside 100 ms on every control. */
+button:not(:disabled):active,
+select:active,
+a:active,
+.chart-description:active {
+  transform: scale(0.97);
+  filter: brightness(1.18);
+  transition-duration: 0.05s;
+}
+
+.pwa-install-btn.hidden {
+  display: none;
+}
+
+.field-msg {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--accent-amber);
+}
+
+.field-msg.hidden {
+  display: none;
+}
+
+/* MUX-TAP-4: 48 px element, 6 px track, 28 px thumb. Fill is driven by --fill (set from JS) on the track. */
+#slider,
+#quickToneSlider,
+#quickAmbientSlider,
+.tone-range,
+.ambient-range,
+.studio-freq-slider {
+  --fill: 0%;
+  --fill-start: #ff70d9;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 48px;
+  min-width: 48px;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.ambient-range,
+#quickAmbientSlider {
+  --fill-start: #38bdf8;
+}
+
+#slider:hover,
+#quickToneSlider:hover,
+#quickAmbientSlider:hover,
+.tone-range:hover,
+.ambient-range:hover {
+  background: transparent;
+}
+
+#slider::-webkit-slider-runnable-track,
+#quickToneSlider::-webkit-slider-runnable-track,
+#quickAmbientSlider::-webkit-slider-runnable-track,
+.tone-range::-webkit-slider-runnable-track,
+.ambient-range::-webkit-slider-runnable-track,
+.studio-freq-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, var(--fill-start) 0%, #a855f7 var(--fill), rgba(255, 255, 255, 0.14) var(--fill), rgba(255, 255, 255, 0.14) 100%);
+}
+
+#slider::-moz-range-track,
+#quickToneSlider::-moz-range-track,
+#quickAmbientSlider::-moz-range-track,
+.tone-range::-moz-range-track,
+.ambient-range::-moz-range-track,
+.studio-freq-slider::-moz-range-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+#slider::-moz-range-progress,
+#quickToneSlider::-moz-range-progress,
+#quickAmbientSlider::-moz-range-progress,
+.tone-range::-moz-range-progress,
+.ambient-range::-moz-range-progress {
+  height: 6px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, var(--fill-start), #a855f7);
+}
+
+#slider::-webkit-slider-thumb,
+#quickToneSlider::-webkit-slider-thumb,
+#quickAmbientSlider::-webkit-slider-thumb,
+.tone-range::-webkit-slider-thumb,
+.ambient-range::-webkit-slider-thumb,
+.studio-freq-slider::-webkit-slider-thumb {
+  width: 28px;
+  height: 28px;
+  margin-top: -11px; /* centres the 28 px thumb on the 6 px track */
+  border-width: 3px;
+  background: var(--accent-pink);
+  border-style: solid;
+  border-color: #ffffff;
+  border-radius: 50%;
+}
+
+#slider::-moz-range-thumb,
+#quickToneSlider::-moz-range-thumb,
+#quickAmbientSlider::-moz-range-thumb,
+.tone-range::-moz-range-thumb,
+.ambient-range::-moz-range-thumb,
+.studio-freq-slider::-moz-range-thumb {
+  width: 22px; /* content box; the 3 px border makes the 28 px visual */
+  height: 22px;
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  background: var(--accent-pink);
+}
+
+#slider:active::-webkit-slider-thumb,
+#quickToneSlider:active::-webkit-slider-thumb,
+#quickAmbientSlider:active::-webkit-slider-thumb,
+.tone-range:active::-webkit-slider-thumb,
+.ambient-range:active::-webkit-slider-thumb,
+.studio-freq-slider:active::-webkit-slider-thumb,
+#slider:focus-visible::-webkit-slider-thumb,
+#quickToneSlider:focus-visible::-webkit-slider-thumb,
+#quickAmbientSlider:focus-visible::-webkit-slider-thumb,
+.tone-range:focus-visible::-webkit-slider-thumb,
+.ambient-range:focus-visible::-webkit-slider-thumb,
+.studio-freq-slider:focus-visible::-webkit-slider-thumb {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 6px rgba(255, 112, 217, 0.25), 0 0 18px rgba(255, 112, 217, 1);
+}
+
+#slider:active::-moz-range-thumb,
+#quickToneSlider:active::-moz-range-thumb,
+#quickAmbientSlider:active::-moz-range-thumb,
+.tone-range:active::-moz-range-thumb,
+.ambient-range:active::-moz-range-thumb,
+.studio-freq-slider:active::-moz-range-thumb {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 6px rgba(255, 112, 217, 0.25), 0 0 18px rgba(255, 112, 217, 1);
+}
+
+/* Toast (MUX-IN-3) */
+.app-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 120px);
+  z-index: 9500;
+  max-width: calc(100vw - 32px);
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: rgba(12, 6, 32, 0.94);
+  border: 1px solid rgba(255, 112, 217, 0.45);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, 8px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.app-toast.visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* Confirm sheet for destructive actions (MUX-TAP-7) */
+.confirm-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.confirm-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(3, 1, 12, 0.72);
+}
+
+.confirm-card {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+  border-radius: 22px 22px 0 0;
+  background: rgba(13, 6, 34, 0.98);
+  border: 1px solid rgba(255, 112, 217, 0.35);
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.confirm-title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  color: #ffffff;
+}
+
+.confirm-body {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.confirm-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.confirm-btn {
+  min-height: 56px;
+  padding: 0 20px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+}
+
+.confirm-ok {
+  border-color: rgba(244, 63, 94, 0.7);
+  background: rgba(225, 29, 72, 0.85);
+}
+
+@media (min-width: 900px) {
+  .confirm-sheet {
+    align-items: center;
+  }
+
+  .confirm-card {
+    border-radius: 22px;
+    padding-bottom: 20px;
+  }
+
+  .confirm-actions {
+    flex-direction: row-reverse;
+  }
+
+  .confirm-btn {
+    flex: 1 1 0;
+  }
+}
+
+/* ---- 48 px hit areas with 8 px spacing: touch screens and Compact widths (MUX-TAP-1/2/3) ---- */
+@media (pointer: coarse), (max-width: 899px) {
+  .studio-quick-btn,
+  .breath-quick-btn,
+  #menu,
+  .stage-view-btn,
+  .scope-mode-btn,
+  .scope-zoom-btn,
+  .scope-ch-btn,
+  .breath-icon-btn,
+  .breath-mode-btn,
+  .close-icon-btn,
+  .open-studio-pill-btn,
+  .clone-studio-btn,
+  .harmonic-btn,
+  .tone-vol-btn,
+  .soundscape-btn,
+  .chime-toggle-btn,
+  .chime-preview-btn,
+  .timer-preset-btn,
+  .settings-breath-btn,
+  .stereo-test-btn,
+  .pwa-install-btn,
+  .pwa-reload-btn,
+  .pwa-dismiss-btn,
+  #done,
+  .studio-clone-active-btn,
+  .studio-template-btn,
+  .studio-add-voice-btn,
+  .studio-pt-add-btn,
+  .studio-point-add-btn,
+  .studio-voice-del-btn,
+  .studio-voice-remove-btn,
+  .studio-pt-del-btn,
+  .studio-point-del-btn,
+  .studio-saved-btn,
+  .studio-saved-load-btn,
+  .studio-saved-del-btn,
+  .studio-sec-btn,
+  .studio-save-btn,
+  .studio-apply-btn {
+    min-width: 48px;
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+  }
+
+  select,
+  #baseFreq,
+  .studio-input,
+  .studio-time-input,
+  .studio-freq-input,
+  input[type="file"] {
+    min-height: 48px;
+    min-width: 48px;
+    font-size: 16px; /* MUX-IN-10: stops iOS focus zoom */
+  }
+
+  input[type="file"]::file-selector-button {
+    min-height: 40px;
+    margin-right: 10px;
+    font-size: 0.85rem;
+  }
+
+  /* 8 px between neighbouring hit areas (rows wrap with the same gap) */
+  .header-actions,
+  .harmonic-presets,
+  .tone-vol-presets,
+  .tone-volume-presets,
+  .soundscape-presets,
+  .soundscape-grid,
+  .timer-presets,
+  .breath-settings-presets,
+  .stereo-test-actions,
+  .stereo-channels,
+  .studio-templates-bar,
+  .studio-saved-actions,
+  .studio-voice-actions,
+  .studio-footer-secondary,
+  .studio-footer-primary,
+  .scope-mode-group,
+  .scope-zoom-group,
+  .scope-channel-group,
+  .stage-view-toggle,
+  .breath-mode-pills,
+  .breath-card-actions,
+  .pwa-update-actions,
+  .studio-point-freq,
+  .studio-point-time,
+  .studio-pt-group {
+    gap: 8px;
+  }
+
+  .studio-point-row,
+  .studio-saved-item {
+    min-height: 56px;
+    gap: 8px 10px;
+  }
+
+  .studio-point-del-btn,
+  .studio-pt-del-btn {
+    width: 48px;
+    height: 48px;
+    font-size: 1.3rem;
+  }
+
+  .studio-point-time input,
+  .studio-point-freq input[type="number"] {
+    width: 72px;
+  }
+
+  .studio-freq-slider {
+    flex: 1 1 96px;
+    max-width: none;
+  }
+
+  /* Inline text links: 44 px line box via padding (MUX-TAP-2; 48 so step 10 is uniform) */
+  .info-card a {
+    display: inline-block;
+    padding: 14px 0;
+    line-height: 20px;
+    min-height: 48px;
+  }
+
+  /* MUX-TAP-3: Start is the biggest thing on screen */
+  #start {
+    min-height: 56px;
+    width: 100%;
+    font-size: 1rem;
+  }
+
+  #footer {
+    width: 100%;
+  }
+
+  .dock-actions-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .timer-quick-control {
+    width: 100%;
+  }
+
+  .dock-quick-sliders {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .tone-quick-control,
+  .ambient-quick-control {
+    padding: 0 10px;
+    min-height: 48px;
+  }
+
+  #quickToneSlider,
+  #quickAmbientSlider {
+    height: 48px;
+    min-width: 96px;
+  }
+
+  .tone-val-badge,
+  .ambient-val-badge {
+    font-size: 0.875rem;
+    min-width: 40px;
+  }
+
+  #divPosition,
+  #divDuration {
+    font-size: 0.875rem;
+  }
+
+  .time-readout {
+    flex-shrink: 0;
+  }
+
+  #divSlider {
+    flex: 1 1 auto;
+    min-width: 96px;
+  }
+
+  /* MUX-IN-6: the shell does not scroll; dialogs scroll inside their own bodies. */
+  html,
+  body {
+    height: 100%;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .app-shell {
+    height: 100%;
+    min-height: 0;
+    /* Only scrolls when the content cannot fit a short viewport (so no control is unreachable); contained, never the page. */
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .studio-dialog,
+  .settings-dialog {
+    min-height: 0;
+  }
+
+  #settingsBody,
+  #studioBody {
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .settings-header,
+  .studio-header {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+}
+
+/* ==========================================================================
+   Responsive layout and safe areas (M1.4: MUX-LAYOUT-1/2/4/6/7, MUX-SAFE-1..4/6/7, MUX-ORI-3..5)
+
+   Width classes (D19), window width only, re-evaluated live by the browser on resize / rotate / fold:
+     Compact  < 600     single column (sketch A)
+     Medium   600-899   single column, wider rows
+     Expanded >= 900    desktop look (stage + dock); no tablet two-panel layout in 1.0
+   "Short" modifier: window height < 500 (every phone in landscape) -> 44 px header, stage left,
+   control column right (sketch B). Height thresholds below are in em so they follow the user's
+   default font size too. No JS layout maths.
+   ========================================================================== */
+
+/* MUX-SAFE-1: env() first (iOS, Chrome), then the --safe-area-inset-* CSS vars that a native Android WebView host injects. */
+:root {
+  --sat: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px));
+  --sab: max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px));
+  --sal: max(env(safe-area-inset-left, 0px), var(--safe-area-inset-left, 0px));
+  --sar: max(env(safe-area-inset-right, 0px), var(--safe-area-inset-right, 0px));
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  font-size: 16px; /* MUX-LAYOUT-7 */
+}
+
+/* MUX-LAYOUT-1 / SAFE-2: fixed flex shell, padded by the insets; backgrounds (.ambient-bg) stay full-bleed. */
+.app-shell {
+  position: fixed;
+  inset: 0;
+  height: 100vh;
+  height: -webkit-fill-available;
+  height: 100dvh;
+  min-height: 0;
+  margin: 0 auto;
+  padding: calc(12px + var(--sat)) calc(16px + var(--sar)) calc(12px + var(--sab)) calc(16px + var(--sal));
+  overflow-x: hidden;
+  overflow-y: auto; /* last resort only (extreme font scale / split-screen); contained, never the page */
+  overscroll-behavior: contain;
+}
+
+.mixer-toggle {
+  display: none;
+}
+
+.settings-dialog,
+.studio-dialog {
+  max-height: 90vh;
+  max-height: 90dvh;
+}
+
+/* ---- Compact + Medium, and every short window: single-row header (sketch A / B) ---- */
+@media (max-width: 899px), (max-height: 499px) {
+  #header {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 10px;
+    row-gap: 0;
+    padding: 6px 10px;
+    min-height: 60px;
+  }
+
+  .header-top-row {
+    display: contents;
+  }
+
+  .header-brand {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .brand-name {
+    display: none;
+  }
+
+  .brand-logo-wrap {
+    width: 36px;
+    height: 36px;
+  }
+
+  .header-sub-row {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .header-sub-left {
+    max-width: 100%;
+  }
+
+  #title {
+    margin: 0;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 1rem;
+    line-height: 1.25;
+  }
+
+  .header-sub-right {
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .header-actions {
+    grid-column: 3;
+    grid-row: 1;
+    flex-shrink: 0;
+  }
+
+  .menu-label,
+  .breath-quick-label,
+  .studio-quick-label {
+    display: none;
+  }
+}
+
+/* ---- Compact + Medium (not short): stacked column, sketch A ---- */
+@media (max-width: 899px) {
+  .app-shell {
+    padding: calc(8px + var(--sat)) calc(10px + var(--sar)) calc(8px + var(--sab)) calc(10px + var(--sal));
+    gap: 8px;
+  }
+
+  /* Studio is also reachable from Settings; 3 x 48 px icons + 8 px gaps are all a 320 px header can hold. */
+  #headerStudioBtn {
+    display: none;
+  }
+
+  #body {
+    flex: 1 1 0;
+    min-height: 0;
+    padding: 8px;
+  }
+
+  #chart {
+    flex: 1 1 0;
+    min-height: 160px;
+  }
+
+  .transport-dock {
+    flex-shrink: 0;
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  /* Start is at least 8 px above the bottom inset: shell padding-bottom = 8 px + --sab (MUX-SAFE-3). */
+  #start {
+    min-height: 56px;
+  }
+
+  .mixer-toggle {
+    min-height: 48px;
+    width: 100%;
+    align-items: center;
+    gap: 10px;
+    padding: 0 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    text-align: left;
+  }
+
+  .mixer-toggle-label {
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .mixer-toggle-hint {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 0.75rem;
+  }
+
+  .mixer-toggle-chevron {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+  }
+
+  .transport-dock.mixer-open .mixer-toggle-chevron {
+    transform: rotate(180deg);
+  }
+}
+
+/* Medium: wider rows, volume sliders side by side, timer beside Start. */
+@media (min-width: 600px) and (max-width: 899px) {
+  .dock-quick-sliders {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dock-actions-row {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .timer-quick-control {
+    width: auto;
+    flex: 1 1 0;
+  }
+
+  #footer {
+    flex: 1 1 0;
+    width: auto;
+  }
+}
+
+/* ---- MUX-LAYOUT-2 collapse order (Compact/Medium portrait): legend, description, then the mixer drawer. ---- */
+@media (max-width: 899px) and (min-height: 500px) {
+  /* Mixer drawer closed by default on short-ish heights; the toggle only exists there. */
+  @media (max-height: 43.75em) {
+    .mixer-toggle {
+      display: flex;
+    }
+
+    .transport-dock:not(.mixer-open) .dock-quick-sliders,
+    .transport-dock:not(.mixer-open) .timer-quick-control {
+      display: none;
+    }
+  }
+
+  @media (max-height: 39.9em) {
+    .chart-legend {
+      display: none;
+    }
+  }
+
+  @media (max-height: 37.5em) {
+    .chart-description {
+      display: none;
+    }
+  }
+}
+
+/* ---- Short modifier (height < 500): sketch B. Header 44 px, stage left, control column 240-280 px right. ---- */
+@media (max-height: 499px) {
+  .app-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(240px, 34vw, 280px);
+    grid-template-rows: 44px minmax(0, 1fr);
+    gap: 6px 8px;
+    padding: calc(4px + var(--sat)) calc(8px + var(--sar)) calc(4px + var(--sab)) calc(8px + var(--sal));
+  }
+
+  #header {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    height: 44px;
+    min-height: 44px;
+    padding: 0 8px;
+    border-radius: 12px;
+  }
+
+  .brand-logo-wrap {
+    width: 28px;
+    height: 28px;
+  }
+
+  #title {
+    font-size: 0.9375rem;
+  }
+
+  /* Icon buttons keep their 48 px hit area (M1.3); they overhang the 44 px bar by 2 px, invisibly. */
+  .header-actions {
+    margin: -2px 0;
+  }
+
+  #body {
+    grid-column: 1;
+    grid-row: 2;
+    min-height: 0;
+    min-width: 0;
+    padding: 6px 8px;
+    gap: 6px;
+  }
+
+  #chart {
+    flex: 1 1 0;
+    min-height: 0;
+  }
+
+  .chart-description {
+    display: none;
+  }
+
+  .chart-header {
+    flex-wrap: nowrap;
+  }
+
+  .transport-dock {
+    grid-column: 2;
+    grid-row: 2;
+    flex-direction: column;
+    align-items: stretch;
+    min-height: 0;
+    padding: 8px;
+    gap: 8px;
+    border-radius: 16px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  #control {
+    width: 100%;
+    flex: 0 0 auto;
+    gap: 8px;
+  }
+
+  .dock-quick-sliders {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    width: 100%;
+    flex: 0 0 auto;
+  }
+
+  .dock-actions-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+    flex: 0 0 auto;
+  }
+
+  .timer-quick-control {
+    width: 100%;
+    min-width: 0;
+  }
+
+  #footer {
+    position: sticky;
+    bottom: 0;
+    width: 100%;
+  }
+
+  #start {
+    width: 100%;
+    min-height: 56px;
+  }
+}
+
+@media (max-height: 419px) {
+  .chart-legend {
+    display: none;
+  }
+}
+
+/* ---- MUX-LAYOUT-6: Settings / Studio are full-screen sheets on Compact + Medium (and short windows) ---- */
+@media (max-width: 899px), (max-height: 499px) {
+  #settings,
+  #studioModal {
+    padding: 0;
+    align-items: stretch;
+  }
+
+  .settings-dialog,
+  .studio-dialog {
+    width: 100%;
+    max-width: none;
+    height: 100vh;
+    height: 100dvh;
+    max-height: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  /* Sticky header (title + Close) and sticky footer sit outside the scrolling body. */
+  .settings-header {
+    min-height: 56px;
+    padding: calc(8px + var(--sat)) calc(16px + var(--sar)) 8px calc(16px + var(--sal));
+  }
+
+  #settingsBody,
+  #studioBody {
+    padding-left: calc(20px + var(--sal));
+    padding-right: calc(20px + var(--sar));
+  }
+
+  #settingsFooter,
+  .studio-footer {
+    padding: 10px calc(16px + var(--sar)) calc(10px + var(--sab)) calc(16px + var(--sal));
+  }
+
+  /* Overrides the 16 px side padding of the old Compact block. */
+  .settings-header,
+  #settingsFooter,
+  .studio-footer {
+    padding-left: calc(16px + var(--sal));
+    padding-right: calc(16px + var(--sar));
+  }
+}
+
+/* Transient toasts / sheets clear the home indicator and the cut-outs (MUX-SAFE-3/4). */
+.pwa-update-toast {
+  bottom: calc(24px + var(--sab));
+  right: calc(24px + var(--sar));
+}
+
+@media (max-width: 599px) {
+  .pwa-update-toast {
+    left: calc(16px + var(--sal));
+    right: calc(16px + var(--sar));
+    bottom: calc(80px + var(--sab));
+  }
+}
+
+.confirm-card {
+  padding-bottom: calc(20px + var(--sab));
+}
+
+/* Compact: the carrier badge lives in Settings; the header keeps title + band (sketch A). */
+@media (max-width: 599px) {
+  .pill-carrier {
+    display: none;
+  }
+}
+
+/* Expanded but narrow (900-1199): six items do not fit one dock row, so the time row gets its own line. */
+@media (min-width: 900px) and (max-width: 1199px) and (min-height: 500px) {
+  .transport-dock {
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+
+  #control {
+    flex: 1 1 100%;
+  }
+}
+
+/* Touch laptops / tablets at Expanded width: the Compact full-width Start/timer rules must not stretch the one-row dock. */
+@media (min-width: 900px) and (min-height: 500px) {
+  #footer {
+    width: auto;
+  }
+
+  #start {
+    width: auto;
+    min-width: 150px;
+  }
+
+  .timer-quick-control {
+    width: auto;
+  }
+}
+
+/* Large text (Android font scale 200%, iOS AX3): the time readout and slider may stack, and the short header may grow
+   instead of overlapping its neighbours (MUX-LAYOUT-7). Start and the time slider stay visible. */
+#control {
+  flex-wrap: wrap;
+}
+
+#divSlider {
+  flex: 1 1 96px;
+}
+
+@media (max-height: 499px) {
+  .app-shell {
+    grid-template-rows: minmax(44px, auto) minmax(0, 1fr);
+  }
+
+  #header {
+    height: auto;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 899px), (max-height: 499px) {
+  .header-sub-right {
+    min-width: 0;
+  }
+
+  .band-badge {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+
+/* ==========================================================================
+   M1.5 - HUD per width class, accessibility, sheets, first-run notice
+   ========================================================================== */
+
+:root {
+  color-scheme: dark; /* MUX-VIS-1: dark native pickers, scrollbars and keyboards */
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Status dot: grey idle, green playing (slow 2 s pulse), amber interrupted, red error. Text is never colour-only (aria-live text). */
+#audioStatus {
+  padding: 4px 8px;
+  flex-shrink: 0;
+}
+
+#audioStatus .status-dot {
+  background: #94a3b8;
+}
+
+#audioStatus.playing {
+  background: rgba(34, 197, 94, 0.14);
+  border-color: rgba(74, 222, 128, 0.45);
+  color: #bbf7d0;
+}
+
+#audioStatus.playing .status-dot {
+  background: #4ade80;
+  box-shadow: 0 0 10px #4ade80;
+  animation: pulseAura 2s ease-in-out infinite;
+}
+
+#audioStatus.interrupted {
+  background: rgba(245, 158, 11, 0.14);
+  border-color: rgba(251, 191, 36, 0.5);
+  color: #fde68a;
+}
+
+#audioStatus.interrupted .status-dot {
+  background: #fbbf24;
+  box-shadow: none;
+  animation: none;
+}
+
+#audioStatus[data-state="error"] {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(248, 113, 113, 0.5);
+  color: #fecaca;
+}
+
+#audioStatus[data-state="error"] .status-dot {
+  background: #f87171;
+}
+
+.header-sub-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* The program title is a button that opens the quick-switch sheet (MUX-IN-7). */
+#title[role="button"] {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  border-radius: 8px;
+}
+
+#title[role="button"]::after {
+  content: "";
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  margin-top: -3px;
+  border-right: 2px solid var(--text-secondary);
+  border-bottom: 2px solid var(--text-secondary);
+  transform: rotate(45deg);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
+}
+
+/* MUX-HUD-4: tabular numerals, fixed width for the longest value (1:00:00) so the slider does not jitter. */
+#divPosition,
+#divDuration {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  font-size: 1rem;
+}
+
+#divPosition {
+  min-width: 7ch; /* fits 1:00:00 */
+  text-align: right;
+}
+
+.info-btn {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-style: italic;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+@media (pointer: coarse), (max-width: 899px) {
+  .info-btn {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+.disclaimer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.notice-secondary-btn,
+.notice-ack-btn {
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.notice-ack-btn {
+  flex: 1 1 auto;
+  min-height: 56px;
+  border-color: rgba(255, 112, 217, 0.6);
+  background: linear-gradient(135deg, #be185d, #7e22ce);
+  color: #ffffff;
+  font-size: 1rem;
+}
+
+/* ---- Bottom sheets (program list, info, first-run notice) ---- */
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.sheet[hidden] {
+  display: none;
+}
+
+.sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 1, 12, 0.82);
+}
+
+.sheet-panel {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  max-height: 85vh;
+  max-height: 85dvh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 24px 24px 0 0;
+  background: rgba(15, 8, 38, 0.98);
+  border: 1px solid rgba(255, 112, 217, 0.3);
+  padding-bottom: var(--sab, 0px);
+  overflow: hidden;
+}
+
+.sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px 8px;
+}
+
+.sheet-header h2 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.sheet-footer {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+}
+
+@media (pointer: coarse), (max-width: 899px) {
+  .sheet-header .close-icon-btn {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+@media (min-width: 600px) {
+  .sheet {
+    align-items: center;
+  }
+
+  .sheet-panel {
+    border-radius: 24px;
+  }
+}
+
+.program-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 8px 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.program-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  text-align: left;
+  cursor: pointer;
+}
+
+.program-row.current {
+  background: rgba(255, 112, 217, 0.14);
+}
+
+.program-row-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.program-row-name {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.program-row-desc {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.program-row-dur {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.info-glossary {
+  margin: 0;
+  padding: 0 16px 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.info-glossary dt {
+  margin-top: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.info-glossary dd {
+  margin: 2px 0 0;
+  color: var(--text-secondary);
+}
+
+.notice-body {
+  padding: 0 16px;
+  overflow-y: auto;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.notice-list {
+  margin: 0 0 12px;
+  padding-left: 20px;
+}
+
+.notice-list li {
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.notice-more {
+  margin: 0;
+  font-size: 0.8125rem;
+}
+
+/* ---- Compact + Medium and short windows: HUD per width class (UX section 7) ---- */
+@media (max-width: 899px) and (min-height: 500px) {
+  #header {
+    height: 56px;
+    min-height: 56px;
+    padding: 3px 4px;
+    column-gap: 4px;
+  }
+}
+
+@media (max-width: 899px), (max-height: 499px) {
+  .header-actions {
+    gap: 0;
+  }
+
+  #headerModeBtn,
+  #headerBreathBtn,
+  #menu {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .mode-quick-icon {
+    font-size: 20px;
+  }
+
+  .breath-icon,
+  .gear-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .mode-quick-label,
+  .menu-label,
+  .breath-quick-label,
+  .studio-quick-label,
+  #audioStatus .status-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  /* Status is a dot on the logo corner: no width of its own; the text stays in the DOM for the aria-live region. */
+  .header-brand {
+    position: relative;
+  }
+
+  #audioStatus,
+  #audioStatus.playing,
+  #audioStatus.interrupted,
+  #audioStatus[data-state="error"] {
+    position: absolute;
+    right: -3px;
+    bottom: 2px;
+    padding: 0;
+    gap: 0;
+    width: 12px;
+    height: 12px;
+    justify-content: center;
+    border: 2px solid #0a061c;
+    background: #0a061c;
+  }
+
+  #audioStatus .status-dot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .brand-name,
+  #carrierBadge,
+  #voiceCountBadge,
+  .pill-foss {
+    display: none;
+  }
+
+  #title {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 24px;
+  }
+
+  #title[role="button"]::after {
+    flex: 0 0 auto;
+  }
+
+  .header-sub-left {
+    max-width: 100%;
+  }
+
+  .header-sub-right {
+    max-width: 100%;
+  }
+
+  /* Scope controls: one horizontally scrollable row of 48 px buttons (chosen over a "View" sheet). */
+  .scope-controls-bar {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    pointer-events: auto;
+    scrollbar-width: none;
+  }
+
+  .scope-controls-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scope-mode-group,
+  .scope-zoom-group,
+  .scope-channel-group {
+    flex: 0 0 auto;
+    width: auto;
+    justify-content: flex-start;
+  }
+
+  /* At most 2 scope HUD badges: FFR beat and mode. Carrier is in Settings (Base Frequency) and the info sheet. */
+  .scope-hud .hud-carrier,
+  .scope-hud .hud-cycle {
+    display: none;
+  }
+
+  /* Breath pacer: bottom-anchored card, at most 55% of the stage, pills in a scrollable row. */
+  .breath-overlay {
+    align-items: flex-end;
+    justify-content: center;
+    padding: 8px;
+  }
+
+  .breath-overlay .breath-card {
+    max-width: 100%;
+    max-height: 55%;
+    overflow-y: auto;
+    padding: 8px 12px;
+    gap: 6px;
+  }
+
+  .breath-overlay .breath-visual-wrap {
+    max-height: 30vh;
+  }
+
+  .breath-mode-pills {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .breath-mode-btn {
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 899px), (max-height: 499px) {
+  .scope-idle-text {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+@media (max-height: 499px) {
+  .scope-idle-title,
+  .scope-idle-text {
+    display: none;
+  }
+}
+
+/* Expanded: dot and text status, labelled buttons */
+@media (min-width: 900px) and (min-height: 500px) {
+  #audioStatus {
+    padding: 6px 12px;
+  }
+}
+
+/* MUX-VIS-3: reduced motion switches off ambient orbs, the status pulse, the breath aura and every other decorative animation/transition. */
+@media (prefers-reduced-motion: reduce) {
+  .orb,
+  .orb-1,
+  .orb-2,
+  .orb-3,
+  .status-dot,
+  .breath-aura {
+    animation: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .breath-orb {
+    transform: scale(0.76) !important;
+  }
+
+  .breath-aura {
+    transform: scale(0.85) !important;
+    opacity: 0.5 !important;
+  }
+}
+
+/* Short landscape: title and band badge share one line inside the 44 px bar. */
+@media (max-height: 499px) {
+  .header-sub-row {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+
+  #title {
+    min-height: 0;
+  }
+}
+
+@media (max-height: 499px) {
+  .time-readout {
+    padding: 0 2px;
+    gap: 3px;
+    border: 0;
+    background: none;
   }
 }
 
