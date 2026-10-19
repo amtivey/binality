@@ -1,0 +1,28 @@
+{
+  "name": "binality",
+  "version": "3.0.0",
+  "description": "Binality binaural-beats app (static web app + Capacitor mobile wrapper)",
+  "private": true,
+  "license": "MIT",
+  "author": "Alexis Matthew Tivey",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "node scripts/copy-www.mjs",
+    "sync": "npm run build && cap sync",
+    "android": "npm run sync && cap open android",
+    "ios": "npm run sync && cap open ios",
+    "cap:doctor": "cap doctor"
+  },
+  "dependencies": {
+    "@capacitor/android": "~8.5.0",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "~8.5.0",
+    "@capacitor/ios": "~8.5.0",
+    "@capacitor/splash-screen": "^8.0.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "~8.5.0"
+  }
+}
