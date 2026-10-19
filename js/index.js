@@ -15,11 +15,18 @@ var hoverTime = null;
 
 window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
+// Every AudioContext goes through createAudioContext() so onstatechange is always wired (see lifecycle block).
+function createAudioContext() {
+  var ctx = new AudioContext();
+  ctx.onstatechange = onContextStateChange;
+  return ctx;
+}
+
 var context = null;
 var isAudioSupported = typeof window.AudioContext !== 'undefined';
 try {
   if (isAudioSupported) {
-    context = new AudioContext();
+    context = createAudioContext();
   }
 } catch (e) {
   context = null;
@@ -64,7 +71,25 @@ var noiseLfoGain = null;
 var timerSetting = '0';
 var timerDurationSec = 0;
 var timerRemainingSec = 0;
-var timerInterval = null;
+// Audio-clock end schedule (context.currentTime seconds); null = not scheduled. UI derives remaining time from these.
+var sleepEndAt = null;
+var programEndAt = null;
+var toneRampEndAt = 0;
+var noiseRampEndAt = 0;
+var toneRampStartAt = 0;
+var noiseRampStartAt = 0;
+var SLEEP_FADE_SEC = 10;
+var PROGRAM_FADE_SEC = 3;
+var sleepFadeSec = SLEEP_FADE_SEC; // fade length fixed when the end is scheduled (min of 10 s and half the remaining time)
+var programFadeSec = PROGRAM_FADE_SEC;
+var START_FADE_SEC = 3;
+var STOP_FADE_SEC = 0.3;
+var pendingStopId = null;
+var ctxResumePending = false;
+var interruptedInfo = null; // { at: Date.now(), reason } while UI state is 'interrupted'
+var hiddenWatchId = null;
+var lastPositionSavedAt = -1;
+var pendingRestorePosition = null; // { program, position } from the previous session, applied by the first loadProgram
 var chimeEnabled = true;
 var timerCompletedStatus = null;
 
@@ -1645,13 +1670,15 @@ function isCurrentlyPlaying() {
   return startBtn ? startBtn.getAttribute('data-playing') === 'true' : false;
 }
 
-function setPlayingUI(playing) {
+function setPlayingUI(playing, interrupted) {
   var startBtn = document.getElementById('start');
   var audioStatus = document.getElementById('audioStatus');
+  var uiState = playing ? 'playing' : interrupted ? 'interrupted' : 'idle';
 
   if (startBtn) {
     startBtn.textContent = playing ? 'stop' : 'start';
     startBtn.setAttribute('data-playing', playing ? 'true' : 'false');
+    startBtn.setAttribute('data-state', uiState);
     if (playing) {
       startBtn.classList.add('is-playing');
     } else {
@@ -1661,6 +1688,12 @@ function setPlayingUI(playing) {
 
   if (audioStatus) {
     var statusText = audioStatus.querySelector('.status-text');
+    audioStatus.setAttribute('data-state', uiState);
+    if (interrupted) {
+      audioStatus.classList.add('interrupted');
+    } else {
+      audioStatus.classList.remove('interrupted');
+    }
     if (playing) {
       audioStatus.classList.add('playing');
       if (statusText) {
@@ -1668,7 +1701,7 @@ function setPlayingUI(playing) {
       }
     } else {
       audioStatus.classList.remove('playing');
-      if (statusText) statusText.textContent = 'Idle';
+      if (statusText) statusText.textContent = interrupted ? 'Interrupted' : 'Idle';
     }
   }
 
@@ -1691,7 +1724,7 @@ function setPlayingUI(playing) {
 
   if (activeStageView === 'waveform') {
     if (playing) {
-      startScopeAnimation();
+      if (!document.hidden) startScopeAnimation();
     } else {
       drawScopeFrame();
       stopScopeAnimation();
@@ -1784,21 +1817,30 @@ function loadProgram(xml) {
     durationEl.textContent = getTimeString(timeMax);
   }
 
+  var restoredPos = 0;
+  if (pendingRestorePosition) {
+    if (pendingRestorePosition.program === currentProgram && pendingRestorePosition.position > 0 && pendingRestorePosition.position < timeMax) {
+      restoredPos = Math.floor(pendingRestorePosition.position);
+    }
+    pendingRestorePosition = null; // only the first program load of a session restores
+  }
+
   var slider = document.getElementById('slider');
   if (slider) {
     slider.setAttribute('max', timeMax);
-    slider.value = 0;
+    slider.value = restoredPos;
   }
 
-  timeStart = 0;
+  timeStart = restoredPos;
   var posEl = document.getElementById('divPosition');
   if (posEl) {
-    posEl.textContent = getTimeString(0);
+    posEl.textContent = getTimeString(restoredPos);
   }
+  savePosition(restoredPos);
 
   updateSliderFill();
+  updateLiveReadouts(restoredPos);
   renderLegend();
-  updateLiveReadouts(0);
 
   if (!chart) {
     chart = createProgramChart();
@@ -1897,16 +1939,32 @@ function changeProgram(filename) {
     });
 }
 
-function start(preserveTimer) {
+function start(preserveTimer, fullFade) {
   if (!context && isAudioSupported) {
     try {
-      context = new AudioContext();
+      context = createAudioContext();
     } catch (e) {}
   }
   if (!context || !program) return;
 
-  if (context.state === 'suspended') {
-    context.resume();
+  cancelPendingStop();
+  interruptedInfo = null;
+  // Always request resume: a preceding stop() may have a suspend() still in flight (state still reads 'running').
+  ctxResumePending = true;
+  var resumeResult = null;
+  try {
+    resumeResult = context.resume();
+  } catch (e) {}
+  var resumeSettled = function () {
+    ctxResumePending = false;
+    if (isCurrentlyPlaying() && context && context.state !== 'running') {
+      enterInterrupted('resume-failed');
+    }
+  };
+  if (resumeResult && typeof resumeResult.then === 'function') {
+    resumeResult.then(resumeSettled, resumeSettled);
+  } else {
+    ctxResumePending = false;
   }
 
   cleanupAudioNodes();
@@ -1922,12 +1980,10 @@ function start(preserveTimer) {
   timeContext = context.currentTime;
 
   toneMasterGain = context.createGain();
-  if (toneVolume > 0.001) {
-    toneMasterGain.gain.setValueAtTime(0.0001, timeContext);
-    toneMasterGain.gain.exponentialRampToValueAtTime(toneVolume, timeContext + 0.8);
-  } else {
-    toneMasterGain.gain.setValueAtTime(0, timeContext);
-  }
+  // Gain ramps 0 -> target over START_FADE_SEC; scheduleAudioEnd() below builds the ramp (and any end fade).
+  toneMasterGain.gain.setValueAtTime(0, timeContext);
+  toneRampStartAt = timeContext;
+  toneRampEndAt = timeContext + (preserveTimer === true && !fullFade ? 0.8 : START_FADE_SEC);
   toneMasterGain.connect(context.destination);
   ensureScopeAnalysers();
   if (analyserSplitter) {
@@ -2092,42 +2148,113 @@ function start(preserveTimer) {
     }
   }
 
-  startAmbientNoise();
+  startAmbientNoise(preserveTimer === true && !fullFade ? 0.8 : START_FADE_SEC);
+
+  // Program end is on the audio clock: fade + osc.stop at timeMax (see scheduleAudioEnd).
+  programEndAt = timeContext + Math.max(0, timeMax - timeStart);
+  programFadeSec = Math.min(PROGRAM_FADE_SEC, Math.max(0, timeMax - timeStart) / 2);
 
   if (timerDurationSec > 0) {
     startSleepTimer(preserveTimer);
   } else {
+    scheduleAudioEnd();
     syncTimerUI();
   }
 
   if (chart) chart.replot();
-  if (activeStageView === 'waveform') {
+  if (activeStageView === 'waveform' && !document.hidden) {
     startScopeAnimation();
   }
 
-  monitor = setInterval(function () {
-    var t = parseInt(timeStart, 10) + Math.floor(context.currentTime - timeContext);
-    var sliderEl = document.getElementById('slider');
-    var posEl = document.getElementById('divPosition');
+  if (document.hidden) {
+    armHiddenWatch();
+  } else {
+    startMonitor();
+  }
+}
 
-    if (t > timeMax) {
-      if (sliderEl) sliderEl.value = 0;
-      if (posEl) posEl.textContent = '0:00';
-      updateSliderFill();
-      updateLiveReadouts(0);
-      stop(false, true);
-      playChime(false);
-      timerCompletedStatus = chimeEnabled ? 'Complete (Chime)' : 'Complete';
+// Position/timer/end-of-session UI driver. Everything here is derived from context.currentTime; the interval only
+// decides how often we paint, so throttling it (background tabs) cannot move the end of the session.
+function startMonitor() {
+  if (monitor !== null) clearInterval(monitor);
+  monitor = setInterval(monitorTick, 250);
+}
+
+function stopMonitor() {
+  if (monitor !== null) {
+    clearInterval(monitor);
+    monitor = null;
+  }
+}
+
+function getCurrentPositionSec() {
+  var slider = document.getElementById('slider');
+  if (context && isCurrentlyPlaying()) {
+    var t = parseInt(timeStart, 10) + Math.floor(Math.max(0, context.currentTime - timeContext));
+    return Math.max(0, Math.min(timeMax, t));
+  }
+  return slider ? parseInt(slider.value, 10) || 0 : timeStart;
+}
+
+// Seconds of sleep timer left, from the audio clock while playing.
+function getTimerRemaining() {
+  if (sleepEndAt !== null && context && isCurrentlyPlaying()) {
+    return Math.max(0, Math.ceil(sleepEndAt - context.currentTime));
+  }
+  return timerRemainingSec;
+}
+
+// Returns true when the session ended (and was torn down).
+function checkSessionEnd() {
+  if (!context || !isCurrentlyPlaying()) return false;
+  var now = context.currentTime;
+  var programDone = programEndAt !== null && now >= programEndAt;
+  var timerDone = sleepEndAt !== null && now >= sleepEndAt;
+  if (!programDone && !timerDone) return false;
+
+  var sliderEl = document.getElementById('slider');
+  var posEl = document.getElementById('divPosition');
+  if (sliderEl) sliderEl.value = 0;
+  if (posEl) posEl.textContent = '0:00';
+  timeStart = 0;
+  updateSliderFill();
+  updateLiveReadouts(0);
+  var timerFinished = timerDone && !(programDone && sleepEndAt > programEndAt);
+  stop(false, true);
+  playChime(false);
+  if (timerFinished) {
+    timerCompletedStatus = chimeEnabled ? 'Complete (Chime)' : 'Complete (Silent)';
+  } else {
+    timerCompletedStatus = chimeEnabled ? 'Complete (Chime)' : 'Complete';
+  }
+  syncTimerUI();
+  savePosition(0);
+  return true;
+}
+
+var lastShownTimerSec = -1;
+
+function monitorTick() {
+  if (!context || !isCurrentlyPlaying()) return;
+  if (checkSessionEnd()) return;
+
+  var t = getCurrentPositionSec();
+  var sliderEl = document.getElementById('slider');
+  var posEl = document.getElementById('divPosition');
+  if (sliderEl) sliderEl.value = t;
+  if (posEl) posEl.textContent = getTimeString(t);
+  updateSliderFill();
+  updateLiveReadouts(t);
+  if (sleepEndAt !== null) {
+    var rem = getTimerRemaining();
+    if (rem !== lastShownTimerSec) {
+      lastShownTimerSec = rem;
       syncTimerUI();
-    } else {
-      if (sliderEl) sliderEl.value = t;
-      if (posEl) posEl.textContent = getTimeString(t);
-      updateSliderFill();
-      updateLiveReadouts(t);
-      // The timeline chart is invisible while the scope view is active or the page is hidden.
-      if (chart && activeStageView === 'curve' && !document.hidden) chart.replot();
     }
-  }, 250);
+  }
+  // The timeline chart is invisible while the scope view is active or the page is hidden.
+  if (chart && activeStageView === 'curve' && !document.hidden) chart.replot();
+  if (lastPositionSavedAt < 0 || Math.abs(t - lastPositionSavedAt) >= 5) savePosition(t);
 }
 
 function getSoundscapeGainScale(type) {
@@ -2217,7 +2344,7 @@ function ensurePinkNoiseBuffer() {
   return pinkNoiseBuffer;
 }
 
-function startAmbientNoise() {
+function startAmbientNoise(rampSec) {
   stopAmbientNoise();
   if (!context) return;
 
@@ -2233,15 +2360,17 @@ function startAmbientNoise() {
 
   noiseGain = context.createGain();
   var now = context.currentTime;
-  var targetGain = ambientVolume * getSoundscapeGainScale(ambientType);
-  noiseGain.gain.setValueAtTime(0.0001, now);
-  noiseGain.gain.linearRampToValueAtTime(targetGain, now + 0.8);
+  noiseGain.gain.setValueAtTime(0, now);
+  noiseRampStartAt = now;
+  noiseRampEndAt = now + (typeof rampSec === 'number' ? rampSec : 0.8);
 
   noiseNode.connect(noiseFilter);
   noiseFilter.connect(noiseGain);
   noiseGain.connect(context.destination);
 
   noiseNode.start(0);
+  // Builds the fade-in (and re-applies any pending end fade, e.g. noise switched on mid-session).
+  scheduleAudioEnd();
 }
 
 function stopAmbientNoise() {
@@ -2331,8 +2460,7 @@ function setAmbientVolume(vol) {
   }
 
   if (noiseGain && context) {
-    var target = ambientVolume * getSoundscapeGainScale(ambientType);
-    noiseGain.gain.setTargetAtTime(target, context.currentTime, 0.05);
+    scheduleAudioEnd();
   } else if (isCurrentlyPlaying() && ambientVolume > 0 && !noiseNode) {
     startAmbientNoise();
   }
@@ -2370,8 +2498,7 @@ function setSoundscapePreset(preset) {
     if (noiseFilter && context) {
       configureSoundscapeFilter();
       if (noiseGain) {
-        var target = ambientVolume * getSoundscapeGainScale(ambientType);
-        noiseGain.gain.setTargetAtTime(target, context.currentTime, 0.06);
+        scheduleAudioEnd();
       }
     }
   }
@@ -2432,18 +2559,8 @@ function setToneVolume(vol) {
   toneVolume = parsed;
 
   if (toneMasterGain && context) {
-    var now = context.currentTime;
-    if (isTimerFadingOut) {
-      isTimerFadingOut = false;
-    }
-    try {
-      toneMasterGain.gain.cancelScheduledValues(now);
-      if (toneVolume <= 0.001) {
-        toneMasterGain.gain.setTargetAtTime(0, now, 0.05);
-      } else {
-        toneMasterGain.gain.setTargetAtTime(toneVolume, now, 0.05);
-      }
-    } catch (e) {}
+    // Re-applies the level (and any scheduled end fade) from the audio clock.
+    scheduleAudioEnd();
   }
 
   try {
@@ -2465,6 +2582,9 @@ function cleanupAudioNodes() {
     toneMasterGain = null;
   }
   isTimerFadingOut = false;
+  sleepEndAt = null;
+  programEndAt = null;
+  lastShownTimerSec = -1;
 
   if (osc && osc.length > 0) {
     for (var i = 0; i < osc.length; ++i) {
@@ -2546,14 +2666,20 @@ function playChime(forcePlay) {
   if (!forcePlay && !chimeEnabled) return;
   if (!context && isAudioSupported) {
     try {
-      context = new AudioContext();
+      context = createAudioContext();
     } catch (e) {}
   }
   if (!context) return;
 
-  if (context.state === 'suspended') {
-    context.resume();
-  }
+  // Always request resume: stop() may have a suspend() in flight while context.state still reads 'running'.
+  try {
+    var chimeResume = context.resume();
+    if (chimeResume && chimeResume.catch) chimeResume.catch(function () {});
+  } catch (e) {}
+  // Release the audio hardware again once the chime tail is over, if nothing is playing.
+  setTimeout(function () {
+    if (context && !isCurrentlyPlaying() && !isTestingStereo) suspendContextIfIdle();
+  }, 3900);
 
   var t = context.currentTime;
   var frequencies = [528, 660, 792]; // Harmonic Solfeggio triad (528 Hz MI + Major 3rd + Perfect 5th)
@@ -2587,49 +2713,103 @@ function playChime(forcePlay) {
   }
 }
 
-function beginSleepTimerFadeOut(fadeSec) {
-  if (isTimerFadingOut || !context) return;
-  isTimerFadingOut = true;
+// Applies the level envelope for one gain param on the audio clock: fade-in continuation, hold at target, and an
+// optional linear fade to silence finishing at endAt. Re-callable (volume change, timer change): it restarts from
+// the param's current value so there are no jumps.
+function applyGainEnvelope(param, target, rampStartAt, rampEndAt, fadeStartAt, endAt) {
   var now = context.currentTime;
-  var dur = Math.max(1, fadeSec || 5);
+  try {
+    // param.value is stale (default 1) until the audio thread has rendered, so the very start is known to be 0.
+    var v = now <= rampStartAt + 0.02 ? 0 : param.value;
+    param.cancelScheduledValues(now);
+    param.setValueAtTime(v, now);
+    var cursor = now;
+    var rampingIn = now < rampEndAt;
+    if (rampingIn && (endAt === null || rampEndAt <= fadeStartAt)) {
+      param.linearRampToValueAtTime(target, rampEndAt);
+      cursor = rampEndAt;
+    } else if (!rampingIn || endAt === null) {
+      param.setTargetAtTime(target, now, 0.05);
+    }
+    if (endAt !== null) {
+      if (fadeStartAt > cursor) {
+        // Hold the level until the fade starts (cursor == now means we are already near target).
+        param.setValueAtTime(target, fadeStartAt);
+      }
+      param.linearRampToValueAtTime(0, Math.max(endAt, now + 0.01));
+    }
+  } catch (e) {}
+}
 
-  if (toneMasterGain) {
-    try {
-      toneMasterGain.gain.cancelScheduledValues(now);
-      var currentTVal = Math.max(0.0002, toneMasterGain.gain.value || toneVolume);
-      toneMasterGain.gain.setValueAtTime(currentTVal, now);
-      toneMasterGain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
-    } catch (e) {}
+// Schedules the end of the session on the audio clock (D8): a linear fade to silence and osc.stop, so it lands on
+// time even when JS timers are throttled or suspended. Earliest of sleep timer / program end wins.
+// Safe to call repeatedly; also (re)builds the fade-in and tracks live volume changes.
+function scheduleAudioEnd() {
+  if (!context || !isCurrentlyPlaying()) return;
+  var now = context.currentTime;
+
+  var endAt = null;
+  var fadeSec = 0;
+  if (sleepEndAt !== null) {
+    endAt = sleepEndAt;
+    fadeSec = sleepFadeSec;
+  }
+  if (programEndAt !== null && (endAt === null || programEndAt < endAt)) {
+    endAt = programEndAt;
+    fadeSec = programFadeSec;
+  }
+  var fadeStartAt = null;
+  if (endAt !== null) {
+    fadeSec = Math.min(fadeSec, Math.max(0.05, endAt - now));
+    fadeStartAt = Math.max(now, endAt - fadeSec);
   }
 
+  if (toneMasterGain) {
+    applyGainEnvelope(toneMasterGain.gain, toneVolume > 0.001 ? toneVolume : 0, toneRampStartAt, toneRampEndAt, fadeStartAt, endAt);
+  }
   if (noiseGain) {
-    try {
-      noiseGain.gain.cancelScheduledValues(now);
-      var currentNVal = Math.max(
-        0.0002,
-        noiseGain.gain.value || (ambientVolume * getSoundscapeGainScale(ambientType))
-      );
-      noiseGain.gain.setValueAtTime(currentNVal, now);
-      noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
-    } catch (e) {}
+    applyGainEnvelope(
+      noiseGain.gain,
+      ambientVolume * getSoundscapeGainScale(ambientType),
+      noiseRampStartAt,
+      noiseRampEndAt,
+      fadeStartAt,
+      endAt
+    );
+  }
+  // Oscillators cannot be un-stopped, so only the program end (fixed for this start()) schedules osc.stop; a sleep
+  // timer relies on the gain reaching 0 on the audio clock and the oscillators are torn down by checkSessionEnd().
+  if (programEndAt !== null && osc) {
+    var stopAt = programEndAt + 0.05;
+    for (var i = 0; i < osc.length; ++i) {
+      var nodes = [osc[i].left, osc[i].right, osc[i].carrier, osc[i].lfo];
+      for (var n = 0; n < nodes.length; ++n) {
+        if (nodes[n]) {
+          try {
+            nodes[n].stop(stopAt);
+          } catch (e) {}
+        }
+      }
+    }
   }
 }
 
 function clearSleepTimer(resetRemaining) {
-  if (timerInterval !== null) {
-    clearInterval(timerInterval);
-    timerInterval = null;
-  }
+  var hadEnd = sleepEndAt !== null;
+  sleepEndAt = null;
   isTimerFadingOut = false;
+  lastShownTimerSec = -1;
   if (resetRemaining) {
     timerRemainingSec = timerDurationSec;
   }
+  if (hadEnd) scheduleAudioEnd(); // cancels a pending fade if still playing
 }
 
 function startSleepTimer(preserveRemaining) {
   clearSleepTimer(false);
-  if (timerDurationSec <= 0) {
+  if (timerDurationSec <= 0 || !context) {
     timerRemainingSec = 0;
+    scheduleAudioEnd();
     syncTimerUI();
     return;
   }
@@ -2638,28 +2818,11 @@ function startSleepTimer(preserveRemaining) {
     timerRemainingSec = timerDurationSec;
   }
 
-  if (timerRemainingSec <= 5 && timerRemainingSec > 0 && isCurrentlyPlaying()) {
-    beginSleepTimerFadeOut(timerRemainingSec);
-  }
-
+  // End time on the audio clock; the UI countdown is derived from it (getTimerRemaining), never decremented.
+  sleepEndAt = context.currentTime + timerRemainingSec;
+  sleepFadeSec = Math.min(SLEEP_FADE_SEC, timerRemainingSec / 2);
+  scheduleAudioEnd();
   syncTimerUI();
-
-  timerInterval = setInterval(function () {
-    timerRemainingSec -= 1;
-    if (timerRemainingSec <= 5 && timerRemainingSec > 0 && !isTimerFadingOut && isCurrentlyPlaying()) {
-      beginSleepTimerFadeOut(timerRemainingSec);
-    }
-    if (timerRemainingSec <= 0) {
-      timerRemainingSec = 0;
-      clearSleepTimer(false);
-      stop(false, true);
-      playChime(false);
-      timerCompletedStatus = chimeEnabled ? 'Complete (Chime)' : 'Complete (Silent)';
-      syncTimerUI();
-    } else {
-      syncTimerUI();
-    }
-  }, 1000);
 }
 
 function syncTimerUI() {
@@ -2706,10 +2869,14 @@ function syncTimerUI() {
     badgeText = timerCompletedStatus;
     badgeStateClass = 'timer-complete';
   } else if (timerDurationSec > 0) {
-    var displaySec = isCurrentlyPlaying() && timerRemainingSec > 0 ? timerRemainingSec : timerDurationSec;
+    var playingNow = isCurrentlyPlaying();
+    var remainingSec = getTimerRemaining();
+    var displaySec = (playingNow || interruptedInfo) && remainingSec > 0 ? remainingSec : timerDurationSec;
     badgeText = formatTimerCountdown(displaySec);
-    if (isCurrentlyPlaying()) {
-      if (isTimerFadingOut && timerRemainingSec > 0) {
+    if (playingNow) {
+      isTimerFadingOut =
+        sleepEndAt !== null && context && context.currentTime >= sleepEndAt - sleepFadeSec;
+      if (isTimerFadingOut && remainingSec > 0) {
         badgeStateClass = 'timer-fading';
         badgeText = 'Fade ' + badgeText;
       } else {
@@ -3006,9 +3173,78 @@ function toggleBreathCompact() {
   syncBreathUI();
 }
 
-function stop(preserveTimer, fromTimerComplete) {
-  setPlayingUI(false);
-  cleanupAudioNodes();
+function cancelPendingStop() {
+  if (pendingStopId !== null) {
+    clearTimeout(pendingStopId);
+    pendingStopId = null;
+  }
+}
+
+// Release the audio hardware while idle (saves battery); start()/playChime()/testStereo() resume it.
+function suspendContextIfIdle() {
+  if (context && context.state === 'running' && !isCurrentlyPlaying() && typeof context.suspend === 'function') {
+    try {
+      var p = context.suspend();
+      if (p && p.catch) p.catch(function () {});
+    } catch (e) {}
+  }
+}
+
+// Linear fade of both gains to silence over sec on the audio clock, then osc/noise stop at the end of the fade.
+function fadeOutNow(sec) {
+  var now = context.currentTime;
+  var gains = [toneMasterGain && toneMasterGain.gain, noiseGain && noiseGain.gain];
+  for (var g = 0; g < gains.length; ++g) {
+    if (!gains[g]) continue;
+    try {
+      var v = gains[g].value;
+      gains[g].cancelScheduledValues(now);
+      gains[g].setValueAtTime(v, now);
+      gains[g].linearRampToValueAtTime(0, now + sec);
+    } catch (e) {}
+  }
+  var stopAt = now + sec + 0.02;
+  var sources = [noiseNode];
+  for (var i = 0; i < osc.length; ++i) {
+    sources.push(osc[i].left, osc[i].right, osc[i].carrier, osc[i].lfo);
+  }
+  for (var s = 0; s < sources.length; ++s) {
+    if (sources[s]) {
+      try {
+        sources[s].stop(stopAt);
+      } catch (e) {}
+    }
+  }
+}
+
+// opts: { immediate: skip the 300 ms fade, keepContext: do not suspend the context (system owns it),
+//         interrupted: report UI state 'interrupted' instead of 'idle' }
+function stop(preserveTimer, fromTimerComplete, opts) {
+  opts = opts || {};
+  var wasPlaying = isCurrentlyPlaying();
+  var userStop = wasPlaying && !preserveTimer && !fromTimerComplete;
+
+  if (wasPlaying) {
+    timerRemainingSec = getTimerRemaining(); // freeze the audio-clock countdown before nodes are torn down
+    if (userStop) {
+      // Pause = stop + remembered position (taken from the audio clock, not the 250 ms-stale slider).
+      var pos = getCurrentPositionSec();
+      var sliderEl = document.getElementById('slider');
+      if (sliderEl) sliderEl.value = pos;
+      timeStart = pos;
+      var posEl = document.getElementById('divPosition');
+      if (posEl) posEl.textContent = getTimeString(pos);
+      updateSliderFill();
+      updateLiveReadouts(pos);
+    }
+  }
+  var fade =
+    userStop && !opts.immediate && context && context.state === 'running' && toneMasterGain !== null;
+
+  setPlayingUI(false, !!opts.interrupted);
+  stopMonitor();
+  clearHiddenWatch();
+  cancelPendingStop();
   if (!preserveTimer) {
     clearSleepTimer(true);
   }
@@ -3017,14 +3253,200 @@ function stop(preserveTimer, fromTimerComplete) {
     syncTimerUI();
   }
   if (chart) chart.replot();
-  // Release the audio hardware while idle (saves battery); start()/playChime()/testStereo() resume it.
-  if (context && context.state === 'running' && typeof context.suspend === 'function') {
-    try {
-      var p = context.suspend();
-      if (p && p.catch) p.catch(function () {});
-    } catch (e) {}
+  if (userStop) savePosition(timeStart);
+
+  var finish = function () {
+    cleanupAudioNodes();
+    if (!preserveTimer && !opts.keepContext) suspendContextIfIdle();
+  };
+  if (fade) {
+    fadeOutNow(STOP_FADE_SEC);
+    pendingStopId = setTimeout(function () {
+      pendingStopId = null;
+      if (!isCurrentlyPlaying()) finish();
+    }, STOP_FADE_SEC * 1000 + 40);
+  } else {
+    finish();
   }
 }
+
+
+// ---------------------------------------------------------------------------------------------------------------
+// Lifecycle (MUX-LIFE-2/3/5/7): audio-clock truth, interruption states, background throttling, persistence.
+// UI states: 'idle' | 'playing' | 'interrupted' (data-state on #start and #audioStatus).
+// ---------------------------------------------------------------------------------------------------------------
+
+function savePosition(sec) {
+  sec = Math.max(0, Math.floor(sec || 0));
+  lastPositionSavedAt = sec;
+  try {
+    if (typeof Storage !== 'undefined') {
+      localStorage.setItem('lastPosition', String(sec));
+      localStorage.setItem('lastPositionProgram', currentProgram);
+    }
+  } catch (e) {}
+}
+
+function loadSavedPosition() {
+  try {
+    if (typeof Storage !== 'undefined') {
+      var pos = parseInt(localStorage.getItem('lastPosition'), 10);
+      var prog = localStorage.getItem('lastPositionProgram');
+      if (!isNaN(pos) && pos > 0 && prog) {
+        pendingRestorePosition = { program: prog, position: pos };
+      }
+    }
+  } catch (e) {}
+}
+
+// Playing -> interrupted: the system (or a failed resume) took the audio. Keeps position and remaining timer.
+function enterInterrupted(reason) {
+  if (!isCurrentlyPlaying()) return;
+  var pos = getCurrentPositionSec();
+  var sliderEl = document.getElementById('slider');
+  var posEl = document.getElementById('divPosition');
+  interruptedInfo = { at: Date.now(), reason: reason || 'unknown' };
+  stop(true, false, { immediate: true, keepContext: true, interrupted: true });
+  timeStart = pos;
+  if (sliderEl) sliderEl.value = pos;
+  if (posEl) posEl.textContent = getTimeString(pos);
+  updateSliderFill();
+  updateLiveReadouts(pos);
+  savePosition(pos);
+  syncTimerUI();
+}
+
+function onContextStateChange() {
+  if (!context || ctxResumePending) return;
+  if (isCurrentlyPlaying() && context.state !== 'running') {
+    enterInterrupted('statechange:' + context.state);
+  }
+}
+
+var INTERRUPTION_AUTO_RESUME_MAX_MS = 10 * 60 * 1000;
+
+function resumeFromInterruption() {
+  interruptedInfo = null;
+  start(true, true); // keeps the remaining timer, 3 s fade-in
+}
+
+// While hidden there are no rAF loops, no interval and no DOM writes: one low-rate timeout checks the audio-clock
+// end of the session (and persists position). The audio itself ends on the audio clock regardless of this timeout.
+function clearHiddenWatch() {
+  if (hiddenWatchId !== null) {
+    clearTimeout(hiddenWatchId);
+    hiddenWatchId = null;
+  }
+}
+
+function armHiddenWatch() {
+  clearHiddenWatch();
+  if (!context || !isCurrentlyPlaying()) return;
+  var delay = 30000;
+  var endAt = null;
+  if (sleepEndAt !== null) endAt = sleepEndAt;
+  if (programEndAt !== null && (endAt === null || programEndAt < endAt)) endAt = programEndAt;
+  if (endAt !== null) {
+    delay = Math.min(delay, Math.max(250, (endAt - context.currentTime) * 1000 + 300));
+  }
+  hiddenWatchId = setTimeout(function () {
+    hiddenWatchId = null;
+    if (!document.hidden) return;
+    if (context && isCurrentlyPlaying() && context.state !== 'running' && !ctxResumePending) {
+      enterInterrupted('statechange:' + context.state);
+      return;
+    }
+    if (checkSessionEnd()) return;
+    if (isCurrentlyPlaying()) {
+      savePosition(getCurrentPositionSec());
+      armHiddenWatch();
+    }
+  }, delay);
+}
+
+function onPageHidden() {
+  if (isCurrentlyPlaying()) {
+    savePosition(getCurrentPositionSec());
+  } else {
+    savePosition(parseInt((document.getElementById('slider') || {}).value, 10) || timeStart || 0);
+  }
+  stopScopeAnimation();
+  stopBreathAnimation();
+  stopMonitor();
+  armHiddenWatch();
+}
+
+function onPageVisible() {
+  clearHiddenWatch();
+  if (context && isCurrentlyPlaying() && context.state !== 'running' && !ctxResumePending) {
+    enterInterrupted('statechange:' + context.state);
+  } else if (isCurrentlyPlaying()) {
+    if (checkSessionEnd()) {
+      // ended while hidden: UI already moved to idle
+    } else {
+      monitorTick();
+      startMonitor();
+      if (activeStageView === 'waveform') startScopeAnimation();
+    }
+  }
+  if (breathMode !== 'off' && BREATH_PATTERNS[breathMode]) startBreathAnimation();
+  syncTimerUI();
+  if (chart) chart.replot();
+  if (activeStageView === 'waveform') drawScopeFrame();
+}
+
+document.addEventListener('visibilitychange', function () {
+  if (document.hidden) {
+    onPageHidden();
+  } else {
+    onPageVisible();
+  }
+});
+
+window.addEventListener('pagehide', function () {
+  if (isCurrentlyPlaying()) {
+    savePosition(getCurrentPositionSec());
+  } else {
+    var s = document.getElementById('slider');
+    savePosition(s ? parseInt(s.value, 10) || 0 : timeStart);
+  }
+});
+
+// Hooks for the native wrapper (M2.1 / M2.2). They route into the same stop()/start() paths as the buttons.
+window.BinalityApp = window.BinalityApp || {};
+window.BinalityApp.getState = function () {
+  var btn = document.getElementById('start');
+  return btn ? btn.getAttribute('data-state') || 'idle' : 'idle';
+};
+// System took the audio (call, Siri, other app): pause now, state 'interrupted'.
+window.BinalityApp.onInterruptionBegan = function () {
+  enterInterrupted('native');
+};
+// info.shouldResume (default true). Resumes with a 3 s fade-in only if interrupted < 10 min ago; else goes idle.
+window.BinalityApp.onInterruptionEnded = function (info) {
+  if (!interruptedInfo) return;
+  var shouldResume = !info || info.shouldResume !== false;
+  var fresh = Date.now() - interruptedInfo.at < INTERRUPTION_AUTO_RESUME_MAX_MS;
+  if (shouldResume && fresh) {
+    resumeFromInterruption();
+  } else {
+    interruptedInfo = null;
+    setPlayingUI(false, false);
+    syncTimerUI();
+  }
+};
+// Headphones unplugged / Bluetooth lost: stop at once, idle, never auto-resume.
+window.BinalityApp.onRouteLost = function () {
+  if (isCurrentlyPlaying()) {
+    enterInterrupted('route-lost');
+  }
+  interruptedInfo = null;
+  setPlayingUI(false, false);
+  suspendContextIfIdle();
+  var statusText = document.querySelector('#audioStatus .status-text');
+  if (statusText) statusText.textContent = 'Headphones disconnected - session stopped';
+  syncTimerUI();
+};
 
 function onSliderChanged() {
   var slider = document.getElementById('slider');
@@ -3043,6 +3465,7 @@ function onSliderChanged() {
     start(true);
   } else {
     timeStart = t;
+    savePosition(t);
     if (chart) chart.replot();
   }
 }
@@ -3198,7 +3621,7 @@ function testStereo() {
   if (isTestingStereo) return;
   if (!context && isAudioSupported) {
     try {
-      context = new AudioContext();
+      context = createAudioContext();
     } catch (e) {}
   }
   if (!context) return;
@@ -5084,6 +5507,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   } catch (e) {}
 
+  loadSavedPosition(); // applied once (no autoplay) by the first loadProgram()
   syncHarmonicButtons();
   syncToneVolumeUI();
   syncAmbientUI();

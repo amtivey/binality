@@ -3877,3 +3877,8 @@ body {
     justify-content: space-between;
   }
 }
+
+/* Audio taken by the system (call, route loss, suspended context): amber ring until the user restarts (MUX-LIFE-5). */
+#start[data-state="interrupted"] {
+  box-shadow: 0 0 0 2px #f59e0b, 0 0 14px rgba(245, 158, 11, 0.55);
+}
