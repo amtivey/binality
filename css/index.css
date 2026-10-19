@@ -65,6 +65,7 @@ body {
   padding: 0;
   width: 100%;
   height: 100%;
+  height: 100vh;
   height: 100dvh;
   background-color: var(--bg-deep);
   color: var(--text-primary);
@@ -87,6 +88,10 @@ body {
 
 .ambient-bg {
   position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   pointer-events: none;
   overflow: hidden;
@@ -780,6 +785,10 @@ body {
 
 .waveform-stage {
   position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   display: flex;
   flex-direction: column;
@@ -983,6 +992,10 @@ body {
 
 .scope-idle-overlay {
   position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   display: flex;
   align-items: center;
@@ -1041,6 +1054,10 @@ body {
 
 .breath-overlay {
   position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   z-index: 15;
   display: flex;
@@ -1211,6 +1228,10 @@ body {
 
 .breath-ring-svg {
   position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   width: 100%;
   height: 100%;
@@ -1696,6 +1717,10 @@ body {
 #settings {
   display: none;
   position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   z-index: 100;
   align-items: center;
@@ -1705,6 +1730,10 @@ body {
 
 .settings-backdrop {
   position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   background: rgba(4, 1, 12, 0.82);
   backdrop-filter: blur(12px);
@@ -1716,6 +1745,7 @@ body {
   z-index: 101;
   width: 100%;
   max-width: 640px;
+  max-height: calc(100vh - 32px);
   max-height: calc(100dvh - 32px);
   display: flex;
   flex-direction: column;
@@ -2661,6 +2691,10 @@ body {
 #studioModal {
   display: none;
   position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   z-index: 110;
   align-items: center;
@@ -2673,6 +2707,7 @@ body {
   z-index: 111;
   width: 100%;
   max-width: 720px;
+  max-height: calc(100vh - 32px);
   max-height: calc(100dvh - 32px);
   display: flex;
   flex-direction: column;
@@ -3310,12 +3345,14 @@ body {
   body {
     height: auto;
     min-height: 100%;
+    min-height: 100vh;
     min-height: 100dvh;
     overflow-x: hidden;
     overflow-y: auto;
   }
 
   .app-shell {
+    min-height: 100vh;
     min-height: 100dvh;
     height: auto;
     padding: 6px 8px;
@@ -3661,6 +3698,7 @@ body {
 
   .settings-dialog,
   .studio-dialog {
+    max-height: calc(100vh - 16px);
     max-height: calc(100dvh - 16px);
     border-radius: 22px;
   }
@@ -4110,6 +4148,10 @@ a:active,
 /* Confirm sheet for destructive actions (MUX-TAP-7) */
 .confirm-sheet {
   position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   z-index: 9000;
   display: flex;
@@ -4119,6 +4161,10 @@ a:active,
 
 .confirm-backdrop {
   position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   background: rgba(3, 1, 12, 0.72);
 }
@@ -4382,6 +4428,7 @@ a:active,
   html,
   body {
     height: 100%;
+    height: 100vh;
     height: 100dvh;
     min-height: 0;
     overflow: hidden;
@@ -4445,9 +4492,14 @@ body {
 /* MUX-LAYOUT-1 / SAFE-2: fixed flex shell, padded by the insets; backgrounds (.ambient-bg) stay full-bleed. */
 .app-shell {
   position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   height: 100vh;
   height: -webkit-fill-available;
+  height: 100vh;
   height: 100dvh;
   min-height: 0;
   margin: 0 auto;
@@ -4463,6 +4515,7 @@ body {
 
 .settings-dialog,
 .studio-dialog {
+  max-height: 90vh;
   max-height: 90vh;
   max-height: 90dvh;
 }
@@ -4790,6 +4843,7 @@ body {
     width: 100%;
     max-width: none;
     height: 100vh;
+    height: 100vh;
     height: 100dvh;
     max-height: none;
     border: 0;
@@ -5076,6 +5130,10 @@ body {
 /* ---- Bottom sheets (program list, info, first-run notice) ---- */
 .sheet {
   position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   z-index: 200;
   display: flex;
@@ -5089,6 +5147,10 @@ body {
 
 .sheet-backdrop {
   position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   background: rgba(4, 1, 12, 0.82);
 }
@@ -5097,6 +5159,7 @@ body {
   position: relative;
   width: 100%;
   max-width: 560px;
+  max-height: 85vh;
   max-height: 85vh;
   max-height: 85dvh;
   display: flex;
