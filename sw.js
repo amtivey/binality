@@ -3,7 +3,7 @@
  * Complete offline caching for app shell, audio synthesis engines, XML programs, and Google Fonts.
  */
 
-var CACHE_VERSION = 'binality-v2.0.6';
+var CACHE_VERSION = 'binality-v2.0.7';
 var CACHE_NAME = 'binality-core-' + CACHE_VERSION;
 var FONTS_CACHE_NAME = 'binality-fonts-' + CACHE_VERSION;
 
@@ -22,6 +22,7 @@ var PRECACHE_URLS = [
   'images/icon.png',
   'images/binality-icon-192.png',
   'images/binality-icon-512.png',
+  'images/binality-icon-512-maskable.png',
   'images/binality-icon-1024.png',
   'programs/astralprojection.xml',
   'programs/concentration.xml',
