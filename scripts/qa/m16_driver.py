@@ -350,6 +350,13 @@ def run_profile(dev):
     p = probe()
     check(1, dev, 'first-run notice shown on fresh install', p['open']['notice'], p['open'], 'MUX-LIFE-10')
     check(1, dev, 'native shell detected (BinalityPlatform.isNative / .native-app)', p['nativeCls'], 'platform=%s' % p['platform'], 'MUX-NATIVE-3')
+    wv = ev('navigator.userAgent')
+    rec(1, dev, 'info: WebView user agent', 'INFO', wv, '')
+    open(os.path.join(OUT, '%s_webview.txt' % dev), 'w').write(str(wv) + '\n' + sh('dumpsys webviewupdate | head -30'))
+    opts = ev("Array.from(document.querySelectorAll('#quickTimerSelect option, #timerSelect option')).map(o=>o.textContent.trim())")
+    check(1, dev, 'timer options do not include the 10 s test entry (native)', not any('10s' in (o or '').replace(' ', '') or 'Test' in (o or '') for o in opts), opts, 'D21')
+    pwa = ev("(()=>{const v=id=>{const e=document.getElementById(id);return e?getComputedStyle(e).display:'absent'};return [v('pwaUpdateToast'),v('pwaInstallBtn'),Array.from(document.querySelectorAll('.pwa-settings-card')).map(e=>getComputedStyle(e).display)]})()")
+    check(1, dev, 'PWA-only UI suppressed in native shell', pwa[0] in ('none', 'absent') and pwa[1] in ('none', 'absent') and all(x == 'none' for x in pwa[2]), pwa, 'MUX-NATIVE-3')
     shot('%s_p_notice' % dev)
     check(1, dev, 'fonts local (no non-localhost requests, 3 families loaded)', not p['external'] and all(f.endswith('true') for f in p['fonts']) , '%s ext=%s docFonts=%s' % (p['fonts'], p['external'], p['docFonts']), 'MUX-VIS-4')
     # notice fits: ack button within viewport
@@ -398,6 +405,8 @@ def run_profile(dev):
             time.sleep(0.8); p = probe(); shot('%s_p_%s' % (dev, key))
             check(10, dev, nm + ' opens by tapping title', p['open'][key], '', 'MUX-IN-7')
             layout_checks(10, dev, 'portrait ' + nm, p, expect_start=False)
+            sheet = ev("(()=>{const s=document.getElementById('programSheet');const pn=s.querySelector('.sheet-panel');const pr=pn.getBoundingClientRect();const cl=s.querySelector('.close-icon-btn, [data-sheet-close].close-icon-btn, button[aria-label*=Close i]');const cr=cl&&cl.getBoundingClientRect();const rows=Array.from(s.querySelectorAll('.program-row')).map(r=>Math.round(r.getBoundingClientRect().right));return {panel:[Math.round(pr.left),Math.round(pr.right)],vw:innerWidth,close:cr?[Math.round(cr.left),Math.round(cr.right),Math.round(cr.width),Math.round(cr.height)]:null,maxRowRight:Math.max.apply(null,rows),rows:rows.length,panelScrollW:pn.scrollWidth,panelClientW:pn.clientWidth}})()")
+            check(10, dev, nm + ' panel and rows fit the window width, close button inside viewport', bool(sheet) and sheet['panel'][1] <= sheet['vw'] + 1 and sheet['maxRowRight'] <= sheet['vw'] + 1 and bool(sheet['close']) and sheet['close'][1] <= sheet['vw'] and sheet['close'][2] >= 47.5 and sheet['close'][3] >= 47.5, sheet, 'MUX-IN-5 / MUX-LAYOUT-4')
             tap('#programSheet [data-sheet-close]') if False else None
             ev("document.querySelector('#programSheet [data-sheet-close]') && document.querySelector('#programSheet [data-sheet-close]').click()")
             time.sleep(0.5)
