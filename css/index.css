@@ -3882,3 +3882,533 @@ body {
 #start[data-state="interrupted"] {
   box-shadow: 0 0 0 2px #f59e0b, 0 0 14px rgba(245, 158, 11, 0.55);
 }
+
+/* ==========================================================================
+   Touch input and tap targets (M1.3: MUX-IN-1/2/5/6/10, MUX-TAP-1..7, MUX-STU-1)
+   ========================================================================== */
+
+/* MUX-TAP-6: no OS tap flash / callout; selection stays on in text areas (Settings body, Studio body, inputs). */
+html,
+body {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  overscroll-behavior: none;
+}
+
+#settingsBody,
+#studioBody,
+.settings-dialog,
+.studio-dialog {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* MUX-IN-1/6: canvases and sliders own their drags; the OS never scrolls or back-swipes from them. */
+#chartCanvas,
+#waveformCanvas,
+#slider,
+#quickToneSlider,
+#quickAmbientSlider,
+.tone-range,
+.ambient-range,
+.studio-freq-slider {
+  touch-action: none;
+}
+
+/* MUX-TAP-5: no 300 ms delay / double-tap zoom on controls; hover-only styles already live in @media (hover: hover). */
+button,
+select,
+input,
+label,
+summary,
+a,
+[role="button"] {
+  touch-action: manipulation;
+}
+
+#slider,
+#quickToneSlider,
+#quickAmbientSlider,
+.tone-range,
+.ambient-range,
+.studio-freq-slider {
+  touch-action: none;
+}
+
+/* MUX-TAP-5: pressed feedback inside 100 ms on every control. */
+button:not(:disabled):active,
+select:active,
+a:active,
+.chart-description:active {
+  transform: scale(0.97);
+  filter: brightness(1.18);
+  transition-duration: 0.05s;
+}
+
+.pwa-install-btn.hidden {
+  display: none;
+}
+
+.field-msg {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--accent-amber);
+}
+
+.field-msg.hidden {
+  display: none;
+}
+
+/* MUX-TAP-4: 48 px element, 6 px track, 28 px thumb. Fill is driven by --fill (set from JS) on the track. */
+#slider,
+#quickToneSlider,
+#quickAmbientSlider,
+.tone-range,
+.ambient-range,
+.studio-freq-slider {
+  --fill: 0%;
+  --fill-start: #ff70d9;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 48px;
+  min-width: 48px;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.ambient-range,
+#quickAmbientSlider {
+  --fill-start: #38bdf8;
+}
+
+#slider:hover,
+#quickToneSlider:hover,
+#quickAmbientSlider:hover,
+.tone-range:hover,
+.ambient-range:hover {
+  background: transparent;
+}
+
+#slider::-webkit-slider-runnable-track,
+#quickToneSlider::-webkit-slider-runnable-track,
+#quickAmbientSlider::-webkit-slider-runnable-track,
+.tone-range::-webkit-slider-runnable-track,
+.ambient-range::-webkit-slider-runnable-track,
+.studio-freq-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, var(--fill-start) 0%, #a855f7 var(--fill), rgba(255, 255, 255, 0.14) var(--fill), rgba(255, 255, 255, 0.14) 100%);
+}
+
+#slider::-moz-range-track,
+#quickToneSlider::-moz-range-track,
+#quickAmbientSlider::-moz-range-track,
+.tone-range::-moz-range-track,
+.ambient-range::-moz-range-track,
+.studio-freq-slider::-moz-range-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+#slider::-moz-range-progress,
+#quickToneSlider::-moz-range-progress,
+#quickAmbientSlider::-moz-range-progress,
+.tone-range::-moz-range-progress,
+.ambient-range::-moz-range-progress {
+  height: 6px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, var(--fill-start), #a855f7);
+}
+
+#slider::-webkit-slider-thumb,
+#quickToneSlider::-webkit-slider-thumb,
+#quickAmbientSlider::-webkit-slider-thumb,
+.tone-range::-webkit-slider-thumb,
+.ambient-range::-webkit-slider-thumb,
+.studio-freq-slider::-webkit-slider-thumb {
+  width: 28px;
+  height: 28px;
+  margin-top: -11px; /* centres the 28 px thumb on the 6 px track */
+  border-width: 3px;
+  background: var(--accent-pink);
+  border-style: solid;
+  border-color: #ffffff;
+  border-radius: 50%;
+}
+
+#slider::-moz-range-thumb,
+#quickToneSlider::-moz-range-thumb,
+#quickAmbientSlider::-moz-range-thumb,
+.tone-range::-moz-range-thumb,
+.ambient-range::-moz-range-thumb,
+.studio-freq-slider::-moz-range-thumb {
+  width: 22px; /* content box; the 3 px border makes the 28 px visual */
+  height: 22px;
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  background: var(--accent-pink);
+}
+
+#slider:active::-webkit-slider-thumb,
+#quickToneSlider:active::-webkit-slider-thumb,
+#quickAmbientSlider:active::-webkit-slider-thumb,
+.tone-range:active::-webkit-slider-thumb,
+.ambient-range:active::-webkit-slider-thumb,
+.studio-freq-slider:active::-webkit-slider-thumb,
+#slider:focus-visible::-webkit-slider-thumb,
+#quickToneSlider:focus-visible::-webkit-slider-thumb,
+#quickAmbientSlider:focus-visible::-webkit-slider-thumb,
+.tone-range:focus-visible::-webkit-slider-thumb,
+.ambient-range:focus-visible::-webkit-slider-thumb,
+.studio-freq-slider:focus-visible::-webkit-slider-thumb {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 6px rgba(255, 112, 217, 0.25), 0 0 18px rgba(255, 112, 217, 1);
+}
+
+#slider:active::-moz-range-thumb,
+#quickToneSlider:active::-moz-range-thumb,
+#quickAmbientSlider:active::-moz-range-thumb,
+.tone-range:active::-moz-range-thumb,
+.ambient-range:active::-moz-range-thumb,
+.studio-freq-slider:active::-moz-range-thumb {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 6px rgba(255, 112, 217, 0.25), 0 0 18px rgba(255, 112, 217, 1);
+}
+
+/* Toast (MUX-IN-3) */
+.app-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 120px);
+  z-index: 9500;
+  max-width: calc(100vw - 32px);
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: rgba(12, 6, 32, 0.94);
+  border: 1px solid rgba(255, 112, 217, 0.45);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, 8px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.app-toast.visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* Confirm sheet for destructive actions (MUX-TAP-7) */
+.confirm-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.confirm-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(3, 1, 12, 0.72);
+}
+
+.confirm-card {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+  border-radius: 22px 22px 0 0;
+  background: rgba(13, 6, 34, 0.98);
+  border: 1px solid rgba(255, 112, 217, 0.35);
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.confirm-title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  color: #ffffff;
+}
+
+.confirm-body {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.confirm-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.confirm-btn {
+  min-height: 56px;
+  padding: 0 20px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+}
+
+.confirm-ok {
+  border-color: rgba(244, 63, 94, 0.7);
+  background: rgba(225, 29, 72, 0.85);
+}
+
+@media (min-width: 641px) {
+  .confirm-sheet {
+    align-items: center;
+  }
+
+  .confirm-card {
+    border-radius: 22px;
+    padding-bottom: 20px;
+  }
+
+  .confirm-actions {
+    flex-direction: row-reverse;
+  }
+
+  .confirm-btn {
+    flex: 1 1 0;
+  }
+}
+
+/* ---- 48 px hit areas with 8 px spacing: touch screens and Compact widths (MUX-TAP-1/2/3) ---- */
+@media (pointer: coarse), (max-width: 640px) {
+  .studio-quick-btn,
+  .breath-quick-btn,
+  #menu,
+  .stage-view-btn,
+  .scope-mode-btn,
+  .scope-zoom-btn,
+  .scope-ch-btn,
+  .breath-icon-btn,
+  .breath-mode-btn,
+  .close-icon-btn,
+  .open-studio-pill-btn,
+  .clone-studio-btn,
+  .harmonic-btn,
+  .tone-vol-btn,
+  .soundscape-btn,
+  .chime-toggle-btn,
+  .chime-preview-btn,
+  .timer-preset-btn,
+  .settings-breath-btn,
+  .stereo-test-btn,
+  .pwa-install-btn,
+  .pwa-reload-btn,
+  .pwa-dismiss-btn,
+  #done,
+  .studio-clone-active-btn,
+  .studio-template-btn,
+  .studio-add-voice-btn,
+  .studio-pt-add-btn,
+  .studio-point-add-btn,
+  .studio-voice-del-btn,
+  .studio-voice-remove-btn,
+  .studio-pt-del-btn,
+  .studio-point-del-btn,
+  .studio-saved-btn,
+  .studio-saved-load-btn,
+  .studio-saved-del-btn,
+  .studio-sec-btn,
+  .studio-save-btn,
+  .studio-apply-btn {
+    min-width: 48px;
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+  }
+
+  select,
+  #baseFreq,
+  .studio-input,
+  .studio-time-input,
+  .studio-freq-input,
+  input[type="file"] {
+    min-height: 48px;
+    min-width: 48px;
+    font-size: 16px; /* MUX-IN-10: stops iOS focus zoom */
+  }
+
+  input[type="file"]::file-selector-button {
+    min-height: 40px;
+    margin-right: 10px;
+    font-size: 0.85rem;
+  }
+
+  /* 8 px between neighbouring hit areas (rows wrap with the same gap) */
+  .header-actions,
+  .harmonic-presets,
+  .tone-vol-presets,
+  .tone-volume-presets,
+  .soundscape-presets,
+  .soundscape-grid,
+  .timer-presets,
+  .breath-settings-presets,
+  .stereo-test-actions,
+  .stereo-channels,
+  .studio-templates-bar,
+  .studio-saved-actions,
+  .studio-voice-actions,
+  .studio-footer-secondary,
+  .studio-footer-primary,
+  .scope-mode-group,
+  .scope-zoom-group,
+  .scope-channel-group,
+  .stage-view-toggle,
+  .breath-mode-pills,
+  .breath-card-actions,
+  .pwa-update-actions,
+  .studio-point-freq,
+  .studio-point-time,
+  .studio-pt-group {
+    gap: 8px;
+  }
+
+  .studio-point-row,
+  .studio-saved-item {
+    min-height: 56px;
+    gap: 8px 10px;
+  }
+
+  .studio-point-del-btn,
+  .studio-pt-del-btn {
+    width: 48px;
+    height: 48px;
+    font-size: 1.3rem;
+  }
+
+  .studio-point-time input,
+  .studio-point-freq input[type="number"] {
+    width: 72px;
+  }
+
+  .studio-freq-slider {
+    flex: 1 1 96px;
+    max-width: none;
+  }
+
+  /* Inline text links: 44 px line box via padding (MUX-TAP-2; 48 so step 10 is uniform) */
+  .info-card a {
+    display: inline-block;
+    padding: 14px 0;
+    line-height: 20px;
+    min-height: 48px;
+  }
+
+  /* MUX-TAP-3: Start is the biggest thing on screen */
+  #start {
+    min-height: 56px;
+    width: 100%;
+    font-size: 1rem;
+  }
+
+  #footer {
+    width: 100%;
+  }
+
+  .dock-actions-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .timer-quick-control {
+    width: 100%;
+  }
+
+  .dock-quick-sliders {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .tone-quick-control,
+  .ambient-quick-control {
+    padding: 0 10px;
+    min-height: 48px;
+  }
+
+  #quickToneSlider,
+  #quickAmbientSlider {
+    height: 48px;
+    min-width: 96px;
+  }
+
+  .tone-val-badge,
+  .ambient-val-badge {
+    font-size: 0.875rem;
+    min-width: 40px;
+  }
+
+  #divPosition,
+  #divDuration {
+    font-size: 0.875rem;
+  }
+
+  .time-readout {
+    flex-shrink: 0;
+  }
+
+  #divSlider {
+    flex: 1 1 auto;
+    min-width: 96px;
+  }
+
+  /* MUX-IN-6: the shell does not scroll; dialogs scroll inside their own bodies. */
+  html,
+  body {
+    height: 100%;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .app-shell {
+    height: 100%;
+    min-height: 0;
+    /* Only scrolls when the content cannot fit a short viewport (so no control is unreachable); contained, never the page. */
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .studio-dialog,
+  .settings-dialog {
+    min-height: 0;
+  }
+
+  #settingsBody,
+  #studioBody {
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .settings-header,
+  .studio-header {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+}

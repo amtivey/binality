@@ -84,6 +84,13 @@ var sleepFadeSec = SLEEP_FADE_SEC; // fade length fixed when the end is schedule
 var programFadeSec = PROGRAM_FADE_SEC;
 var START_FADE_SEC = 3;
 var STOP_FADE_SEC = 0.3;
+var SEEK_FADE_SEC = 0.15; // gain fade-out across a seek restart while playing (MUX-IN-3)
+var TAP_MAX_MOVE_PX = 10; // chart tap = moved less than this ...
+var TAP_MAX_MS = 300; // ... and pressed for less than this (MUX-IN-2)
+var TOUCH_TOOLTIP_LIFT_PX = 56; // touch tooltip sits at least this far above the finger (MUX-IN-1)
+var TOAST_MS = 1500;
+var seekRestartId = null;
+var sliderHeld = false; // true while a finger/mouse holds the #slider thumb
 var pendingStopId = null;
 var ctxResumePending = false;
 var interruptedInfo = null; // { at: Date.now(), reason } while UI state is 'interrupted'
@@ -573,12 +580,7 @@ function updateSliderFill() {
   var val = parseFloat(slider.value) || 0;
   var pct = max > min ? ((val - min) / (max - min)) * 100 : 0;
   pct = Math.max(0, Math.min(100, pct));
-  slider.style.background =
-    'linear-gradient(90deg, #ff70d9 0%, #a855f7 ' +
-    pct.toFixed(2) +
-    '%, rgba(255, 255, 255, 0.14) ' +
-    pct.toFixed(2) +
-    '%, rgba(255, 255, 255, 0.14) 100%)';
+  slider.style.setProperty('--fill', pct.toFixed(2) + '%');
 }
 
 function updateLiveReadouts(t) {
@@ -941,7 +943,7 @@ function createProgramChart() {
     ctx.restore();
   }
 
-  function handlePointerMove(clientX, clientY) {
+  function handlePointerMove(clientX, clientY, isTouch) {
     var rect = container.getBoundingClientRect();
     var x = clientX - rect.left;
     var y = clientY - rect.top;
@@ -992,11 +994,20 @@ function createProgramChart() {
       tooltip.classList.remove('hidden');
 
       var tipRect = tooltip.getBoundingClientRect();
-      var leftPos = x + 14;
-      if (leftPos + tipRect.width > rect.width - 8) {
-        leftPos = x - tipRect.width - 14;
+      var leftPos;
+      var topPos;
+      if (isTouch) {
+        // Finger or pen: centre the tooltip above the contact point so the hand never covers it (MUX-IN-1).
+        leftPos = x - tipRect.width / 2;
+        leftPos = Math.min(leftPos, rect.width - tipRect.width - 8);
+        topPos = Math.max(8, y - tipRect.height - TOUCH_TOOLTIP_LIFT_PX);
+      } else {
+        leftPos = x + 14;
+        if (leftPos + tipRect.width > rect.width - 8) {
+          leftPos = x - tipRect.width - 14;
+        }
+        topPos = Math.max(8, Math.min(rect.height - tipRect.height - 8, y - tipRect.height / 2));
       }
-      var topPos = Math.max(8, Math.min(rect.height - tipRect.height - 8, y - tipRect.height / 2));
       tooltip.style.left = Math.max(8, leftPos) + 'px';
       tooltip.style.top = topPos + 'px';
     }
@@ -1004,29 +1015,68 @@ function createProgramChart() {
     replot();
   }
 
-  canvas.addEventListener('mousemove', function (e) {
-    handlePointerMove(e.clientX, e.clientY);
-  });
+  // Pointer Events (MUX-IN-1/2): hover for mouse, press-and-drag scrub for touch/pen. A seek happens only on a
+  // tap: moved < 10 px and (for touch/pen) pressed < 300 ms. Dragging never seeks. The canvas has touch-action: none.
+  var press = null;
 
-  canvas.addEventListener('mouseleave', function () {
+  function hideCursor() {
     hoverTime = null;
     if (tooltip) tooltip.classList.add('hidden');
     replot();
-  });
+  }
 
-  canvas.addEventListener('click', function (e) {
+  function secondAtClientX(clientX) {
     var rect = container.getBoundingClientRect();
-    var x = e.clientX - rect.left;
+    var x = clientX - rect.left;
     var layout = getLayout(rect.width, rect.height);
     if (x >= layout.padLeft && x <= layout.padLeft + layout.plotW && timeMax > 0) {
       var ratio = (x - layout.padLeft) / layout.plotW;
-      var seekSec = Math.max(0, Math.min(timeMax, Math.round(ratio * timeMax)));
-      var slider = document.getElementById('slider');
-      if (slider) {
-        slider.value = seekSec;
-        onSliderChanged();
-      }
+      return Math.max(0, Math.min(timeMax, Math.round(ratio * timeMax)));
     }
+    return null;
+  }
+
+  canvas.addEventListener('pointerdown', function (e) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    press = { id: e.pointerId, type: e.pointerType, x: e.clientX, y: e.clientY, at: Date.now(), moved: false };
+    try {
+      canvas.setPointerCapture(e.pointerId);
+    } catch (err) {}
+    handlePointerMove(e.clientX, e.clientY, e.pointerType !== 'mouse');
+  });
+
+  canvas.addEventListener('pointermove', function (e) {
+    if (press && press.id === e.pointerId) {
+      if (Math.hypot(e.clientX - press.x, e.clientY - press.y) >= TAP_MAX_MOVE_PX) press.moved = true;
+    } else if (press) {
+      return;
+    }
+    handlePointerMove(e.clientX, e.clientY, e.pointerType !== 'mouse');
+  });
+
+  canvas.addEventListener('pointerup', function (e) {
+    if (!press || press.id !== e.pointerId) return;
+    var p = press;
+    press = null;
+    try {
+      canvas.releasePointerCapture(e.pointerId);
+    } catch (err) {}
+    var isTap = !p.moved && (p.type === 'mouse' || Date.now() - p.at < TAP_MAX_MS);
+    if (isTap) {
+      var seekSec = secondAtClientX(e.clientX);
+      if (seekSec !== null) seekToSecond(seekSec, true);
+    }
+    if (p.type !== 'mouse') hideCursor();
+  });
+
+  canvas.addEventListener('pointercancel', function () {
+    press = null;
+    hideCursor();
+  });
+
+  canvas.addEventListener('pointerleave', function (e) {
+    if (press || e.pointerType !== 'mouse') return;
+    hideCursor();
   });
 
   return {
@@ -2241,10 +2291,12 @@ function monitorTick() {
   var t = getCurrentPositionSec();
   var sliderEl = document.getElementById('slider');
   var posEl = document.getElementById('divPosition');
-  if (sliderEl) sliderEl.value = t;
-  if (posEl) posEl.textContent = getTimeString(t);
-  updateSliderFill();
-  updateLiveReadouts(t);
+  // Leave the slider and time label alone while a finger holds the thumb or a seek is mid-fade (MUX-IN-6).
+  var userOwnsSlider = sliderHeld || seekRestartId !== null;
+  if (sliderEl && !userOwnsSlider) sliderEl.value = t;
+  if (posEl && !userOwnsSlider) posEl.textContent = getTimeString(t);
+  if (!userOwnsSlider) updateSliderFill();
+  if (!userOwnsSlider) updateLiveReadouts(t);
   if (sleepEndAt !== null) {
     var rem = getTimerRemaining();
     if (rem !== lastShownTimerSec) {
@@ -2403,12 +2455,7 @@ function updateAmbientRangeFill(slider) {
   var val = parseFloat(slider.value) || 0;
   var pct = max > min ? ((val - min) / (max - min)) * 100 : 0;
   pct = Math.max(0, Math.min(100, pct));
-  slider.style.background =
-    'linear-gradient(90deg, #38bdf8 0%, #a855f7 ' +
-    pct.toFixed(2) +
-    '%, rgba(255, 255, 255, 0.14) ' +
-    pct.toFixed(2) +
-    '%, rgba(255, 255, 255, 0.14) 100%)';
+  slider.style.setProperty('--fill', pct.toFixed(2) + '%');
 }
 
 function syncAmbientUI() {
@@ -2511,12 +2558,7 @@ function updateToneRangeFill(slider) {
   var val = parseFloat(slider.value) || 0;
   var pct = max > min ? ((val - min) / (max - min)) * 100 : 0;
   pct = Math.max(0, Math.min(100, pct));
-  slider.style.background =
-    'linear-gradient(90deg, #ff70d9 0%, #a855f7 ' +
-    pct.toFixed(2) +
-    '%, rgba(255, 255, 255, 0.14) ' +
-    pct.toFixed(2) +
-    '%, rgba(255, 255, 255, 0.14) 100%)';
+  slider.style.setProperty('--fill', pct.toFixed(2) + '%');
 }
 
 function syncToneVolumeUI() {
@@ -3221,6 +3263,7 @@ function fadeOutNow(sec) {
 //         interrupted: report UI state 'interrupted' instead of 'idle' }
 function stop(preserveTimer, fromTimerComplete, opts) {
   opts = opts || {};
+  cancelSeekRestart();
   var wasPlaying = isCurrentlyPlaying();
   var userStop = wasPlaying && !preserveTimer && !fromTimerComplete;
 
@@ -3460,14 +3503,136 @@ function onSliderChanged() {
   updateLiveReadouts(t);
 
   if (isCurrentlyPlaying()) {
-    stop(true);
-    timeStart = t;
-    start(true);
+    restartPlaybackAt(t);
   } else {
     timeStart = t;
     savePosition(t);
     if (chart) chart.replot();
   }
+}
+
+function cancelSeekRestart() {
+  if (seekRestartId !== null) {
+    clearTimeout(seekRestartId);
+    seekRestartId = null;
+  }
+}
+
+// Seeks while playing: 150 ms gain fade to silence, then the usual stop/start restart (which fades back in), so the
+// restart never cuts a waveform mid-cycle (MUX-IN-3). Falls back to an immediate restart if there is nothing to fade.
+function restartPlaybackAt(t) {
+  cancelSeekRestart();
+  var restart = function () {
+    seekRestartId = null;
+    if (!isCurrentlyPlaying()) return; // user stopped during the fade
+    var sliderEl = document.getElementById('slider');
+    if (sliderEl) sliderEl.value = t; // start() reads its start point from the slider
+    stop(true);
+    timeStart = t;
+    start(true);
+  };
+  if (context && context.state === 'running' && toneMasterGain !== null) {
+    fadeOutNow(SEEK_FADE_SEC);
+    seekRestartId = setTimeout(restart, SEEK_FADE_SEC * 1000 + 20);
+  } else {
+    restart();
+  }
+}
+
+// Moves the program to second t (slider, readouts, audio). fromChart adds the "Jumped to" toast.
+function seekToSecond(t, fromChart) {
+  var slider = document.getElementById('slider');
+  if (!slider) return;
+  slider.value = t;
+  onSliderChanged();
+  if (fromChart) showToast('Jumped to ' + getTimeString(t));
+}
+
+var toastHideId = null;
+
+function showToast(text, ms) {
+  var el = document.getElementById('appToast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'appToast';
+    el.className = 'app-toast';
+    el.setAttribute('role', 'status');
+    el.setAttribute('aria-live', 'polite');
+    document.body.appendChild(el);
+  }
+  el.textContent = text;
+  // Force a reflow so a repeated toast restarts its transition.
+  void el.offsetWidth;
+  el.classList.add('visible');
+  if (toastHideId !== null) clearTimeout(toastHideId);
+  toastHideId = setTimeout(function () {
+    toastHideId = null;
+    el.classList.remove('visible');
+  }, ms || TOAST_MS);
+}
+
+// Confirm sheet for destructive actions (MUX-TAP-7): bottom sheet on Compact, centred card otherwise, 56 px buttons.
+// Resolves via onConfirm only on an explicit tap of the destructive button; backdrop, Cancel and Escape dismiss.
+function confirmAction(opts, onConfirm) {
+  var existing = document.getElementById('confirmSheet');
+  if (existing) existing.parentNode.removeChild(existing);
+
+  var sheet = document.createElement('div');
+  sheet.id = 'confirmSheet';
+  sheet.className = 'confirm-sheet';
+  sheet.setAttribute('role', 'alertdialog');
+  sheet.setAttribute('aria-modal', 'true');
+  sheet.setAttribute('aria-labelledby', 'confirmSheetTitle');
+
+  var backdrop = document.createElement('div');
+  backdrop.className = 'confirm-backdrop';
+  var card = document.createElement('div');
+  card.className = 'confirm-card';
+  var title = document.createElement('h2');
+  title.id = 'confirmSheetTitle';
+  title.className = 'confirm-title';
+  title.textContent = opts.title;
+  var body = document.createElement('p');
+  body.className = 'confirm-body';
+  body.textContent = opts.message || '';
+  var cancelBtn = document.createElement('button');
+  cancelBtn.type = 'button';
+  cancelBtn.className = 'confirm-btn confirm-cancel';
+  cancelBtn.textContent = 'Cancel';
+  var okBtn = document.createElement('button');
+  okBtn.type = 'button';
+  okBtn.className = 'confirm-btn confirm-ok';
+  okBtn.textContent = opts.confirmLabel || 'Delete';
+
+  var actions = document.createElement('div');
+  actions.className = 'confirm-actions';
+  actions.appendChild(cancelBtn);
+  actions.appendChild(okBtn);
+  card.appendChild(title);
+  card.appendChild(body);
+  card.appendChild(actions);
+  sheet.appendChild(backdrop);
+  sheet.appendChild(card);
+  document.body.appendChild(sheet);
+
+  function dismiss() {
+    document.removeEventListener('keydown', onKey, true);
+    if (sheet.parentNode) sheet.parentNode.removeChild(sheet);
+  }
+  function onKey(e) {
+    if (e.key === 'Escape') {
+      e.stopPropagation(); // closes only the sheet, not the modal underneath
+      dismiss();
+    }
+  }
+  document.addEventListener('keydown', onKey, true);
+  backdrop.addEventListener('click', dismiss);
+  cancelBtn.addEventListener('click', dismiss);
+  okBtn.addEventListener('click', function () {
+    dismiss();
+    onConfirm();
+  });
+  cancelBtn.focus();
 }
 
 function syncModeUI() {
@@ -3585,10 +3750,34 @@ function syncHarmonicButtons() {
   }
 }
 
+var BASE_FREQ_MIN = 20;
+var BASE_FREQ_MAX = 1500;
+
+function showBaseFreqMessage(text) {
+  var msg = document.getElementById('baseFreqMsg');
+  if (!msg) return;
+  msg.textContent = text || '';
+  if (text) {
+    msg.classList.remove('hidden');
+  } else {
+    msg.classList.add('hidden');
+  }
+}
+
 function applyBaseFrequency(newFreq) {
   var parsed = parseFloat(newFreq);
-  if (isNaN(parsed) || parsed < 20) parsed = 20;
-  if (parsed > 2000) parsed = 2000;
+  var note = '';
+  if (isNaN(parsed)) {
+    parsed = baseFreq;
+    note = 'Enter a frequency from ' + BASE_FREQ_MIN + ' to ' + BASE_FREQ_MAX + ' Hz. Kept ' + parsed + ' Hz.';
+  } else if (parsed < BASE_FREQ_MIN) {
+    parsed = BASE_FREQ_MIN;
+    note = 'Minimum is ' + BASE_FREQ_MIN + ' Hz. Set to ' + parsed + ' Hz.';
+  } else if (parsed > BASE_FREQ_MAX) {
+    parsed = BASE_FREQ_MAX;
+    note = 'Maximum is ' + BASE_FREQ_MAX + ' Hz. Set to ' + parsed + ' Hz.';
+  }
+  showBaseFreqMessage(note);
   baseFreq = parsed;
 
   var baseFreqInput = document.getElementById('baseFreq');
@@ -4333,7 +4522,7 @@ function renderStudioVoices() {
       html += '      <div class="studio-point-time">';
       html += '        <label>Time (s)</label>';
       html +=
-        '        <input type="number" class="studio-time-input" min="0" max="' +
+        '        <input type="number" inputmode="decimal" autocomplete="off" class="studio-time-input" min="0" max="' +
         durationSec +
         '" step="5" value="' +
         pt.time +
@@ -4355,7 +4544,7 @@ function renderStudioVoices() {
       html += '      <div class="studio-point-freq">';
       html += '        <label>Beat (Hz)</label>';
       html +=
-        '        <input type="number" class="studio-freq-input" min="0.5" max="80" step="0.5" value="' +
+        '        <input type="number" inputmode="decimal" autocomplete="off" class="studio-freq-input" min="0.5" max="80" step="0.5" value="' +
         pt.freq +
         '" data-voice="' +
         vIdx +
@@ -4615,21 +4804,35 @@ function renderSavedPresetsList() {
   for (var d = 0; d < delBtns.length; ++d) {
     delBtns[d].addEventListener('click', function () {
       var id = this.getAttribute('data-delete-preset');
-      for (var k = 0; k < savedPresets.length; ++k) {
-        if (savedPresets[k].id === id) {
-          var removedName = savedPresets[k].name;
-          savedPresets.splice(k, 1);
-          persistSavedPresets();
-          renderSavedPresetsList();
-          showStudioStatus('Deleted "' + removedName + '" from My Saved Presets.', false);
-          clearUrlPresetHash();
-          if (currentProgram === 'saved:' + id) {
-            changeProgram('programs/relaxation.xml');
-          }
-          break;
+      var target = findSavedPresetById(id);
+      confirmAction(
+        {
+          title: 'Delete preset?',
+          message: target ? '"' + target.name + '" will be removed from My Saved Presets. This cannot be undone.' : 'This cannot be undone.',
+          confirmLabel: 'Delete'
+        },
+        function () {
+          deleteSavedPreset(id);
         }
-      }
+      );
     });
+  }
+}
+
+function deleteSavedPreset(id) {
+  for (var k = 0; k < savedPresets.length; ++k) {
+    if (savedPresets[k].id === id) {
+      var removedName = savedPresets[k].name;
+      savedPresets.splice(k, 1);
+      persistSavedPresets();
+      renderSavedPresetsList();
+      showStudioStatus('Deleted "' + removedName + '" from My Saved Presets.', false);
+      clearUrlPresetHash();
+      if (currentProgram === 'saved:' + id) {
+        changeProgram('programs/relaxation.xml');
+      }
+      break;
+    }
   }
 }
 
@@ -5103,6 +5306,14 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
     slider.addEventListener('change', onSliderChanged);
+    slider.addEventListener('pointerdown', function () {
+      sliderHeld = true;
+    });
+    ['pointerup', 'pointercancel', 'lostpointercapture', 'change', 'blur'].forEach(function (evt) {
+      slider.addEventListener(evt, function () {
+        sliderHeld = false;
+      });
+    });
   }
 
   var btnViewCurve = document.getElementById('btnViewCurve');
@@ -5166,6 +5377,12 @@ document.addEventListener('DOMContentLoaded', function () {
   if (baseFreqInput) {
     baseFreqInput.addEventListener('change', function () {
       applyBaseFrequency(this.value);
+    });
+    baseFreqInput.addEventListener('blur', function () {
+      if (parseFloat(this.value) !== baseFreq) applyBaseFrequency(this.value);
+    });
+    baseFreqInput.addEventListener('input', function () {
+      showBaseFreqMessage('');
     });
   }
 
@@ -5439,7 +5656,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var savedBaseFreq = localStorage.getItem('baseFreq');
       if (savedBaseFreq !== null) {
         var parsedFreq = parseFloat(savedBaseFreq);
-        if (!isNaN(parsedFreq) && parsedFreq >= 20 && parsedFreq <= 2000) {
+        if (!isNaN(parsedFreq) && parsedFreq >= BASE_FREQ_MIN && parsedFreq <= BASE_FREQ_MAX) {
           baseFreq = parsedFreq;
           if (baseFreqInput) baseFreqInput.value = baseFreq;
         }

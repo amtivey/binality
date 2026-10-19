@@ -426,7 +426,7 @@
           <label for="baseFreq" class="settings-label">Base Frequency (Carrier Pitch)</label>
           <div class="freq-input-row">
             <div class="number-input-group">
-              <input id="baseFreq" type="number" value="440" min="20" max="2000" step="1">
+              <input id="baseFreq" type="number" inputmode="decimal" autocomplete="off" value="440" min="20" max="1500" step="1" aria-describedby="baseFreqMsg">
               <span class="unit-suffix">Hz</span>
             </div>
             <div class="harmonic-presets" aria-label="Quick harmonic carrier presets">
@@ -437,6 +437,7 @@
               <button type="button" class="harmonic-btn" data-freq="440">440 Hz</button>
             </div>
           </div>
+          <p id="baseFreqMsg" class="field-msg hidden" role="status" aria-live="polite"></p>
           <p id="carrierHintText" class="settings-hint">Left ear plays the Base Frequency; Right ear plays Base Frequency + Program Beat Frequency via stereo headphones.</p>
         </div>
 
@@ -700,22 +701,22 @@
         <div class="studio-meta-grid">
           <div class="studio-field studio-field-wide">
             <label for="studioName" class="studio-field-label">Preset Name</label>
-            <input id="studioName" type="text" class="studio-input" value="Deep Theta Flow" maxlength="60" placeholder="e.g. Deep Theta Flow">
+            <input id="studioName" type="text" autocomplete="off" autocapitalize="words" class="studio-input" value="Deep Theta Flow" maxlength="60" placeholder="e.g. Deep Theta Flow">
           </div>
 
           <div class="studio-field">
             <label for="studioDurationMin" class="studio-field-label">Duration (min)</label>
-            <input id="studioDurationMin" type="number" class="studio-input" value="20" min="1" max="180" step="1">
+            <input id="studioDurationMin" type="number" inputmode="numeric" autocomplete="off" class="studio-input" value="20" min="1" max="180" step="1">
           </div>
 
           <div class="studio-field">
             <label for="studioCarrierFreq" class="studio-field-label">Carrier (Hz)</label>
-            <input id="studioCarrierFreq" type="number" class="studio-input" value="216" min="20" max="2000" step="1">
+            <input id="studioCarrierFreq" type="number" inputmode="decimal" autocomplete="off" class="studio-input" value="216" min="20" max="2000" step="1">
           </div>
 
           <div class="studio-field studio-field-full">
             <label for="studioDescription" class="studio-field-label">Description</label>
-            <input id="studioDescription" type="text" class="studio-input" value="Smooth Alpha to Theta meditation ramp for creative insight and deep calm (20 minutes)" maxlength="160" placeholder="Describe the purpose and feel of this frequency recipe...">
+            <input id="studioDescription" type="text" autocomplete="off" class="studio-input" value="Smooth Alpha to Theta meditation ramp for creative insight and deep calm (20 minutes)" maxlength="160" placeholder="Describe the purpose and feel of this frequency recipe...">
           </div>
         </div>
 
