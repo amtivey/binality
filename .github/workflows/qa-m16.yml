@@ -55,7 +55,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { tag: api34, api: 34, profiles: "A,F,G,H" }
+          - { tag: api34-A, api: 34, profiles: "A" }
+          - { tag: api34-F, api: 34, profiles: "F" }
+          - { tag: api34-G, api: 34, profiles: "G" }
+          - { tag: api34-H, api: 34, profiles: "H" }
           - { tag: api30, api: 30, profiles: "B" }
           - { tag: api35, api: 35, profiles: "A" }
     steps:
