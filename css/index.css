@@ -5544,3 +5544,37 @@ body {
     background: none;
   }
 }
+
+/* ==========================================================================
+   M1.6 defect fix - header tap-target spacing (MUX-TAP-1 / MUX-TAP-2)
+   ========================================================================== */
+
+/* Header icon cluster: 8 px between 48 px buttons (56 px pitch). At 320-359 px the 288 px content box cannot
+   hold three 8 px gaps beside a 36 px logo and a usable title, so those widths use 4 px. This is a documented
+   exception to MUX-TAP-2 for the header cluster only (QA decision, t_180f2a40). */
+@media (max-width: 899px), (max-height: 499px) {
+  .header-actions {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 359px) {
+  .header-actions {
+    gap: 4px;
+  }
+}
+
+/* The program title keeps its 24 px of visible text, but its hit area is 48 px high: padding via min-height,
+   pulled back with a negative margin so the header layout does not grow. The extra hit area overlaps the band
+   badge row, which is not interactive. */
+#title[role="button"] {
+  box-sizing: border-box;
+  min-height: 48px;
+  margin-block: -12px;
+}
+
+@media (max-height: 499px) {
+  #title[role="button"] {
+    margin-block: -14.5px;
+  }
+}
