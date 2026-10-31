@@ -1,3 +1,21 @@
 .agents
 .DS_Store
 .idea/
+
+# Mobile (Capacitor) build output, dependencies and signing material
+node_modules/
+www/
+android/app/build/
+android/.gradle/
+android/local.properties
+android/keystore.properties
+*.jks
+*.keystore
+*.p12
+*.p8
+*.mobileprovision
+ios/App/Pods/
+ios/App/build/
+ios/DerivedData/
+fastlane/report.xml
+**/google-play-key.json
