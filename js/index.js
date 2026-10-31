@@ -1902,6 +1902,10 @@ function start(preserveTimer) {
 
   cleanupAudioNodes();
   setPlayingUI(true);
+  if (window.BinalityPlatform) {
+    // Android foreground service + wake lock (no-op on web); idempotent across seeks.
+    window.BinalityPlatform.keepAlive.start(program.getAttribute('name') || '');
+  }
   timerCompletedStatus = null;
 
   merger = [];
@@ -2998,6 +3002,8 @@ function toggleBreathCompact() {
 
 function stop(preserveTimer, fromTimerComplete) {
   setPlayingUI(false);
+  // A seek (preserveTimer) restarts playback immediately, so keep the service up across it.
+  if (!preserveTimer && window.BinalityPlatform) window.BinalityPlatform.keepAlive.stop();
   cleanupAudioNodes();
   if (!preserveTimer) {
     clearSleepTimer(true);
@@ -4612,6 +4618,14 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }
   });
+
+  // Notification Stop action: same path as the button, so the UI cannot diverge.
+  if (window.BinalityPlatform) {
+    window.BinalityPlatform.keepAlive.onStopRequested(function () {
+      if (isCurrentlyPlaying()) stop();
+      else window.BinalityPlatform.keepAlive.stop();
+    });
+  }
 
   if (startBtn) {
     startBtn.addEventListener('click', function () {
