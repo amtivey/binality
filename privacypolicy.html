@@ -1,58 +1,137 @@
-<h1>Privacy Policy of virtualarenas</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy • Binality</title>
+  <meta name="description" content="Binality privacy policy: no accounts, no analytics, no ads. Your settings stay on your device and nothing is transmitted.">
+  <link rel="icon" type="image/png" sizes="64x64" href="images/favicon.png">
+  <style>
+    body {
+      margin: 0;
+      padding: 24px;
+      background-color: #070314;
+      color: #f1f5f9;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .card {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 36px 32px;
+      border-radius: 28px;
+      background: rgba(18, 11, 42, 0.8);
+      border: 1px solid rgba(255, 112, 217, 0.25);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      background: rgba(236, 72, 153, 0.14);
+      border: 1px solid rgba(236, 72, 153, 0.35);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: #ff70d9;
+      margin-bottom: 16px;
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      color: #ffffff;
+    }
+    h2 {
+      margin: 28px 0 8px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+    p, li {
+      font-size: 0.95rem;
+      line-height: 1.65;
+      color: #cbd5e1;
+    }
+    p { margin: 0 0 14px; }
+    ul { margin: 0 0 14px; padding-left: 22px; }
+    a { color: #ff70d9; }
+    a.btn {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 24px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #ec4899 0%, #9333ea 100%);
+      color: #ffffff;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      text-decoration: none;
+      box-shadow: 0 8px 24px -4px rgba(236, 72, 153, 0.45);
+    }
+    a.btn:hover { filter: brightness(1.08); }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <span class="badge">PRIVACY</span>
+    <h1>Privacy Policy</h1>
+    <p><strong>Effective date: 19 October 2026</strong></p>
 
-<p>virtualarenas operates the https://github.com/amtivey/binality website, which provides the SERVICE.</p>
+    <p>Binality is a free, open-source brainwave entrainment (binaural beats) app and website published by Alexis Matthew Tivey under the name Virtual Arenas. This policy covers the Binality website at https://binality.virtualarenas.com/ and the Binality apps for Android and iOS.</p>
 
-<p>This page is used to inform website visitors regarding our policies with the collection, use, and disclosure of Personal Information if anyone decided to use our Service, the binality website.</p>
+    <h2>The short version</h2>
+    <ul>
+      <li>There are no accounts. You never sign up or log in.</li>
+      <li>There is no analytics, no advertising and no tracking of any kind.</li>
+      <li>We do not collect your name, email, phone number, address, location, contacts, photos or device identifiers.</li>
+      <li>Your settings stay on your device. We never receive them.</li>
+    </ul>
 
-<p>If you choose to use our Service, then you agree to the collection and use of information in relation with this policy. The Personal Information that we collect are used for providing and improving the Service. We will not use or share your information with anyone except as described in this Privacy Policy.</p>
+    <h2>Information we collect</h2>
+    <p>None. Binality generates its tones on your device. It does not send any information about you or your use of it to us or to anyone else, and we run no server that receives data from the app.</p>
 
-<p>The terms used in this Privacy Policy have the same meanings as in our Terms and Conditions, which is accessible at https://github.com/amtivey/binality, unless otherwise defined in this Privacy Policy.</p>
+    <h2>Information stored on your device</h2>
+    <p>Binality remembers your preferences so it opens the way you left it: for example the selected program, tone and ambient volume, base frequency, timer setting, display options, and any custom presets you save. This is kept in your device's local storage (browser localStorage on the website; the same storage plus the operating system's native preferences store in the apps). It is never transmitted. You can remove it by clearing the site data for Binality in your browser, clearing the app's storage in your device settings, or uninstalling the app.</p>
 
-<h2>Information Collection and Use</h2>
+    <h2>Network use</h2>
+    <p>The Binality apps make no network requests of their own and work fully offline; the fonts and audio engine are bundled with the app.</p>
+    <p>The website is different because it is a web page. Your browser downloads its files from our web host, which, like any web host, may keep standard server logs (such as IP address and request time). We do not use those logs to identify or profile you. The website's fonts are hosted with the site itself, so no request is made to Google or any other third party to display it. The website can be installed as a web app and caches its files in your browser so it works offline. It does not use cookies.</p>
 
-<p>For a better experience while using our Service, we may require you to provide us with certain personally identifiable information, including but not limited to your name, phone number, and postal address. The information that we collect will be used to contact or identify you.</p>
+    <h2>Android: notification and permissions</h2>
+    <p>To keep audio playing when the screen is off or the app is in the background, the Android app runs a foreground service and shows an ongoing notification with a Stop control. It uses these permissions:</p>
+    <ul>
+      <li>Notifications: to show that notification. It contains no personal data and is never sent anywhere.</li>
+      <li>Wake lock: to keep the device awake enough for audio to continue during a session. It is released when playback stops.</li>
+      <li>Foreground service (media playback): to allow audio to continue in the background.</li>
+    </ul>
+    <p>Binality does not request access to your location, camera, microphone, contacts, photos, files or storage.</p>
 
-<h2>Log Data</h2>
+    <h2>Links to other sites</h2>
+    <p>Binality links to the project's GitHub page (https://github.com/amtivey/binality) and to a Wikipedia article about binaural beats (https://en.wikipedia.org/wiki/Binaural_beats). These open in your browser and are operated by third parties, whose privacy practices are their own.</p>
 
-<p>We want to inform you that whenever you visit our Service, we collect information that your browser sends to us that is called Log Data. This Log Data may include information such as your computer's Internet Protocol ("IP") address, browser version, pages of our Service that you visit, the time and date of your visit, the time spent on those pages, and other statistics.</p>
+    <h2>Third parties</h2>
+    <p>We do not share data with anyone because we do not collect any. Binality contains no advertising, analytics or tracking software.</p>
 
-<h2>Cookies</h2>
+    <h2>Children's privacy</h2>
+    <p>Binality is not directed at children under 13. Because we collect no personal information from anyone, we do not knowingly collect any from children. If you are a parent or guardian and have a concern, please contact us.</p>
 
-<p>Cookies are files with small amount of data that is commonly used an anonymous unique identifier. These are sent to your browser from the website that you visit and are stored on your computer's hard drive.</p>
+    <h2>Health and safety</h2>
+    <ul>
+      <li>Binaural beats need stereo headphones to work as intended.</li>
+      <li>Keep the volume low. Prolonged loud listening can damage your hearing.</li>
+      <li>Do not use Binality while driving or operating machinery, or in any situation where you need to stay alert to your surroundings.</li>
+      <li>Binality is for relaxation and entertainment only. It is not a medical device and does not provide medical advice, diagnosis or treatment. Program names such as "Pain Relief" and "Universal Healing" describe traditional uses of binaural beats, not claims of medical benefit.</li>
+      <li>If you have epilepsy, a heart condition or any other medical concern, consult a doctor before use. Stop if you feel unwell.</li>
+    </ul>
 
-<p>Our website uses these "cookies" to collection information and to improve our Service. You have the option to either accept or refuse these cookies, and know when a cookie is being sent to your computer. If you choose to refuse our cookies, you may not be able to use some portions of our Service.</p>
+    <h2>Changes to this policy</h2>
+    <p>If this policy changes, the new version will be posted on this page with an updated effective date. If Binality ever changes in a way that collects data, this policy will be updated before that change is released.</p>
 
-<h2>Service Providers</h2>
+    <h2>Contact</h2>
+    <p>Questions about this policy: <a href="mailto:support@virtualarenas.com">support@virtualarenas.com</a>. The source code is public at <a href="https://github.com/amtivey/binality" rel="noopener noreferrer">github.com/amtivey/binality</a>.</p>
 
-<p>We may employ third-party companies and individuals due to the following reasons:</p>
-
-<ul>
-    <li>To facilitate our Service;</li>
-    <li>To provide the Service on our behalf;</li>
-    <li>To perform Service-related services; or</li>
-    <li>To assist us in analyzing how our Service is used.</li>
-</ul>
-
-<p>We want to inform our Service users that these third parties have access to your Personal Information. The reason is to perform the tasks assigned to them on our behalf. However, they are obligated not to disclose or use the information for any other purpose.</p>
-
-<h2>Security</h2>
-
-<p>We value your trust in providing us your Personal Information, thus we are striving to use commercially acceptable means of protecting it. But remember that no method of transmission over the internet, or method of electronic storage is 100% secure and reliable, and we cannot guarantee its absolute security.</p>
-
-<h2>Links to Other Sites</h2>
-
-<p>Our Service may contain links to other sites. If you click on a third-party link, you will be directed to that site. Note that these external sites are not operated by us. Therefore, we strongly advise you to review the Privacy Policy of these websites. We have no control over, and assume no responsibility for the content, privacy policies, or practices of any third-party sites or services.</p>
-
-<p>Children's Privacy</p>
-
-<p>Our Services do not address anyone under the age of 13. We do not knowingly collect personal identifiable information from children under 13. In the case we discover that a child under 13 has provided us with personal information, we immediately delete this from our servers. If you are a parent or guardian and you are aware that your child has provided us with personal information, please contact us so that we will be able to do necessary actions.</p>
-
-<h2>Changes to This Privacy Policy</h2>
-
-<p>We may update our Privacy Policy from time to time. Thus, we advise you to review this page periodically for any changes. We will notify you of any changes by posting the new Privacy Policy on this page. These changes are effective immediately, after they are posted on this page.</p>
-
-<p>Our Privacy Policy was created with the help of the <a href="https://www.privacypolicytemplate.net">Privacy Policy Template</a>.</p>
-
-<h2>Contact Us</h2>
-
-<p>If you have any questions or suggestions about our Privacy Policy, do not hesitate to contact us.</p>
+    <a class="btn" href="index.html">Return to Binality</a>
+  </main>
+</body>
+</html>
