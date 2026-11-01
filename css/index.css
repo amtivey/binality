@@ -3877,3 +3877,9 @@ body {
     justify-content: space-between;
   }
 }
+
+/* Native (Capacitor) shell: hide PWA-only UI (install, update toast, offline-PWA copy) */
+html.native-app .pwa-settings-card,
+html.native-app #pwaUpdateToast {
+  display: none !important;
+}
