@@ -35,8 +35,9 @@ Phase 1 are now code on dev. Device and simulator steps still have not been run.
 - Not yet verified: M0.3's first green mobile-build.yml run on dev (throwaway
   #74 is closed), the M0.4 device go/no-go and the M0.5 iPhone spike. These are
   owner steps on real hardware.
-- Gate G1 (#25) was answered on 2026-11-01 (section 0.1). Gate G2 (#26) is
-  still open, so the section 0.2 defaults apply.
+- Gates G1 (#25) and G2 (#26) were both answered on 2026-11-01 (sections 0.1
+  and 0.2). Two G2 items are still open: Play App Signing status (Q7b, checked
+  in M3.1) and the tester list (Q10, defaults apply).
 - PR #72 (pipeline doc) is superseded by this branch: the same refreshed text
   is in `docs/mobile-release-pipeline.md`.
 
@@ -46,8 +47,8 @@ Phase 1 are now code on dev. Device and simulator steps still have not been run.
 
 Engineering can start without answers. Phase 0 and Phase 1 are not blocked.
 Each question has a default the team will use until you say otherwise. Two
-gate cards collect the answers (see section 5). G1 is answered (0.1); G2 is
-still open (0.2).
+gate cards collect the answers (see section 5). Both gates are answered (0.1,
+0.2).
 
 ### 0.1 Questions (gate G1: engineering scope, card t_b17af878, issue #25)
 
@@ -61,22 +62,22 @@ still open (0.2).
 
 ### 0.2 Questions (gate G2: accounts and store, card t_1213d078, issue #26)
 
-| # | Question | Default if unanswered | Blocks |
-|---|---|---|---|
-| Q6 | Apple Developer Program: when will you enrol, and as an individual (seller name "Mat Tivey") or an organisation (needs a legal entity and D-U-N-S, takes weeks)? | Individual, enrolled once Android is in closed testing. | M3.3, M3.5b, M4.3 |
-| Q7 | Google Play: (a) Was the developer account created before 2023-11-13? It published the 2014 app, so it should be, which exempts it from the "12 testers for 14 days" closed-test rule. Please confirm. (b) Is `com.virtualarenas.binality` already enrolled in Play App Signing? (c) Are you ready to export the 2017 key for Play App Signing if it is not? | (a) Yes, exempt. (b) Not enrolled. Enrol on the first AAB upload (section 2, D12). | M3.1, M3.5a |
-| Q8 | Store name: is "Binality" free on the App Store? (Play already has the listing.) | "Binality", with "Binality: Binaural Beats" as the fallback. | M4.1, M4.3 |
-| Q9 | Support email and support URL for both listings, and the copyright/seller line (README says "(c) 2014 Alexis Matthew Tivey"). | support@virtualarenas.com, https://binality.virtualarenas.com/, "(c) 2014-2026 Alexis Matthew Tivey". | M3.4, M4.1 |
-| Q10 | Beta testers: Gmail addresses for Play closed testing, and Apple IDs for TestFlight. | You plus 2-5 friends. 12 or more if Q7a turns out to be "no". | M3.5a, M3.5b |
-| Q11 | Does the repo stay public, and does the app stay free with no ads or in-app purchases? | Yes to both. Public repo means free macOS CI minutes. Free with no SDKs means the "no data collected" privacy answers hold. | M3.2, M3.3, M4.x |
+| # | Question | Default if unanswered | Blocks | Owner answer (2026-11-01) |
+|---|---|---|---|---|
+| Q6 | Apple Developer Program: when will you enrol, and as an individual (seller name "Mat Tivey") or an organisation (needs a legal entity and D-U-N-S, takes weeks)? | Individual, enrolled once Android is in closed testing. | M3.3, M3.5b, M4.3 | Default accepted: **individual**, enrolling once Android is in closed testing. Enrol (or renew) with the Apple ID that owns the old "Binality" iOS app (Q8), so its App Store Connect record and name can be reused. M3.3 stays blocked until the membership is active. |
+| Q7 | Google Play: (a) Was the developer account created before 2023-11-13? It published the 2014 app, so it should be, which exempts it from the "12 testers for 14 days" closed-test rule. Please confirm. (b) Is `com.virtualarenas.binality` already enrolled in Play App Signing? (c) Are you ready to export the 2017 key for Play App Signing if it is not? | (a) Yes, exempt. (b) Not enrolled. Enrol on the first AAB upload (section 2, D12). | M3.1, M3.5a | (a) **Yes**, created before 2023-11-13, so the 12-tester/14-day rule does not apply. (b) **Unknown**. The owner checks it as step 1 of the M3.1 runbook: Play Console > Binality > Test and release > App integrity (older UI: Release > Setup > App integrity) > "Play app signing". An "App signing key certificate" with SHA-256 fingerprints means enrolled; a "Choose signing key" / "Use Play app signing" prompt means not enrolled. Plan for "not enrolled" until checked (D12 covers both). (c) **Yes**, ready to export the 2017 key with PEPK. |
+| Q8 | Store name: is "Binality" free on the App Store? (Play already has the listing.) | "Binality", with "Binality: Binaural Beats" as the fallback. | M4.1, M4.3 | **Yes**: "I have the old app on that name". Read as: the App Store name "Binality" is held by the owner's old iOS app record, so it is available to us. M3.3 confirms this in App Store Connect. M3.3 reuses that App Store Connect record if its bundle ID is `com.virtualarenas.binality`. If the bundle ID differs, the owner either frees the name on the old record or the new app gets the fallback name. M3.3 records the old record's bundle ID and Apple ID. |
+| Q9 | Support email and support URL for both listings, and the copyright/seller line (README says "(c) 2014 Alexis Matthew Tivey"). | support@virtualarenas.com, https://binality.virtualarenas.com/, "(c) 2014-2026 Alexis Matthew Tivey". | M3.4, M4.1 | Support email **binality@virtualarenas.com** (the same address as the privacy policy, PR #70). The support URL and copyright line keep their defaults. |
+| Q10 | Beta testers: Gmail addresses for Play closed testing, and Apple IDs for TestFlight. | You plus 2-5 friends. 12 or more if Q7a turns out to be "no". | M3.5a, M3.5b | **Not decided yet.** The default applies: the owner plus 2-5 friends. Twelve are not needed because Q7a is yes. The owner enters addresses only in Play Console (closed-test email list) and App Store Connect (TestFlight testers), never in the repo, cards or issues. M3.5a and M3.5b ask for the list when each track opens. |
+| Q11 | Does the repo stay public, and does the app stay free with no ads or in-app purchases? | Yes to both. Public repo means free macOS CI minutes. Free with no SDKs means the "no data collected" privacy answers hold. | M3.2, M3.3, M4.x | **Yes to both.** |
 
 ### 0.3 Costs and lead times
 
 | Item | Cost | Lead time | Notes |
 |---|---|---|---|
-| Apple Developer Program | USD 99 per year | Days (individual) to weeks (organisation) | Needed for TestFlight, App Store and CI signing. |
+| Apple Developer Program | USD 99 per year | Days (individual) | Needed for TestFlight, App Store and CI signing. G2: individual, enrolling once Android is in closed testing. |
 | Google Play Console | Already paid | None | The existing account and the unpublished `com.virtualarenas.binality` listing are reused. |
-| Play closed test | Free | 14 days, only if Q7a is "no" | The longest calendar item if it applies. Start it as soon as M3.2 is green. |
+| Play closed test | Free | None (G2 Q7a = yes, account predates 2023-11-13) | No 12-tester/14-day gate. A short closed test with the Q10 testers is still run for QA (M3.5a). |
 | CI (GitHub Actions) | Free while the repo is public | None | macOS minutes are billed at 10x if the repo goes private. |
 | Mac and iPhone | Optional hardware | None | Makes iOS debugging faster. Not required for the pipeline. |
 | Everything else | Free | | Capacitor, plugins and fastlane are open source. |
@@ -111,7 +112,7 @@ These are settled for implementers. Card bodies repeat the ones they depend on.
 | D9 | Orientation | No lock on any device. iPhone: portrait plus both landscapes. Android: `screenOrientation="fullUser"` and the `configChanges` set from 23856cf. No screen-orientation plugin. No iPad orientation keys in 1.0 (iPhone-only, Q3). | UX 4. G1 2026-11-01 confirmed the Q3 default. Audit listed the plugin as "only if UX locks", and UX does not lock. |
 | D10 | Lock-screen controls | In 1.0, after background audio works. Android: MediaSession in the FGS notification. iOS: `MPNowPlayingInfoCenter` + `MPRemoteCommandCenter`. Play/pause only, no seek. Required for store submission, not for beta. Android is verified on both owner phones. The iOS part (M2.4b) waits for a physical iPhone (G1 Q1 = no). | UX made this P0 (MUX-LIFE-6). Audit made it P2. Resolved toward the UX doc because it supports the App Store 4.2 review argument. |
 | D11 | Fonts | Self-host Outfit, Plus Jakarta Sans and JetBrains Mono as woff2 in `fonts/`, drop the Google Fonts links, and update `sw.js` precache. This benefits the web build too. | All three docs. It is required for "Data Not Collected". |
-| D12 | Android signing | Reuse the owner's 2017 key. If the app is not in Play App Signing, enrol on the first AAB upload using that key as the app signing key (PEPK export, owner only). Then create a new upload key for CI. Never generate a different app-signing key, because that would orphan the listing. The original key never goes into CI or chat. `BUILD_OFFSET` is set so the first versionCode is 48 or higher. | G2 answer. Supersedes Pipeline 3.2, which assumed a fresh account. |
+| D12 | Android signing | Reuse the owner's 2017 key. If the app is not in Play App Signing, enrol on the first AAB upload using that key as the app signing key (PEPK export, owner only). Then create a new upload key for CI. Never generate a different app-signing key, because that would orphan the listing. The original key never goes into CI or chat. `BUILD_OFFSET` is set so the first versionCode is 48 or higher. Play App Signing status is unknown (G2 Q7b): the M3.1 runbook starts with the owner checking App integrity, then follows the enrolled or not-enrolled branch. If already enrolled, only the upload key changes: the owner registers the new CI upload key (or requests an upload-key reset if the 2017 key is the registered upload key and is not to be used in CI). The owner has agreed to the PEPK export (Q7c). | G2 answers (2026-10-16 and 2026-11-01). Supersedes Pipeline 3.2, which assumed a fresh account. |
 | D13 | iOS signing | fastlane `match` with a private `amtivey/binality-certs` repo, bootstrapped from a manual macOS workflow. No Mac required. | Pipeline 5.4. |
 | D14 | CI | `ci.yml` stays for static checks. `scripts/ci-check.sh`'s anti-Capacitor guard is inverted (www/ and node_modules/ must be untracked, capacitor.config.json must be valid JSON). New `mobile-build.yml` (debug, no secrets) and `mobile-release.yml` (tag `mobile-v*`, `mobile-release` environment, owner as required reviewer). Runners pinned to ubuntu-24.04 and macos-26. | Pipeline 5, Audit 5.6. |
 | D15 | Versioning | `package.json` `version` is the marketing version (3.0.0). The build number is the release workflow run_number plus `BUILD_OFFSET`, shared by both platforms. | Pipeline 4. |
@@ -173,7 +174,7 @@ All Phase 1 work also improves the PWA. Requirement IDs refer to the UX doc.
 - M3.2 Release workflow and Play internal upload (devops, M; after M3.1). `mobile-release.yml` Android job, fastlane `internal` lane, Play service account, the `mobile-release` environment with the owner as reviewer, and tag protection. Done when tag `mobile-v3.0.0-rc1` lands a build in Play internal testing with no manual steps.
 - M3.3 iOS signing and TestFlight (devops, M; after M0.3 and G2, once Apple enrolment is done). Bundle ID and App Store Connect app record (owner), API key, `match` bootstrap, the fastlane `beta` lane, and the iOS job in `mobile-release.yml`. Done when a tagged build is processed in TestFlight.
 - M3.4 Privacy policy (software-engineer-webdev, S; no dependencies). Rewrite `privacypolicy.html` (D18) and add the safety content from Pipeline 6.3. The owner approves and publishes it at the stable URL. Done when the URL returns 200 with the new text and the Data Safety and App Privacy draft answers are attached to the card.
-- M3.5a Android beta and device QA (tech-artist, M plus calendar time; after M3.2, M2.6, M2.5, M1.6, M3.4). Fill in the Play app-content forms needed for closed testing, run the closed track with Q10 testers (14 days with 12 testers only if Q7a is "no"), run the full UX section 11 script on the owner's Pixel 9 (device A) and Galaxy A72 (stands in for device B; use an emulator for B's 360 px width and 3-button nav), and triage feedback. Done when there are no P0 defects open and the tester feedback summary is posted on the card.
+- M3.5a Android beta and device QA (tech-artist, M plus calendar time; after M3.2, M2.6, M2.5, M1.6, M3.4). Fill in the Play app-content forms needed for closed testing, run the closed track with Q10 testers (no 12-tester/14-day gate, because G2 Q7a is yes), run the full UX section 11 script on the owner's Pixel 9 (device A) and Galaxy A72 (stands in for device B; use an emulator for B's 360 px width and 3-button nav), and triage feedback. Done when there are no P0 defects open and the tester feedback summary is posted on the card.
 - M3.5b iOS beta and device QA (tech-artist, M; after M3.3, M2.4b, M2.5, M1.6, M3.4). Internal TestFlight, then external TestFlight (Beta App Review), and UX section 11 on devices C and D. Done when there are no P0 defects open.
 
 ### Phase 4: store submission
