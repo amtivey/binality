@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="splash_background">#070314</color>
+    <!-- Accent for the foreground-service notification (setColor) -->
+    <color name="notification_accent">#E9A6F5</color>
+</resources>

@@ -101,7 +101,7 @@ public class AudioForegroundService extends Service {
                 : new Notification.Builder(this);
         b.setContentTitle("Binality")
                 .setContentText(title != null && !title.isEmpty() ? title : "Playing")
-                .setSmallIcon(android.R.drawable.ic_media_play)
+                .setSmallIcon(R.drawable.ic_stat_binality)
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
                 .setContentIntent(contentIntent)

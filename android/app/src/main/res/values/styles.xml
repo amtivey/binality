@@ -17,6 +17,10 @@
 
 
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+        <!-- API < 31: legacy full-screen drawable (generated splash.png). -->
         <item name="android:background">@drawable/splash</item>
+        <!-- API 31+ system splash: #070314 and the logo inside the central 192 dp of 288 dp. -->
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
     </style>
 </resources>
