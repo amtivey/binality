@@ -30,6 +30,11 @@ var gain = [];
 var osc = [];
 
 var entrainmentMode = 'binaural'; // 'binaural' (stereo headphones) or 'isochronic' (speakers & phones)
+// Canvas backing-store scale: device pixel ratio capped at 2 to bound memory/fill cost on high-DPR phones.
+function getCanvasDpr() {
+  return Math.min(window.devicePixelRatio || 1, 2);
+}
+
 var activeStageView = 'curve'; // 'curve' (Program Timeline) or 'waveform' (Live Waveform & FFR Scope)
 var scopeMode = 'envelope'; // 'envelope', 'oscilloscope', 'orbit'
 var scopeZoom = 'med'; // 'fast', 'med', 'slow'
@@ -700,10 +705,12 @@ function createProgramChart() {
     var height = Math.floor(rect.height);
     if (width <= 0 || height <= 0) return;
 
-    var dpr = window.devicePixelRatio || 1;
-    if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
+    var dpr = getCanvasDpr();
+    var pxW = Math.floor(width * dpr);
+    var pxH = Math.floor(height * dpr);
+    if (canvas.width !== pxW || canvas.height !== pxH) {
+      canvas.width = pxW;
+      canvas.height = pxH;
     }
 
     ctx.save();
@@ -1061,10 +1068,12 @@ function drawScopeFrame() {
   }
   if (width <= 0 || height <= 0) return;
 
-  var dpr = window.devicePixelRatio || 1;
-  if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
+  var dpr = getCanvasDpr();
+  var pxW = Math.floor(width * dpr);
+  var pxH = Math.floor(height * dpr);
+  if (canvas.width !== pxW || canvas.height !== pxH) {
+    canvas.width = pxW;
+    canvas.height = pxH;
   }
 
   var ctx = canvas.getContext('2d');
@@ -2119,7 +2128,8 @@ function start(preserveTimer) {
       if (posEl) posEl.textContent = getTimeString(t);
       updateSliderFill();
       updateLiveReadouts(t);
-      if (chart) chart.replot();
+      // The timeline chart is invisible while the scope view is active or the page is hidden.
+      if (chart && activeStageView === 'curve' && !document.hidden) chart.replot();
     }
   }, 250);
 }
@@ -3013,6 +3023,13 @@ function stop(preserveTimer, fromTimerComplete) {
     syncTimerUI();
   }
   if (chart) chart.replot();
+  // Release the audio hardware while idle (saves battery); start()/playChime()/testStereo() resume it.
+  if (context && context.state === 'running' && typeof context.suspend === 'function') {
+    try {
+      var p = context.suspend();
+      if (p && p.catch) p.catch(function () {});
+    } catch (e) {}
+  }
 }
 
 function onSliderChanged() {
@@ -3199,6 +3216,8 @@ function testStereo() {
   // If binaural session is currently playing, stop it so L/R test tones are isolated
   if (isCurrentlyPlaying()) {
     stop();
+    // stop() suspends the context; resume it for the test tones (resume is ordered after suspend).
+    context.resume();
   }
 
   isTestingStereo = true;
@@ -3726,7 +3745,7 @@ function renderStudioPreview() {
   var rect = stage ? stage.getBoundingClientRect() : canvas.getBoundingClientRect();
   var w = Math.max(260, Math.floor(rect.width || 640));
   var h = Math.max(110, Math.floor(rect.height || 136));
-  var dpr = window.devicePixelRatio || 1;
+  var dpr = getCanvasDpr();
 
   if (canvas.width !== Math.floor(w * dpr) || canvas.height !== Math.floor(h * dpr)) {
     canvas.width = Math.floor(w * dpr);
