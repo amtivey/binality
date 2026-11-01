@@ -3926,7 +3926,8 @@ body {
   box-shadow: 0 0 0 2px #f59e0b, 0 0 14px rgba(245, 158, 11, 0.55);
 }
 
-/* ==========================================================================
+/* ===================================================================}
+
    Touch input and tap targets (M1.3: MUX-IN-1/2/5/6/10, MUX-TAP-1..7, MUX-STU-1)
    ========================================================================== */
 
@@ -5730,4 +5731,10 @@ body {
   #title[role="button"] {
     margin-block: -14.5px;
   }
+}
+
+/* Native (Capacitor) shell: hide PWA-only UI (install, update toast, offline-PWA copy) */
+html.native-app .pwa-settings-card,
+html.native-app #pwaUpdateToast {
+  display: none !important;
 }

@@ -15,6 +15,7 @@ var PRECACHE_URLS = [
   'privacypolicy.html',
   '404.html',
   'css/index.css',
+  'js/platform.js',
   'js/index.js',
   'fonts/outfit-latin.woff2',
   'fonts/plus-jakarta-sans-latin.woff2',

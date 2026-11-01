@@ -1,0 +1,171 @@
+name: Mobile build
+
+# Debug builds of the Capacitor app: Android debug APK and an unsigned iOS
+# simulator build. Uses NO secrets. Signed release builds live in
+# mobile-release.yml.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+    paths:
+      - "android/**"
+      - "ios/**"
+      - "capacitor.config.json"
+      - "package*.json"
+      - "js/**"
+      - "css/**"
+      - "index.html"
+      - "programs/**"
+      - "scripts/copy-www.mjs"
+      - "scripts/emulator-smoke.sh"
+      - ".github/workflows/mobile-build.yml"
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mobile-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    name: Android debug APK
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Build web assets and sync Capacitor
+        run: npm ci && npm run build && npx cap sync android
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('android/**/*.gradle', 'android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ runner.os }}-
+      - name: Assemble debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+      - name: Show APK signing certificate
+        run: |
+          apksigner="$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)"
+          "$apksigner" verify --print-certs android/app/build/outputs/apk/debug/app-debug.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: binality-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
+
+  # Installs and launches the debug APK on an emulator. Slower, so only on push
+  # to dev, manual runs, or PRs labelled "emulator-smoke".
+  android-emulator-smoke:
+    name: Android emulator smoke test
+    needs: android
+    if: >-
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' &&
+       contains(github.event.pull_request.labels.*.name, 'emulator-smoke'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: binality-debug-apk
+          path: apk
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules >/dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: default
+          disable-animations: true
+          script: bash scripts/emulator-smoke.sh apk/app-debug.apk smoke-out
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: emulator-smoke
+          path: smoke-out
+          if-no-files-found: warn
+          retention-days: 14
+
+  # The iOS simulator build is the expensive one (macOS minutes), so on PRs it
+  # only runs when ios/, capacitor.config.json or package*.json changed.
+  changes:
+    name: Detect iOS-relevant changes
+    runs-on: ubuntu-24.04
+    outputs:
+      ios: ${{ steps.filter.outputs.ios }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: filter
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ "$EVENT" != "pull_request" ]; then
+            echo "ios=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          files="$(git diff --name-only "$BASE_SHA" HEAD)"
+          echo "$files"
+          if echo "$files" | grep -Eq '^(ios/|capacitor\.config\.json$|package(-lock)?\.json$|\.github/workflows/mobile-build\.yml$)'; then
+            echo "ios=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ios=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  ios:
+    name: iOS simulator build
+    needs: changes
+    if: needs.changes.outputs.ios == 'true'
+    runs-on: macos-26
+    timeout-minutes: 45
+    env:
+      # The macos-26 image (20261013) ships Xcode 26.0.1 to 26.6; 26.6 is the
+      # default. Selected explicitly so an image default change cannot move us.
+      XCODE_APP: /Applications/Xcode_26.6.app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Select Xcode 26
+        run: |
+          sudo xcode-select -s "$XCODE_APP"
+          xcodebuild -version
+          xcodebuild -version | head -1 | grep -q '^Xcode 26\.' || { echo "expected Xcode 26.x"; exit 1; }
+      - name: Build web assets and sync Capacitor
+        run: npm ci && npm run build && npx cap sync ios
+      - name: Build for iOS Simulator (unsigned)
+        run: |
+          set -o pipefail
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            CODE_SIGNING_ALLOWED=NO build | tee "$RUNNER_TEMP/xcodebuild.log"
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: ios-xcodebuild-log
+          path: ${{ runner.temp }}/xcodebuild.log
+          retention-days: 14
