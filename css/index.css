@@ -65,6 +65,7 @@ body {
   padding: 0;
   width: 100%;
   height: 100%;
+  height: 100vh;
   height: 100dvh;
   background-color: var(--bg-deep);
   color: var(--text-primary);
@@ -87,6 +88,10 @@ body {
 
 .ambient-bg {
   position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   pointer-events: none;
   overflow: hidden;
@@ -278,7 +283,7 @@ body {
 
 .pill-badge {
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: 0.75rem;
   font-weight: 500;
   padding: 2px 7px;
   border-radius: 9999px;
@@ -312,7 +317,7 @@ body {
 
 .band-badge {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 600;
   padding: 2px 8px;
   border-radius: 8px;
@@ -339,7 +344,7 @@ body {
   background: rgba(15, 23, 42, 0.65);
   border: 1px solid rgba(255, 255, 255, 0.08);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   transition: all 0.25s ease;
 }
@@ -637,7 +642,7 @@ body {
 
 .meta-badge {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 500;
   padding: 4px 10px;
   border-radius: 10px;
@@ -683,7 +688,7 @@ body {
   border-radius: 12px;
   padding: 8px 11px;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: var(--text-primary);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65);
   white-space: nowrap;
@@ -780,6 +785,10 @@ body {
 
 .waveform-stage {
   position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   display: flex;
   flex-direction: column;
@@ -831,7 +840,7 @@ body {
 
 .scope-group-label {
   font-family: var(--font-mono);
-  font-size: 0.64rem;
+  font-size: 0.75rem;
   color: #64748b;
   font-weight: 500;
   padding: 0 4px 0 6px;
@@ -845,7 +854,7 @@ body {
   padding: 5px 9px;
   border-radius: 9px;
   font-family: var(--font-mono);
-  font-size: 0.70rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #94a3b8;
   background: transparent;
@@ -946,7 +955,7 @@ body {
   padding: 4px 10px;
   border-radius: 9px;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   background: rgba(9, 4, 24, 0.88);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -958,7 +967,7 @@ body {
 .hud-label {
   color: #64748b;
   font-weight: 600;
-  font-size: 0.62rem;
+  font-size: 0.75rem;
   letter-spacing: 0.04em;
 }
 
@@ -973,7 +982,7 @@ body {
   padding: 1px 5px;
   border-radius: 4px;
   background: rgba(244, 114, 182, 0.18);
-  font-size: 0.64rem;
+  font-size: 0.75rem;
 }
 
 .hud-mode .status-dot {
@@ -983,6 +992,10 @@ body {
 
 .scope-idle-overlay {
   position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   display: flex;
   align-items: center;
@@ -1041,6 +1054,10 @@ body {
 
 .breath-overlay {
   position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   z-index: 15;
   display: flex;
@@ -1115,7 +1132,7 @@ body {
 
 .breath-cycle-badge {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 600;
   padding: 2px 7px;
   border-radius: 9999px;
@@ -1211,6 +1228,10 @@ body {
 
 .breath-ring-svg {
   position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   width: 100%;
   height: 100%;
@@ -1268,7 +1289,7 @@ body {
 }
 
 .breath-overlay.compact-dock .breath-countdown-text {
-  font-size: 0.68rem;
+  font-size: 0.75rem;
 }
 
 .breath-steps-row {
@@ -1286,7 +1307,7 @@ body {
 
 .breath-step-pill {
   font-family: var(--font-mono);
-  font-size: 0.64rem;
+  font-size: 0.75rem;
   font-weight: 600;
   padding: 2px 7px;
   border-radius: 8px;
@@ -1321,7 +1342,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -1381,7 +1402,7 @@ body {
 
 .legend-hint {
   color: var(--text-muted);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
 }
 
 /* ==========================================================================
@@ -1543,7 +1564,7 @@ body {
 }
 
 .ambient-quick-label {
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-secondary);
   white-space: nowrap;
@@ -1558,7 +1579,7 @@ body {
 .tone-val-badge,
 .ambient-val-badge {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: #f9a8d4;
   background: rgba(236, 72, 153, 0.14);
@@ -1594,7 +1615,7 @@ body {
   padding: 3px 8px;
   color: var(--text-primary);
   font-family: var(--font-body);
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   font-weight: 600;
   outline: none;
   cursor: pointer;
@@ -1618,7 +1639,7 @@ body {
 
 .timer-val-badge {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: #a5b4fc;
   background: rgba(99, 102, 241, 0.15);
@@ -1653,6 +1674,11 @@ body {
 
 #footer {
   flex-shrink: 0;
+}
+
+/* Wrapper for the time and volume rows; only becomes a box in the short-landscape layout. */
+.dock-scroll {
+  display: contents;
 }
 
 #start {
@@ -1696,6 +1722,10 @@ body {
 #settings {
   display: none;
   position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   z-index: 100;
   align-items: center;
@@ -1705,6 +1735,10 @@ body {
 
 .settings-backdrop {
   position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   background: rgba(4, 1, 12, 0.82);
   backdrop-filter: blur(12px);
@@ -1716,6 +1750,7 @@ body {
   z-index: 101;
   width: 100%;
   max-width: 640px;
+  max-height: calc(100vh - 32px);
   max-height: calc(100dvh - 32px);
   display: flex;
   flex-direction: column;
@@ -1738,7 +1773,7 @@ body {
 .settings-eyebrow {
   display: block;
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.1em;
   color: var(--accent-pink);
@@ -1851,7 +1886,7 @@ body {
   border: 1px solid rgba(255, 112, 217, 0.4);
   color: #f9a8d4;
   font-family: var(--font-body);
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1929,7 +1964,7 @@ body {
   border: 1px solid rgba(56, 189, 248, 0.35);
   color: #bae6fd;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -2023,7 +2058,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -2044,7 +2079,7 @@ body {
 
 .settings-hint {
   margin: 0;
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   line-height: 1.4;
 }
@@ -2077,7 +2112,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -2105,7 +2140,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -2189,7 +2224,7 @@ body {
 }
 
 .mode-btn-content small {
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: #94a3b8;
   line-height: 1.3;
 }
@@ -2200,7 +2235,7 @@ body {
   padding: 3px 9px;
   border-radius: 9999px;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 600;
   background: rgba(168, 85, 247, 0.16);
   border: 1px solid rgba(168, 85, 247, 0.38);
@@ -2271,7 +2306,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.14);
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -2303,7 +2338,7 @@ body {
   border: 1px solid rgba(236, 72, 153, 0.32);
   color: #f9a8d4;
   font-family: var(--font-body);
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -2332,7 +2367,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -2368,7 +2403,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -2460,7 +2495,7 @@ body {
 
 .channel-pill {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 600;
   padding: 5px 10px;
   border-radius: 10px;
@@ -2599,7 +2634,7 @@ body {
   align-items: center;
   gap: 8px;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -2661,6 +2696,10 @@ body {
 #studioModal {
   display: none;
   position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   z-index: 110;
   align-items: center;
@@ -2673,6 +2712,7 @@ body {
   z-index: 111;
   width: 100%;
   max-width: 720px;
+  max-height: calc(100vh - 32px);
   max-height: calc(100dvh - 32px);
   display: flex;
   flex-direction: column;
@@ -2783,7 +2823,7 @@ body {
 
 .studio-field-label {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -2829,7 +2869,7 @@ body {
 
 .studio-preview-stats {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   color: #f9a8d4;
 }
 
@@ -2858,7 +2898,7 @@ body {
   border: 1px solid rgba(168, 85, 247, 0.45);
   color: #e9d5ff;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -2923,7 +2963,7 @@ body {
   padding: 4px 8px;
   border-radius: 7px;
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -2993,7 +3033,7 @@ body {
 .studio-point-time label,
 .studio-point-freq label {
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
 }
 
@@ -3007,7 +3047,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: #ffffff;
   font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   font-weight: 600;
   outline: none;
 }
@@ -3029,7 +3069,7 @@ body {
 .studio-pt-badge,
 .studio-time-mmss {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   padding: 2px 6px;
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.05);
@@ -3041,7 +3081,7 @@ body {
 .studio-pt-band,
 .studio-band-pill {
   font-family: var(--font-mono);
-  font-size: 0.64rem;
+  font-size: 0.75rem;
   font-weight: 600;
   padding: 2px 7px;
   border-radius: 999px;
@@ -3086,7 +3126,7 @@ body {
 
 .studio-saved-hint {
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
 }
 
@@ -3102,7 +3142,7 @@ body {
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.02);
   border: 1px dashed rgba(255, 255, 255, 0.1);
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   text-align: center;
 }
@@ -3135,7 +3175,7 @@ body {
 
 .studio-saved-meta {
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
 }
 
@@ -3154,7 +3194,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.14);
   color: var(--text-primary);
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -3183,7 +3223,7 @@ body {
   padding: 8px 12px;
   border-radius: 10px;
   font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-align: center;
   background: rgba(16, 185, 129, 0.14);
@@ -3223,7 +3263,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.14);
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -3305,17 +3345,19 @@ body {
    Responsive Breakpoints (Mobile / Compact Viewports)
    ========================================================================== */
 
-@media (max-width: 640px) {
+@media (max-width: 899px) {
   html,
   body {
     height: auto;
     min-height: 100%;
+    min-height: 100vh;
     min-height: 100dvh;
     overflow-x: hidden;
     overflow-y: auto;
   }
 
   .app-shell {
+    min-height: 100vh;
     min-height: 100dvh;
     height: auto;
     padding: 6px 8px;
@@ -3389,13 +3431,13 @@ body {
   }
 
   .band-badge {
-    font-size: 0.62rem;
+    font-size: 0.75rem;
     padding: 2px 6px;
     border-radius: 6px;
   }
 
   .pill-carrier {
-    font-size: 0.62rem;
+    font-size: 0.75rem;
     padding: 2px 6px;
     display: inline-block;
   }
@@ -3426,7 +3468,7 @@ body {
   }
 
   .chart-description {
-    font-size: 0.74rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
     line-height: 1.35;
     display: -webkit-box;
@@ -3470,7 +3512,7 @@ body {
     flex: 1 1 50%;
     justify-content: center;
     padding: 5px 10px;
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     font-weight: 600;
     gap: 5px;
   }
@@ -3503,7 +3545,7 @@ body {
   }
 
   .legend-item {
-    font-size: 0.62rem;
+    font-size: 0.75rem;
     gap: 4px;
   }
 
@@ -3537,7 +3579,7 @@ body {
 
   .scope-hud-badge {
     padding: 2px 7px;
-    font-size: 0.62rem;
+    font-size: 0.75rem;
   }
 
   .transport-dock {
@@ -3555,7 +3597,7 @@ body {
 
   .time-readout {
     padding: 4px 8px;
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     gap: 3px;
   }
 
@@ -3589,7 +3631,7 @@ body {
   }
 
   .ambient-quick-label {
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     white-space: nowrap;
   }
 
@@ -3603,7 +3645,7 @@ body {
 
   .tone-val-badge,
   .ambient-val-badge {
-    font-size: 0.58rem;
+    font-size: 0.75rem;
     padding: 1px 3px;
     min-width: 24px;
     text-align: right;
@@ -3633,7 +3675,7 @@ body {
   .timer-quick-select {
     flex: 1 1 auto;
     min-width: 0;
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     padding: 4px 6px;
     border-radius: 8px;
   }
@@ -3661,6 +3703,7 @@ body {
 
   .settings-dialog,
   .studio-dialog {
+    max-height: calc(100vh - 16px);
     max-height: calc(100dvh - 16px);
     border-radius: 22px;
   }
@@ -3710,7 +3753,7 @@ body {
 
 .pwa-subtitle {
   display: block;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: #94a3b8;
   margin-top: 2px;
 }
@@ -3883,7 +3926,8 @@ body {
   box-shadow: 0 0 0 2px #f59e0b, 0 0 14px rgba(245, 158, 11, 0.55);
 }
 
-/* ==========================================================================
+/* ===================================================================}
+
    Touch input and tap targets (M1.3: MUX-IN-1/2/5/6/10, MUX-TAP-1..7, MUX-STU-1)
    ========================================================================== */
 
@@ -4110,6 +4154,10 @@ a:active,
 /* Confirm sheet for destructive actions (MUX-TAP-7) */
 .confirm-sheet {
   position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   z-index: 9000;
   display: flex;
@@ -4119,6 +4167,10 @@ a:active,
 
 .confirm-backdrop {
   position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   background: rgba(3, 1, 12, 0.72);
 }
@@ -4176,7 +4228,7 @@ a:active,
   background: rgba(225, 29, 72, 0.85);
 }
 
-@media (min-width: 641px) {
+@media (min-width: 900px) {
   .confirm-sheet {
     align-items: center;
   }
@@ -4196,7 +4248,7 @@ a:active,
 }
 
 /* ---- 48 px hit areas with 8 px spacing: touch screens and Compact widths (MUX-TAP-1/2/3) ---- */
-@media (pointer: coarse), (max-width: 640px) {
+@media (pointer: coarse), (max-width: 899px) {
   .studio-quick-btn,
   .breath-quick-btn,
   #menu,
@@ -4382,6 +4434,7 @@ a:active,
   html,
   body {
     height: 100%;
+    height: 100vh;
     height: 100dvh;
     min-height: 0;
     overflow: hidden;
@@ -4411,4 +4464,1277 @@ a:active,
     padding-top: 8px;
     padding-bottom: 8px;
   }
+}
+
+/* ==========================================================================
+   Responsive layout and safe areas (M1.4: MUX-LAYOUT-1/2/4/6/7, MUX-SAFE-1..4/6/7, MUX-ORI-3..5)
+
+   Width classes (D19), window width only, re-evaluated live by the browser on resize / rotate / fold:
+     Compact  < 600     single column (sketch A)
+     Medium   600-899   single column, wider rows
+     Expanded >= 900    desktop look (stage + dock); no tablet two-panel layout in 1.0
+   "Short" modifier: window height < 500 (every phone in landscape) -> 44 px header, stage left,
+   control column right (sketch B). Height thresholds below are in em so they follow the user's
+   default font size too. No JS layout maths.
+   ========================================================================== */
+
+/* MUX-SAFE-1: env() first (iOS, Chrome), then the --safe-area-inset-* CSS vars that a native Android WebView host injects. */
+:root {
+  --sat: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px));
+  --sab: max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px));
+  --sal: max(env(safe-area-inset-left, 0px), var(--safe-area-inset-left, 0px));
+  --sar: max(env(safe-area-inset-right, 0px), var(--safe-area-inset-right, 0px));
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  font-size: 16px; /* MUX-LAYOUT-7 */
+}
+
+/* MUX-LAYOUT-1 / SAFE-2: fixed flex shell, padded by the insets; backgrounds (.ambient-bg) stay full-bleed. */
+.app-shell {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  inset: 0;
+  height: 100vh;
+  height: -webkit-fill-available;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  margin: 0 auto;
+  padding: calc(12px + var(--sat)) calc(16px + var(--sar)) calc(12px + var(--sab)) calc(16px + var(--sal));
+  overflow-x: hidden;
+  overflow-y: auto; /* last resort only (extreme font scale / split-screen); contained, never the page */
+  overscroll-behavior: contain;
+}
+
+.mixer-toggle {
+  display: none;
+}
+
+.settings-dialog,
+.studio-dialog {
+  max-height: 90vh;
+  max-height: 90vh;
+  max-height: 90dvh;
+}
+
+/* ---- Compact + Medium, and every short window: single-row header (sketch A / B) ---- */
+@media (max-width: 899px), (max-height: 499px) {
+  #header {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 10px;
+    row-gap: 0;
+    padding: 6px 10px;
+    min-height: 60px;
+  }
+
+  .header-top-row {
+    display: contents;
+  }
+
+  .header-brand {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .brand-name {
+    display: none;
+  }
+
+  .brand-logo-wrap {
+    width: 36px;
+    height: 36px;
+  }
+
+  .header-sub-row {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .header-sub-left {
+    max-width: 100%;
+  }
+
+  #title {
+    margin: 0;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 1rem;
+    line-height: 1.25;
+  }
+
+  .header-sub-right {
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .header-actions {
+    grid-column: 3;
+    grid-row: 1;
+    flex-shrink: 0;
+  }
+
+  .menu-label,
+  .breath-quick-label,
+  .studio-quick-label {
+    display: none;
+  }
+}
+
+/* ---- Compact + Medium (not short): stacked column, sketch A ---- */
+@media (max-width: 899px) {
+  .app-shell {
+    padding: calc(8px + var(--sat)) calc(10px + var(--sar)) calc(8px + var(--sab)) calc(10px + var(--sal));
+    gap: 8px;
+  }
+
+  /* Studio is also reachable from Settings; 3 x 48 px icons + 8 px gaps are all a 320 px header can hold. */
+  #headerStudioBtn {
+    display: none;
+  }
+
+  #body {
+    flex: 1 1 0;
+    min-height: 0;
+    padding: 8px;
+  }
+
+  #chart {
+    flex: 1 1 0;
+    min-height: 160px;
+  }
+
+  .transport-dock {
+    flex-shrink: 0;
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  /* Start is at least 8 px above the bottom inset: shell padding-bottom = 8 px + --sab (MUX-SAFE-3). */
+  #start {
+    min-height: 56px;
+  }
+
+  .mixer-toggle {
+    min-height: 48px;
+    width: 100%;
+    align-items: center;
+    gap: 10px;
+    padding: 0 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    text-align: left;
+  }
+
+  .mixer-toggle-label {
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .mixer-toggle-hint {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 0.75rem;
+  }
+
+  .mixer-toggle-chevron {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+  }
+
+  .transport-dock.mixer-open .mixer-toggle-chevron {
+    transform: rotate(180deg);
+  }
+}
+
+/* Medium: wider rows, volume sliders side by side, timer beside Start. */
+@media (min-width: 600px) and (max-width: 899px) {
+  .dock-quick-sliders {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dock-actions-row {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .timer-quick-control {
+    width: auto;
+    flex: 1 1 0;
+  }
+
+  #footer {
+    flex: 1 1 0;
+    width: auto;
+  }
+}
+
+/* ---- MUX-LAYOUT-2 collapse order (Compact/Medium portrait): legend, description, then the mixer drawer. ---- */
+@media (max-width: 899px) and (min-height: 500px), (max-width: 599px) and (max-height: 499px) {
+  /* Mixer drawer closed by default on short-ish heights; the toggle only exists there. */
+  @media (max-height: 43.75em) {
+    .mixer-toggle {
+      display: flex;
+    }
+
+    .transport-dock:not(.mixer-open) .dock-quick-sliders,
+    .transport-dock:not(.mixer-open) .timer-quick-control {
+      display: none;
+    }
+  }
+
+  @media (max-height: 39.9em) {
+    .chart-legend {
+      display: none;
+    }
+  }
+
+  @media (max-height: 37.5em) {
+    .chart-description {
+      display: none;
+    }
+  }
+}
+
+/* ---- Short modifier (height < 500): sketch B. Header 44 px, stage left, control column 240-280 px right. ---- */
+@media (max-height: 499px) and (min-width: 600px) {
+  .app-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(240px, 34vw, 280px);
+    grid-template-rows: 44px minmax(0, 1fr);
+    gap: 6px 8px;
+    padding: calc(4px + var(--sat)) calc(8px + var(--sar)) calc(4px + var(--sab)) calc(8px + var(--sal));
+  }
+
+  #header {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    height: 44px;
+    min-height: 44px;
+    padding: 0 8px;
+    border-radius: 12px;
+  }
+
+  .brand-logo-wrap {
+    width: 28px;
+    height: 28px;
+  }
+
+  #title {
+    font-size: 0.9375rem;
+  }
+
+  /* Icon buttons keep their 48 px hit area (M1.3); they overhang the 44 px bar by 2 px, invisibly. */
+  .header-actions {
+    margin: -2px 0;
+  }
+
+  #body {
+    grid-column: 1;
+    grid-row: 2;
+    min-height: 0;
+    min-width: 0;
+    padding: 6px 8px;
+    gap: 6px;
+  }
+
+  #chart {
+    flex: 1 1 0;
+    min-height: 0;
+  }
+
+  .chart-description {
+    display: none;
+  }
+
+  .chart-header {
+    flex-wrap: nowrap;
+  }
+
+  .transport-dock {
+    grid-column: 2;
+    grid-row: 2;
+    flex-direction: column;
+    align-items: stretch;
+    min-height: 0;
+    padding: 8px;
+    gap: 8px;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  /* Only the time + volume rows scroll. The timer and Start sit below this region, so nothing can ever
+     slide under Start (MUX-LAYOUT-4, MUX-TAP-2). */
+  .dock-scroll {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  #control {
+    width: 100%;
+    flex: 0 0 auto;
+    gap: 8px;
+  }
+
+  .dock-quick-sliders {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    width: 100%;
+    flex: 0 0 auto;
+  }
+
+  .dock-actions-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+    flex: 0 0 auto;
+  }
+
+  .timer-quick-control {
+    width: 100%;
+    min-width: 0;
+  }
+
+  #footer {
+    position: static;
+    flex: 0 0 auto;
+    width: 100%;
+  }
+
+  #start {
+    width: 100%;
+    min-height: 56px;
+  }
+}
+
+@media (max-height: 419px) {
+  .chart-legend {
+    display: none;
+  }
+}
+
+/* ---- MUX-LAYOUT-6: Settings / Studio are full-screen sheets on Compact + Medium (and short windows) ---- */
+@media (max-width: 899px), (max-height: 499px) {
+  #settings,
+  #studioModal {
+    padding: 0;
+    align-items: stretch;
+  }
+
+  .settings-dialog,
+  .studio-dialog {
+    width: 100%;
+    max-width: none;
+    height: 100vh;
+    height: 100vh;
+    height: 100dvh;
+    max-height: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  /* Sticky header (title + Close) and sticky footer sit outside the scrolling body. */
+  .settings-header {
+    min-height: 56px;
+    padding: calc(8px + var(--sat)) calc(16px + var(--sar)) 8px calc(16px + var(--sal));
+  }
+
+  #settingsBody,
+  #studioBody {
+    padding-left: calc(20px + var(--sal));
+    padding-right: calc(20px + var(--sar));
+  }
+
+  #settingsFooter,
+  .studio-footer {
+    padding: 10px calc(16px + var(--sar)) calc(10px + var(--sab)) calc(16px + var(--sal));
+  }
+
+  /* Overrides the 16 px side padding of the old Compact block. */
+  .settings-header,
+  #settingsFooter,
+  .studio-footer {
+    padding-left: calc(16px + var(--sal));
+    padding-right: calc(16px + var(--sar));
+  }
+}
+
+/* Transient toasts / sheets clear the home indicator and the cut-outs (MUX-SAFE-3/4). */
+.pwa-update-toast {
+  bottom: calc(24px + var(--sab));
+  right: calc(24px + var(--sar));
+}
+
+@media (max-width: 599px) {
+  .pwa-update-toast {
+    left: calc(16px + var(--sal));
+    right: calc(16px + var(--sar));
+    bottom: calc(80px + var(--sab));
+  }
+}
+
+.confirm-card {
+  padding-bottom: calc(20px + var(--sab));
+}
+
+/* Compact: the carrier badge lives in Settings; the header keeps title + band (sketch A). */
+@media (max-width: 599px) {
+  .pill-carrier {
+    display: none;
+  }
+}
+
+/* Expanded but narrow (900-1199): six items do not fit one dock row, so the time row gets its own line. */
+@media (min-width: 900px) and (max-width: 1199px) and (min-height: 500px) {
+  .transport-dock {
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+
+  #control {
+    flex: 1 1 100%;
+  }
+}
+
+/* Touch laptops / tablets at Expanded width: the Compact full-width Start/timer rules must not stretch the one-row dock. */
+@media (min-width: 900px) and (min-height: 500px) {
+  #footer {
+    width: auto;
+  }
+
+  #start {
+    width: auto;
+    min-width: 150px;
+  }
+
+  .timer-quick-control {
+    width: auto;
+  }
+}
+
+/* Large text (Android font scale 200%, iOS AX3): the time readout and slider may stack, and the short header may grow
+   instead of overlapping its neighbours (MUX-LAYOUT-7). Start and the time slider stay visible. */
+#control {
+  flex-wrap: wrap;
+}
+
+#divSlider {
+  flex: 1 1 96px;
+}
+
+@media (max-height: 499px) and (min-width: 600px) {
+  .app-shell {
+    grid-template-rows: minmax(44px, auto) minmax(0, 1fr);
+  }
+
+  #header {
+    height: auto;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 899px), (max-height: 499px) {
+  .header-sub-right {
+    min-width: 0;
+  }
+
+  .band-badge {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+
+/* ==========================================================================
+   M1.5 - HUD per width class, accessibility, sheets, first-run notice
+   ========================================================================== */
+
+:root {
+  color-scheme: dark; /* MUX-VIS-1: dark native pickers, scrollbars and keyboards */
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Status dot: grey idle, green playing (slow 2 s pulse), amber interrupted, red error. Text is never colour-only (aria-live text). */
+#audioStatus {
+  padding: 4px 8px;
+  flex-shrink: 0;
+}
+
+#audioStatus .status-dot {
+  background: #94a3b8;
+}
+
+#audioStatus.playing {
+  background: rgba(34, 197, 94, 0.14);
+  border-color: rgba(74, 222, 128, 0.45);
+  color: #bbf7d0;
+}
+
+#audioStatus.playing .status-dot {
+  background: #4ade80;
+  box-shadow: 0 0 10px #4ade80;
+  animation: pulseAura 2s ease-in-out infinite;
+}
+
+#audioStatus.interrupted {
+  background: rgba(245, 158, 11, 0.14);
+  border-color: rgba(251, 191, 36, 0.5);
+  color: #fde68a;
+}
+
+#audioStatus.interrupted .status-dot {
+  background: #fbbf24;
+  box-shadow: none;
+  animation: none;
+}
+
+#audioStatus[data-state="error"] {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(248, 113, 113, 0.5);
+  color: #fecaca;
+}
+
+#audioStatus[data-state="error"] .status-dot {
+  background: #f87171;
+}
+
+.header-sub-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* The program title is a button that opens the quick-switch sheet (MUX-IN-7). */
+#title[role="button"] {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  border-radius: 8px;
+}
+
+#title[role="button"]::after {
+  content: "";
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  margin-top: -3px;
+  border-right: 2px solid var(--text-secondary);
+  border-bottom: 2px solid var(--text-secondary);
+  transform: rotate(45deg);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
+}
+
+/* MUX-HUD-4: tabular numerals, fixed width for the longest value (1:00:00) so the slider does not jitter. */
+#divPosition,
+#divDuration {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  font-size: 1rem;
+}
+
+#divPosition {
+  min-width: 7ch; /* fits 1:00:00 */
+  text-align: right;
+}
+
+.info-btn {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-style: italic;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+@media (pointer: coarse), (max-width: 899px) {
+  .info-btn {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+.disclaimer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.notice-secondary-btn,
+.notice-ack-btn {
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.notice-ack-btn {
+  flex: 1 1 auto;
+  min-height: 56px;
+  border-color: rgba(255, 112, 217, 0.6);
+  background: linear-gradient(135deg, #be185d, #7e22ce);
+  color: #ffffff;
+  font-size: 1rem;
+}
+
+/* ---- Bottom sheets (program list, info, first-run notice) ---- */
+.sheet {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.sheet[hidden] {
+  display: none;
+}
+
+.sheet-backdrop {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  inset: 0;
+  background: rgba(4, 1, 12, 0.82);
+}
+
+.sheet-panel {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  max-height: 85vh;
+  max-height: 85vh;
+  max-height: 85dvh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 24px 24px 0 0;
+  background: rgba(15, 8, 38, 0.98);
+  border: 1px solid rgba(255, 112, 217, 0.3);
+  padding-bottom: var(--sab, 0px);
+  overflow: hidden;
+}
+
+.sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px 8px;
+}
+
+.sheet-header h2 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.sheet-footer {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+}
+
+@media (pointer: coarse), (max-width: 899px) {
+  .sheet-header .close-icon-btn {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+@media (min-width: 600px) {
+  .sheet {
+    align-items: center;
+  }
+
+  .sheet-panel {
+    border-radius: 24px;
+  }
+}
+
+.program-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 8px 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.program-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  text-align: left;
+  cursor: pointer;
+}
+
+.program-row.current {
+  background: rgba(255, 112, 217, 0.14);
+}
+
+.program-row-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.program-row-name {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.program-row-desc {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.program-row-dur {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.info-glossary {
+  margin: 0;
+  padding: 0 16px 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.info-glossary dt {
+  margin-top: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.info-glossary dd {
+  margin: 2px 0 0;
+  color: var(--text-secondary);
+}
+
+.notice-body {
+  padding: 0 16px;
+  overflow-y: auto;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.notice-list {
+  margin: 0 0 12px;
+  padding-left: 20px;
+}
+
+.notice-list li {
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.notice-more {
+  margin: 0;
+  font-size: 0.8125rem;
+}
+
+/* ---- Compact + Medium and short windows: HUD per width class (UX section 7) ---- */
+@media (max-width: 899px) and (min-height: 500px), (max-width: 599px) and (max-height: 499px) {
+  #header {
+    height: 56px;
+    min-height: 56px;
+    padding: 3px 4px;
+    column-gap: 4px;
+  }
+}
+
+/* Compact width + height < 420 (320x407 portrait, 407x296 landscape): single column, 44 px header. */
+@media (max-width: 599px) and (max-height: 419px) {
+  #header {
+    height: 44px;
+    min-height: 44px;
+    padding: 0 4px;
+    border-radius: 12px;
+  }
+
+  .brand-logo-wrap {
+    width: 28px;
+    height: 28px;
+  }
+
+  .header-actions {
+    margin: -2px 0;
+  }
+
+  .chart-legend,
+  .chart-description {
+    display: none;
+  }
+
+  /* MUX-LAYOUT-2: the 160 px stage floor cannot hold here, so the stage shrinks instead of pushing
+     the dock off-screen; the dock is one slider row plus one Mixer + Start row (Start never hidden). */
+  .app-shell {
+    padding-top: calc(4px + var(--sat));
+    padding-bottom: calc(8px + var(--sab));
+    gap: 6px;
+  }
+
+  #body {
+    padding: 6px;
+    gap: 4px;
+  }
+
+  #chart {
+    min-height: 0;
+  }
+
+  .chart-header {
+    flex-wrap: nowrap;
+  }
+
+  .chart-header-controls {
+    flex-wrap: nowrap;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .chart-meta {
+    display: none;
+  }
+
+  /* Buttons keep their 48 px hit area; the pill frame drops its padding so the row is 48 px, not 56. */
+  .stage-view-toggle {
+    padding: 0;
+  }
+
+  .transport-dock {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 8px;
+    row-gap: 6px;
+    padding: 6px 10px;
+    min-height: 0;
+    max-height: 62%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  #control {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .dock-quick-sliders {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .mixer-toggle {
+    grid-column: 1;
+    grid-row: 3;
+    align-self: end;
+    width: auto;
+    min-height: 56px;
+    position: sticky;
+    bottom: 0;
+  }
+
+  .mixer-toggle-hint {
+    display: none;
+  }
+
+  .dock-actions-row {
+    grid-column: 2;
+    grid-row: 3;
+    min-width: 0;
+    gap: 6px;
+    position: sticky;
+    bottom: 0;
+    background: #120c28;
+    border-radius: 12px;
+  }
+
+  .transport-dock.mixer-open .mixer-toggle {
+    background: #120c28;
+  }
+
+  #start {
+    min-height: 56px;
+  }
+}
+
+/* Very short compact windows (landscape split-screen, < 340 px): the stage toggle and info button float over
+   the stage's top-right corner instead of taking their own 48 px row, so the chart keeps the space. */
+@media (max-width: 599px) and (max-height: 339px) {
+  .chart-header {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 3;
+    width: auto;
+  }
+
+  .chart-header-controls {
+    width: auto;
+    gap: 4px;
+  }
+
+  .chart-header-left {
+    display: none;
+  }
+}
+
+@media (max-width: 899px), (max-height: 499px) {
+  .header-actions {
+    gap: 0;
+  }
+
+  #headerModeBtn,
+  #headerBreathBtn,
+  #menu {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .mode-quick-icon {
+    font-size: 20px;
+  }
+
+  .breath-icon,
+  .gear-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .mode-quick-label,
+  .menu-label,
+  .breath-quick-label,
+  .studio-quick-label,
+  #audioStatus .status-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  /* Status is a dot on the logo corner: no width of its own; the text stays in the DOM for the aria-live region. */
+  .header-brand {
+    position: relative;
+  }
+
+  #audioStatus,
+  #audioStatus.playing,
+  #audioStatus.interrupted,
+  #audioStatus[data-state="error"] {
+    position: absolute;
+    right: -3px;
+    bottom: 2px;
+    padding: 0;
+    gap: 0;
+    width: 12px;
+    height: 12px;
+    justify-content: center;
+    border: 2px solid #0a061c;
+    background: #0a061c;
+  }
+
+  #audioStatus .status-dot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .brand-name,
+  #carrierBadge,
+  #voiceCountBadge,
+  .pill-foss {
+    display: none;
+  }
+
+  #title {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 24px;
+  }
+
+  #title[role="button"]::after {
+    flex: 0 0 auto;
+  }
+
+  .header-sub-left {
+    max-width: 100%;
+  }
+
+  .header-sub-right {
+    max-width: 100%;
+  }
+
+  /* Scope controls: one horizontally scrollable row of 48 px buttons (chosen over a "View" sheet). */
+  .scope-controls-bar {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    pointer-events: auto;
+    scrollbar-width: none;
+  }
+
+  .scope-controls-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scope-mode-group,
+  .scope-zoom-group,
+  .scope-channel-group {
+    flex: 0 0 auto;
+    width: auto;
+    justify-content: flex-start;
+  }
+
+  /* At most 2 scope HUD badges: FFR beat and mode. Carrier is in Settings (Base Frequency) and the info sheet. */
+  .scope-hud .hud-carrier,
+  .scope-hud .hud-cycle {
+    display: none;
+  }
+
+  /* Breath pacer: bottom-anchored card, at most 55% of the stage, pills in a scrollable row. */
+  .breath-overlay {
+    align-items: flex-end;
+    justify-content: center;
+    padding: 8px;
+  }
+
+  .breath-overlay .breath-card {
+    max-width: 100%;
+    max-height: 55%;
+    overflow-y: auto;
+    padding: 8px 12px;
+    gap: 6px;
+  }
+
+  .breath-overlay .breath-visual-wrap {
+    max-height: 30vh;
+  }
+
+  .breath-mode-pills {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .breath-mode-btn {
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 899px), (max-height: 499px) {
+  .scope-idle-text {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+@media (max-height: 499px) {
+  .scope-idle-title,
+  .scope-idle-text {
+    display: none;
+  }
+}
+
+/* Expanded: dot and text status, labelled buttons */
+@media (min-width: 900px) and (min-height: 500px) {
+  #audioStatus {
+    padding: 6px 12px;
+  }
+}
+
+/* MUX-VIS-3: reduced motion switches off ambient orbs, the status pulse, the breath aura and every other decorative animation/transition. */
+@media (prefers-reduced-motion: reduce) {
+  .orb,
+  .orb-1,
+  .orb-2,
+  .orb-3,
+  .status-dot,
+  .breath-aura {
+    animation: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .breath-orb {
+    transform: scale(0.76) !important;
+  }
+
+  .breath-aura {
+    transform: scale(0.85) !important;
+    opacity: 0.5 !important;
+  }
+}
+
+/* Short landscape: title and band badge share one line inside the 44 px bar. */
+@media (max-height: 499px) {
+  .header-sub-row {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+
+  #title {
+    min-height: 0;
+  }
+}
+
+@media (max-height: 499px) {
+  .time-readout {
+    padding: 0 2px;
+    gap: 3px;
+    border: 0;
+    background: none;
+  }
+}
+
+/* ==========================================================================
+   M1.6 defect fix - header tap-target spacing (MUX-TAP-1 / MUX-TAP-2)
+   ========================================================================== */
+
+/* Header icon cluster: 8 px between 48 px buttons (56 px pitch). At 320-359 px the 288 px content box cannot
+   hold three 8 px gaps beside a 36 px logo and a usable title, so those widths use 4 px. This is a documented
+   exception to MUX-TAP-2 for the header cluster only (QA decision, t_180f2a40). */
+@media (max-width: 899px), (max-height: 499px) {
+  .header-actions {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 359px) {
+  .header-actions {
+    gap: 4px;
+  }
+}
+
+/* The program title keeps its 24 px of visible text, but its hit area is 48 px high: padding via min-height,
+   pulled back with a negative margin so the header layout does not grow. The extra hit area overlaps the band
+   badge row, which is not interactive. */
+#title[role="button"] {
+  box-sizing: border-box;
+  min-height: 48px;
+  margin-block: -12px;
+}
+
+@media (max-height: 499px) {
+  #title[role="button"] {
+    margin-block: -14.5px;
+  }
+}
+
+/* Native (Capacitor) shell: hide PWA-only UI (install, update toast, offline-PWA copy) */
+html.native-app .pwa-settings-card,
+html.native-app #pwaUpdateToast {
+  display: none !important;
 }

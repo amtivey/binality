@@ -87,7 +87,7 @@ var STOP_FADE_SEC = 0.3;
 var SEEK_FADE_SEC = 0.15; // gain fade-out across a seek restart while playing (MUX-IN-3)
 var TAP_MAX_MOVE_PX = 10; // chart tap = moved less than this ...
 var TAP_MAX_MS = 300; // ... and pressed for less than this (MUX-IN-2)
-var TOUCH_TOOLTIP_LIFT_PX = 56; // touch tooltip sits at least this far above the finger (MUX-IN-1)
+var TOUCH_TOOLTIP_LIFT_PX = 58; // touch tooltip sits at least this far above the finger (MUX-IN-1)
 var TOAST_MS = 1500;
 var seekRestartId = null;
 var sliderHeld = false; // true while a finger/mouse holds the #slider thumb
@@ -581,9 +581,11 @@ function updateSliderFill() {
   var pct = max > min ? ((val - min) / (max - min)) * 100 : 0;
   pct = Math.max(0, Math.min(100, pct));
   slider.style.setProperty('--fill', pct.toFixed(2) + '%');
+  setSliderValueText(slider);
 }
 
 function updateLiveReadouts(t) {
+  updateCanvasLabelsSoon();
   var currentT = typeof t === 'number' ? t : parseInt(document.getElementById('slider').value, 10) || 0;
   var liveFreqBadge = document.getElementById('liveFreqBadge');
   var activeBandBadge = document.getElementById('activeBandBadge');
@@ -770,7 +772,7 @@ function createProgramChart() {
 
     // 2. Grid lines & Axis Ticks
     ctx.lineWidth = 1;
-    ctx.font = '500 10px "JetBrains Mono", monospace';
+    ctx.font = '500 11px "JetBrains Mono", monospace';
 
     var yTickCount = height < 220 ? 4 : 5;
     var rawYStep = yMax / yTickCount;
@@ -812,7 +814,7 @@ function createProgramChart() {
 
     if (height >= 180) {
       ctx.fillStyle = 'rgba(203, 213, 225, 0.65)';
-      ctx.font = '500 10px "JetBrains Mono", monospace';
+      ctx.font = '500 11px "JetBrains Mono", monospace';
       ctx.textAlign = 'center';
       ctx.fillText('frequency/time(s)', padLeft + plotW / 2, height - 8);
     }
@@ -997,10 +999,53 @@ function createProgramChart() {
       var leftPos;
       var topPos;
       if (isTouch) {
-        // Finger or pen: centre the tooltip above the contact point so the hand never covers it (MUX-IN-1).
-        leftPos = x - tipRect.width / 2;
-        leftPos = Math.min(leftPos, rect.width - tipRect.width - 8);
-        topPos = Math.max(8, y - tipRect.height - TOUCH_TOOLTIP_LIFT_PX);
+        // Finger or pen (MUX-IN-1): keep the tooltip >= TOUCH_TOOLTIP_LIFT_PX from the touch point, inside the stage.
+        // Try above, then beside (right/left), then below; if none fit, fall back to a one-line compact tooltip.
+        var placeTouch = function (w, h, M, L) {
+          var cy = Math.max(M, Math.min(rect.height - h - M, y - h / 2));
+          var cx = Math.max(M, Math.min(rect.width - w - M, x - w / 2));
+          var cands = [
+            { l: cx, t: y - h - L },
+            { l: x + L, t: cy },
+            { l: x - w - L, t: cy },
+            { l: cx, t: y + L }
+          ];
+          for (var k = 0; k < cands.length; ++k) {
+            var c = cands[k];
+            if (c.l >= M && c.t >= M && c.l + w <= rect.width - M && c.t + h <= rect.height - M) return c;
+          }
+          return null;
+        };
+        var pos = placeTouch(tipRect.width, tipRect.height, 8, TOUCH_TOOLTIP_LIFT_PX);
+        if (!pos) {
+          var parts = [];
+          for (var j = 0; j < voicesData.length; ++j) parts.push(getFrequency(voicesData[j], hoverTime).toFixed(2));
+          tooltip.innerHTML =
+            '<div class="tooltip-time" style="margin:0;white-space:nowrap;">' +
+            getTimeString(hoverTime) +
+            ' &middot; ' +
+            parts.join(' / ') +
+            ' Hz</div>';
+          tipRect = tooltip.getBoundingClientRect();
+          pos = placeTouch(tipRect.width, tipRect.height, 0, TOUCH_TOOLTIP_LIFT_PX);
+        }
+        if (!pos) {
+          // Tiny stage: the stage corner farthest from the finger.
+          var best = -1;
+          [2, rect.width - tipRect.width - 2].forEach(function (cl) {
+            [2, rect.height - tipRect.height - 2].forEach(function (ct) {
+              var ddx = Math.max(cl - x, 0, x - (cl + tipRect.width));
+              var ddy = Math.max(ct - y, 0, y - (ct + tipRect.height));
+              var dd = Math.hypot(ddx, ddy);
+              if (dd > best) {
+                best = dd;
+                pos = { l: cl, t: ct };
+              }
+            });
+          });
+        }
+        leftPos = pos.l;
+        topPos = pos.t;
       } else {
         leftPos = x + 14;
         if (leftPos + tipRect.width > rect.width - 8) {
@@ -1116,8 +1161,13 @@ function stopScopeAnimation() {
 
 function startScopeAnimation() {
   stopScopeAnimation();
-  function loop() {
-    drawScopeFrame();
+  var lastDraw = 0;
+  function loop(ts) {
+    // MUX-VIS-3: reduced motion redraws the scope as a static plot at 10 fps
+    if (!prefersReducedMotion() || !ts || ts - lastDraw >= 100) {
+      lastDraw = ts || 0;
+      drawScopeFrame();
+    }
     if (activeStageView === 'waveform' && isCurrentlyPlaying()) {
       scopeAnimId = requestAnimationFrame(loop);
     } else {
@@ -1234,7 +1284,7 @@ function drawScopeFrame() {
     ctx.stroke();
 
     // Axis Labels
-    ctx.font = '500 10px "JetBrains Mono", monospace';
+    ctx.font = '500 11px "JetBrains Mono", monospace';
     ctx.fillStyle = '#38bdf8';
     ctx.textAlign = 'right';
     ctx.fillText('Left Ear (X) →', cx + maxR * 1.1, cy - 6);
@@ -1339,7 +1389,7 @@ function drawScopeFrame() {
     ctx.lineTo(width, midY + plotAmp);
     ctx.stroke();
 
-    ctx.font = '500 10px "JetBrains Mono", monospace';
+    ctx.font = '500 11px "JetBrains Mono", monospace';
     ctx.fillStyle = '#64748b';
     ctx.textAlign = 'left';
     ctx.fillText('+1.0', 10, midY - plotAmp - 4);
@@ -1489,7 +1539,7 @@ function drawScopeFrame() {
     // Vertical time grid lines
     var gridStepMs = spanMs <= 200 ? 25 : spanMs <= 400 ? 50 : 100;
     var numSteps = Math.floor(spanMs / gridStepMs);
-    ctx.font = '500 10px "JetBrains Mono", monospace';
+    ctx.font = '500 11px "JetBrains Mono", monospace';
     ctx.fillStyle = '#64748b';
     ctx.textAlign = 'center';
 
@@ -1595,7 +1645,7 @@ function drawScopeFrame() {
         ctx.stroke();
 
         ctx.fillStyle = '#f472b6';
-        ctx.font = '600 10px "JetBrains Mono", monospace';
+        ctx.font = '600 11px "JetBrains Mono", monospace';
         ctx.textAlign = 'center';
         ctx.fillText('λ = ' + cycleMs.toFixed(1) + 'ms (' + beatRate.toFixed(1) + ' Hz ' + bandName + ' Entrainment)', (calX1 + calX2) / 2, calY - 6);
         ctx.restore();
@@ -1728,6 +1778,8 @@ function setPlayingUI(playing, interrupted) {
   if (startBtn) {
     startBtn.textContent = playing ? 'stop' : 'start';
     startBtn.setAttribute('data-playing', playing ? 'true' : 'false');
+    startBtn.setAttribute('aria-pressed', playing ? 'true' : 'false');
+    startBtn.setAttribute('aria-label', playing ? 'Stop session' : 'Start session');
     startBtn.setAttribute('data-state', uiState);
     if (playing) {
       startBtn.classList.add('is-playing');
@@ -1813,7 +1865,7 @@ function loadProgram(xml) {
 
   if (titleEl) {
     titleEl.textContent = progName;
-    titleEl.title = progName;
+    titleEl.setAttribute('aria-label', progName + '. Choose a program');
   }
   if (nameEl) nameEl.textContent = progName;
   if (descEl) descEl.textContent = progDesc;
@@ -2019,6 +2071,10 @@ function start(preserveTimer, fullFade) {
 
   cleanupAudioNodes();
   setPlayingUI(true);
+  if (window.BinalityPlatform) {
+    // Android foreground service + wake lock (no-op on web); idempotent across seeks.
+    window.BinalityPlatform.keepAlive.start(program.getAttribute('name') || '');
+  }
   timerCompletedStatus = null;
 
   merger = [];
@@ -2456,6 +2512,7 @@ function updateAmbientRangeFill(slider) {
   var pct = max > min ? ((val - min) / (max - min)) * 100 : 0;
   pct = Math.max(0, Math.min(100, pct));
   slider.style.setProperty('--fill', pct.toFixed(2) + '%');
+  setSliderValueText(slider);
 }
 
 function syncAmbientUI() {
@@ -2559,6 +2616,7 @@ function updateToneRangeFill(slider) {
   var pct = max > min ? ((val - min) / (max - min)) * 100 : 0;
   pct = Math.max(0, Math.min(100, pct));
   slider.style.setProperty('--fill', pct.toFixed(2) + '%');
+  setSliderValueText(slider);
 }
 
 function syncToneVolumeUI() {
@@ -2688,8 +2746,12 @@ function cleanupAudioNodes() {
   }
 }
 
+function isNativeApp() {
+  return !!(window.BinalityPlatform && window.BinalityPlatform.isNative);
+}
+
 function parseTimerSettingToSeconds(val) {
-  if (val === '10s') return 10;
+  if (val === '10s') return isNativeApp() ? 0 : 10; // D21: the 10 s test timer is a web-only development aid
   var mins = parseInt(val, 10);
   if (!isNaN(mins) && mins > 0) return mins * 60;
   return 0;
@@ -3059,6 +3121,7 @@ function startBreathAnimation() {
       scale = 0.52 + 0.02 * Math.sin(progress * Math.PI * 2);
     }
 
+    if (prefersReducedMotion()) scale = 0.76; // MUX-VIS-3: static orb; the countdown text and ring carry the pacing
     var orb = document.getElementById('breathOrb');
     var aura = document.getElementById('breathAura');
     var ringArc = document.getElementById('breathRingArc');
@@ -3288,6 +3351,8 @@ function stop(preserveTimer, fromTimerComplete, opts) {
   stopMonitor();
   clearHiddenWatch();
   cancelPendingStop();
+  // A seek (preserveTimer) restarts playback immediately, so keep the service up across it.
+  if (!preserveTimer && window.BinalityPlatform) window.BinalityPlatform.keepAlive.stop();
   if (!preserveTimer) {
     clearSleepTimer(true);
   }
@@ -3614,9 +3679,11 @@ function confirmAction(opts, onConfirm) {
   sheet.appendChild(backdrop);
   sheet.appendChild(card);
   document.body.appendChild(sheet);
+  trapFocus(sheet, document.activeElement);
 
   function dismiss() {
     document.removeEventListener('keydown', onKey, true);
+    releaseFocus(sheet);
     if (sheet.parentNode) sheet.parentNode.removeChild(sheet);
   }
   function onKey(e) {
@@ -3654,6 +3721,15 @@ function syncModeUI() {
     } else {
       headerModeBtn.classList.remove('is-isochronic');
     }
+  }
+  if (headerModeBtn) {
+    headerModeBtn.setAttribute('aria-pressed', isIso ? 'true' : 'false');
+    headerModeBtn.setAttribute(
+      'aria-label',
+      isIso
+        ? 'Tone mode: Isochronic, works on speakers. Switch to Binaural'
+        : 'Tone mode: Binaural, for stereo headphones. Switch to Isochronic'
+    );
   }
   if (headerModeIcon) {
     headerModeIcon.textContent = isIso ? '🔊' : '🎧';
@@ -3929,6 +4005,7 @@ function openSettings() {
   updatePwaStatusUI();
   if (settingsModal) {
     settingsModal.style.display = 'flex';
+    trapFocus(settingsModal, document.getElementById('menu'));
   }
   clientResize();
 }
@@ -3937,6 +4014,7 @@ function closeSettings() {
   var settingsModal = document.getElementById('settings');
   if (settingsModal) {
     settingsModal.style.display = 'none';
+    releaseFocus(settingsModal);
   }
   clientResize();
 }
@@ -4380,7 +4458,7 @@ function renderStudioPreview() {
   // Subtle horizontal grid lines
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
   ctx.lineWidth = 1;
-  ctx.font = '500 10px "JetBrains Mono", monospace';
+  ctx.font = '500 11px "JetBrains Mono", monospace';
   ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
   ctx.textAlign = 'right';
   ctx.textBaseline = 'middle';
@@ -4463,7 +4541,7 @@ function renderStudioPreview() {
 
       var freqStr =
         rawPts[rp].freq % 1 === 0 ? rawPts[rp].freq.toFixed(0) + 'Hz' : rawPts[rp].freq.toFixed(1) + 'Hz';
-      ctx.font = '600 9.5px "JetBrains Mono", monospace';
+      ctx.font = '600 11px "JetBrains Mono", monospace';
       ctx.fillStyle = '#ffffff';
       ctx.textAlign = rp === 0 ? 'left' : rp === rawPts.length - 1 ? 'right' : 'center';
       var labelY = dy - 9 < padT + 4 ? dy + 11 : dy - 9;
@@ -5031,6 +5109,7 @@ function openStudio() {
   var modal = document.getElementById('studioModal');
   if (!modal) return;
   modal.style.display = 'flex';
+  trapFocus(modal, document.getElementById('headerStudioBtn') || document.getElementById('openStudioFromSettingsBtn'));
   clearStudioStatus();
   syncStudioMetaInputs();
   renderStudioVoices();
@@ -5044,6 +5123,7 @@ function closeStudio() {
   var modal = document.getElementById('studioModal');
   if (!modal) return;
   modal.style.display = 'none';
+  releaseFocus(modal);
   clientResize();
 }
 
@@ -5244,6 +5324,19 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // Mixer drawer (Compact/Medium only; the button is display:none elsewhere). Layout itself is pure CSS (MUX-LAYOUT-2).
+  var mixerToggleEl = document.getElementById('mixerToggle');
+  if (mixerToggleEl) {
+    mixerToggleEl.addEventListener('click', function () {
+      var dock = document.querySelector('.transport-dock');
+      var open = !(dock && dock.classList.contains('mixer-open'));
+      if (dock) {
+        dock.classList.toggle('mixer-open', open);
+      }
+      mixerToggleEl.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+
   window.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
       var studioModal = document.getElementById('studioModal');
@@ -5257,6 +5350,14 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }
   });
+
+  // Notification Stop action: same path as the button, so the UI cannot diverge.
+  if (window.BinalityPlatform) {
+    window.BinalityPlatform.keepAlive.onStopRequested(function () {
+      if (isCurrentlyPlaying()) stop();
+      else window.BinalityPlatform.keepAlive.stop();
+    });
+  }
 
   if (startBtn) {
     startBtn.addEventListener('click', function () {
@@ -5756,7 +5857,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  initPwaServiceWorker();
+  if (!(window.BinalityPlatform && window.BinalityPlatform.isNative)) initPwaServiceWorker();
+  initMobileHud();
 });
 
 window.addEventListener('resize', function () {
@@ -5767,3 +5869,404 @@ window.addEventListener('resize', function () {
   }
 });
 
+
+// ==========================================================================
+// Mobile HUD, accessibility, sheets and first-run notice (M1.5)
+// ==========================================================================
+
+function prefersReducedMotion() {
+  return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+}
+
+// ---- Sheets: focus trap, inert background, focus returns to the opener (MUX-VIS-6) ----
+var sheetStack = [];
+var FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+function isVisibleEl(el) {
+  return !!(el && (el.offsetWidth || el.offsetHeight || el.getClientRects().length));
+}
+
+function getFocusable(root) {
+  var list = root.querySelectorAll(FOCUSABLE_SELECTOR);
+  var out = [];
+  for (var i = 0; i < list.length; ++i) {
+    if (isVisibleEl(list[i])) out.push(list[i]);
+  }
+  return out;
+}
+
+function trapFocus(modal, opener) {
+  if (!modal) return;
+  for (var k = 0; k < sheetStack.length; ++k) {
+    if (sheetStack[k].modal === modal) return;
+  }
+  var entry = { modal: modal, opener: opener || document.activeElement, inerted: [] };
+  var kids = document.body.children;
+  for (var i = 0; i < kids.length; ++i) {
+    var el = kids[i];
+    if (el === modal || el.tagName === 'SCRIPT' || el.contains(modal) || el.hasAttribute('inert')) continue;
+    el.setAttribute('inert', '');
+    entry.inerted.push(el);
+  }
+  sheetStack.push(entry);
+  var focusables = getFocusable(modal);
+  var target = modal.querySelector('[data-initial-focus]') || focusables[0];
+  if (target) {
+    setTimeout(function () {
+      target.focus();
+    }, 0);
+  }
+}
+
+function releaseFocus(modal) {
+  for (var i = sheetStack.length - 1; i >= 0; --i) {
+    if (sheetStack[i].modal !== modal) continue;
+    var entry = sheetStack.splice(i, 1)[0];
+    for (var j = 0; j < entry.inerted.length; ++j) {
+      entry.inerted[j].removeAttribute('inert');
+    }
+    var opener = entry.opener;
+    if (opener && document.body.contains(opener) && typeof opener.focus === 'function') {
+      setTimeout(function () {
+        opener.focus();
+      }, 0);
+    }
+    return;
+  }
+}
+
+document.addEventListener('keydown', function (e) {
+  if (!sheetStack.length) return;
+  var top = sheetStack[sheetStack.length - 1].modal;
+  if (e.key === 'Escape') {
+    if (top.id === 'noticeModal' && !top.getAttribute('data-dismissable')) return;
+    e.preventDefault();
+    e.stopPropagation(); // the older window-level Escape handler must not also close the sheet underneath
+    closeTopSheet(top);
+    return;
+  }
+  if (e.key !== 'Tab') return;
+  var f = getFocusable(top);
+  if (!f.length) {
+    e.preventDefault();
+    return;
+  }
+  var first = f[0];
+  var last = f[f.length - 1];
+  if (!top.contains(document.activeElement)) {
+    e.preventDefault();
+    first.focus();
+  } else if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault();
+    first.focus();
+  }
+});
+
+function closeTopSheet(top) {
+  if (top.id === 'settings') closeSettings();
+  else if (top.id === 'studioModal') closeStudio();
+  else closeSheet(top);
+}
+
+function openSheet(sheet, opener) {
+  if (!sheet) return;
+  sheet.hidden = false;
+  trapFocus(sheet, opener);
+}
+
+function closeSheet(sheet) {
+  if (!sheet) return;
+  sheet.hidden = true;
+  releaseFocus(sheet);
+}
+
+// ---- Program quick-switch sheet (MUX-IN-7) ----
+var programMetaCache = {};
+
+function programMetaFromXml(xmlText) {
+  var meta = { name: '', desc: '', mins: 0 };
+  try {
+    var doc = new DOMParser().parseFromString(xmlText, 'application/xml');
+    var root = doc.documentElement;
+    meta.name = root.getAttribute('name') || '';
+    meta.desc = (root.getAttribute('description') || '').replace(/\s*\(\d+\s*minutes?\)\s*$/i, '');
+    var voices = doc.getElementsByTagName('voice');
+    var maxLen = 0;
+    for (var i = 0; i < voices.length; ++i) {
+      maxLen = Math.max(maxLen, parseFloat(voices[i].getAttribute('length')) || 0);
+    }
+    meta.mins = Math.round(maxLen / 60);
+  } catch (e) {}
+  return meta;
+}
+
+function loadProgramMeta(filename) {
+  if (programMetaCache[filename]) return Promise.resolve(programMetaCache[filename]);
+  var done = function (xmlText) {
+    programMetaCache[filename] = programMetaFromXml(xmlText);
+    return programMetaCache[filename];
+  };
+  if (BUILTIN_PROGRAMS_XML[filename]) return Promise.resolve(done(BUILTIN_PROGRAMS_XML[filename]));
+  return fetch(filename)
+    .then(function (r) {
+      if (!r.ok) throw new Error('program');
+      return r.text();
+    })
+    .then(done)
+    .catch(function () {
+      return { name: '', desc: '', mins: 0 };
+    });
+}
+
+function buildProgramRow(value, name, desc, mins) {
+  var li = document.createElement('li');
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'program-row';
+  btn.setAttribute('data-program', value);
+  if (value === currentProgram) {
+    btn.setAttribute('aria-current', 'true');
+    btn.classList.add('current');
+  }
+  var text = document.createElement('span');
+  text.className = 'program-row-text';
+  var n = document.createElement('span');
+  n.className = 'program-row-name';
+  n.textContent = name;
+  text.appendChild(n);
+  if (desc) {
+    var d = document.createElement('span');
+    d.className = 'program-row-desc';
+    d.textContent = desc;
+    text.appendChild(d);
+  }
+  btn.appendChild(text);
+  if (mins) {
+    var m = document.createElement('span');
+    m.className = 'program-row-dur';
+    m.textContent = mins + ' min';
+    btn.appendChild(m);
+  }
+  li.appendChild(btn);
+  return li;
+}
+
+function openProgramSheet() {
+  var sheet = document.getElementById('programSheet');
+  var list = document.getElementById('programSheetList');
+  var select = document.getElementById('selectProgram');
+  if (!sheet || !list || !select) return;
+  list.innerHTML = '';
+  var opener = document.getElementById('title');
+  var opts = select.options;
+  var rows = [];
+  for (var i = 0; i < opts.length; ++i) {
+    var v = opts[i].value;
+    if (v === 'custom' || v.indexOf('programs/') !== 0) continue;
+    var li = buildProgramRow(v, opts[i].textContent, '', 0);
+    list.appendChild(li);
+    rows.push({ value: v, li: li, label: opts[i].textContent });
+  }
+  var saved = typeof savedPresets !== 'undefined' ? savedPresets : [];
+  for (var s2 = 0; s2 < saved.length; ++s2) {
+    list.appendChild(buildProgramRow('saved:' + saved[s2].id, saved[s2].name, 'My saved preset', saved[s2].durationMin || 15));
+  }
+  openSheet(sheet, opener);
+  if (opener) opener.setAttribute('aria-expanded', 'true');
+  rows.forEach(function (r) {
+    loadProgramMeta(r.value).then(function (meta) {
+      var fresh = buildProgramRow(r.value, r.label, meta.desc, meta.mins);
+      if (r.li.parentNode) r.li.parentNode.replaceChild(fresh, r.li);
+      r.li = fresh;
+    });
+  });
+  var cur = list.querySelector('.program-row.current');
+  if (cur && cur.scrollIntoView) cur.scrollIntoView({ block: 'center' });
+}
+
+function chooseProgram(value) {
+  var sheet = document.getElementById('programSheet');
+  var select = document.getElementById('selectProgram');
+  closeSheet(sheet);
+  var opener = document.getElementById('title');
+  if (opener) opener.setAttribute('aria-expanded', 'false');
+  if (value === currentProgram) return;
+  if (select) select.value = value;
+  changeProgram(value); // stops playback if running, never auto-starts
+}
+
+// ---- Slider value text and canvas labels (MUX-VIS-6) ----
+function spokenDuration(totalSec) {
+  var t = Math.max(0, Math.floor(totalSec));
+  var h = Math.floor(t / 3600);
+  var m = Math.floor((t % 3600) / 60);
+  var sec = t % 60;
+  var parts = [];
+  if (h) parts.push(h + (h === 1 ? ' hour' : ' hours'));
+  if (m) parts.push(m + (m === 1 ? ' minute' : ' minutes'));
+  if (sec || !parts.length) parts.push(sec + (sec === 1 ? ' second' : ' seconds'));
+  return parts.join(' ');
+}
+
+function setSliderValueText(slider) {
+  if (!slider || !slider.id) return;
+  var text = '';
+  var val = parseFloat(slider.value) || 0;
+  if (slider.id === 'slider') {
+    text = spokenDuration(val) + ' of ' + spokenDuration(parseFloat(slider.max) || 0);
+  } else if (slider.id === 'quickToneSlider' || slider.id === 'volumeSlider') {
+    text = 'Beats volume ' + Math.round(val * 100) + ' percent';
+  } else if (slider.id === 'quickAmbientSlider' || slider.id === 'ambientSlider') {
+    text = 'Ambient volume ' + Math.round(val * 100) + ' percent';
+  } else {
+    return;
+  }
+  if (slider.getAttribute('aria-valuetext') !== text) slider.setAttribute('aria-valuetext', text);
+}
+
+var canvasLabelPending = false;
+function updateCanvasLabelsSoon() {
+  if (canvasLabelPending) return;
+  canvasLabelPending = true;
+  setTimeout(function () {
+    canvasLabelPending = false;
+    var titleEl = document.getElementById('title');
+    var badge = document.getElementById('liveFreqBadge');
+    var prog = titleEl ? titleEl.textContent : 'Program';
+    var hz = badge ? badge.textContent : '';
+    var chartC = document.getElementById('chartCanvas');
+    var waveC = document.getElementById('waveformCanvas');
+    var chartLabel = prog + ' program, beat frequency over time. Now ' + hz;
+    var waveLabel = prog + ' live waveform and beat envelope. Now ' + hz;
+    if (chartC && chartC.getAttribute('aria-label') !== chartLabel) chartC.setAttribute('aria-label', chartLabel);
+    if (waveC && waveC.getAttribute('aria-label') !== waveLabel) waveC.setAttribute('aria-label', waveLabel);
+  }, 1000);
+}
+
+// ---- First-run notice (MUX-LIFE-10 / -12) ----
+var NOTICE_KEY = 'binalityNoticeAck';
+
+function noticeAcknowledged() {
+  try {
+    return localStorage.getItem(NOTICE_KEY) === '1';
+  } catch (e) {
+    return false;
+  }
+}
+
+function openNotice(fromSettings) {
+  var modal = document.getElementById('noticeModal');
+  var ack = document.getElementById('noticeAckBtn');
+  var close = document.getElementById('noticeCloseBtn');
+  if (!modal) return;
+  var already = noticeAcknowledged();
+  modal.setAttribute('data-dismissable', already ? 'true' : '');
+  if (ack) ack.textContent = already ? 'OK' : 'I understand';
+  if (close) close.hidden = true;
+  openSheet(modal, fromSettings ? document.getElementById('showNoticeBtn') : null);
+  var focusTarget = ack;
+  if (focusTarget) setTimeout(function () { focusTarget.focus(); }, 0);
+}
+
+function acknowledgeNotice() {
+  try {
+    localStorage.setItem(NOTICE_KEY, '1');
+  } catch (e) {}
+  closeSheet(document.getElementById('noticeModal'));
+}
+
+function openInfoSheet(opener) {
+  var carrier = document.getElementById('infoCarrierVal');
+  if (carrier) carrier.textContent = 'Currently ' + baseFreq + ' Hz.';
+  openSheet(document.getElementById('infoSheet'), opener);
+}
+
+function initMobileHud() {
+  // D21: 10 s test timer options are web/dev only
+  if (isNativeApp()) {
+    var dev = document.querySelectorAll('[data-dev-only]');
+    for (var d = 0; d < dev.length; ++d) {
+      if (dev[d].parentNode) dev[d].parentNode.removeChild(dev[d]);
+    }
+  }
+
+  // Program title opens the quick-switch sheet
+  var titleEl = document.getElementById('title');
+  if (titleEl) {
+    titleEl.setAttribute('aria-expanded', 'false');
+    titleEl.addEventListener('click', openProgramSheet);
+    titleEl.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openProgramSheet();
+      }
+    });
+  }
+  var list = document.getElementById('programSheetList');
+  if (list) {
+    list.addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('.program-row') : null;
+      if (btn) chooseProgram(btn.getAttribute('data-program'));
+    });
+  }
+  ['programSheet', 'infoSheet'].forEach(function (id) {
+    var sheet = document.getElementById(id);
+    if (!sheet) return;
+    sheet.addEventListener('click', function (e) {
+      if (e.target.closest && e.target.closest('[data-sheet-close]')) {
+        closeSheet(sheet);
+        if (id === 'programSheet' && titleEl) titleEl.setAttribute('aria-expanded', 'false');
+      }
+    });
+  });
+  // Escape on the program sheet should also reset aria-expanded
+  var progSheet = document.getElementById('programSheet');
+  if (progSheet && window.MutationObserver) {
+    new MutationObserver(function () {
+      if (progSheet.hidden && titleEl) titleEl.setAttribute('aria-expanded', 'false');
+    }).observe(progSheet, { attributes: true, attributeFilter: ['hidden'] });
+  }
+
+  // Info sheet buttons
+  var infoBtn = document.getElementById('infoBtn');
+  if (infoBtn) {
+    infoBtn.addEventListener('click', function () {
+      openInfoSheet(infoBtn);
+    });
+  }
+  var settingsInfoBtn = document.getElementById('settingsInfoBtn');
+  if (settingsInfoBtn) {
+    settingsInfoBtn.addEventListener('click', function () {
+      openInfoSheet(settingsInfoBtn);
+    });
+  }
+
+  // Safety notice
+  var ackBtn = document.getElementById('noticeAckBtn');
+  if (ackBtn) ackBtn.addEventListener('click', acknowledgeNotice);
+  var showBtn = document.getElementById('showNoticeBtn');
+  if (showBtn) {
+    showBtn.addEventListener('click', function () {
+      openNotice(true);
+    });
+  }
+  if (!noticeAcknowledged()) openNotice(false);
+
+  // MUX-HUD-6: icon-only controls with a title get it as their accessible name too
+  var titled = document.querySelectorAll('button[title], [role="button"][title], input[title], select[title]');
+  for (var t = 0; t < titled.length; ++t) {
+    var el = titled[t];
+    if (el.id === 'title') continue;
+    if (!el.getAttribute('aria-label') && !el.getAttribute('aria-labelledby') && !(el.textContent || '').trim()) {
+      el.setAttribute('aria-label', el.getAttribute('title'));
+    }
+  }
+
+  var sl = document.querySelectorAll('input[type="range"]');
+  for (var r = 0; r < sl.length; ++r) setSliderValueText(sl[r]);
+  updateCanvasLabelsSoon();
+}

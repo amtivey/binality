@@ -1,0 +1,17 @@
+{
+  "appId": "com.virtualarenas.binality",
+  "appName": "Binality",
+  "webDir": "www",
+  "backgroundColor": "#070314",
+  "plugins": {
+    "SplashScreen": {
+      "backgroundColor": "#070314",
+      "launchShowDuration": 0,
+      "launchAutoHide": true,
+      "showSpinner": false
+    },
+    "SystemBars": {
+      "style": "DARK"
+    }
+  }
+}
