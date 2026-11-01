@@ -15,17 +15,26 @@ Status: plan only. No part of it has been executed. The host used by the agents
 has no JDK, Android SDK, Xcode, Mac or physical device, so every step that
 needs a real device is marked as an owner step.
 
-Progress snapshot (2026-11-01, dev at e3f3a63). This doc was rebased onto that
-commit. Decisions and phases below are unchanged.
+Progress snapshot (2026-11-01, dev at cb05ecd). This doc was rebased onto that
+commit. Decisions and phases below are unchanged. Since this snapshot the
+Status paragraph above is partly out of date: the Phase 0 scaffold and most of
+Phase 1 are now code on dev. Device and simulator steps still have not been run.
 
 - On dev: #54 privacy policy rewrite (M3.4 text, owner approval still
-  pending), #55 M0.1 ci-check unlock + Node 22, #59 M1.1 web hardening (fonts
-  self-hosted), #71 privacy policy font sentence removed.
-- Merged into the M0.2 scaffold branch, not yet on dev: #57 M0.3
-  mobile-build.yml, #58 M0.4 Android background audio. These reach dev with
-  scaffold PR #56.
-- Open PRs: #56 M0.2, #60 M2.5, #61 M1.2, #62 M1.3, #63 M1.4, #64 M1.5 (M1.6
-  defect fixes #65-#67 and #69 are merged into #64's branch), #68 M1.6.
+  pending), #55 M0.1 ci-check unlock + Node 22, #59 M1.1 web hardening, #71
+  privacy policy font sentence. PR #56 M0.2 Capacitor 8 scaffold + platform
+  shim, which brought #57 M0.3 mobile-build.yml and #58 M0.4 Android
+  ForegroundAudio service. PR #64 (stacked) brought M1.2, M1.3, M1.4, M1.5 and
+  the M1.6 P0 fixes #65, #66, #67, #69.
+- Already on dev but still open: PRs #61 M1.2, #62 M1.3 and #63 M1.4. Their
+  only commits not on dev are merge commits, so they can be closed. The same
+  goes for issues #33, #34 and #35.
+- Still open: #60 M2.5 icons/splash, #70 privacy contact address. #68 M1.6
+  (>= 900 px touch windows) targets wt/t_21b576a2, which is now merged; retarget
+  it to dev.
+- Not yet verified: M0.3's first green mobile-build.yml run on dev (throwaway
+  #74 is closed), the M0.4 device go/no-go and the M0.5 iPhone spike. These are
+  owner steps on real hardware.
 - Gates G1 (#25) and G2 (#26) are still open, so the defaults in section 0 apply.
 - PR #72 (pipeline doc) is superseded by this branch: the same refreshed text
   is in `docs/mobile-release-pipeline.md`.
