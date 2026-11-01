@@ -7,6 +7,7 @@
   <meta name="description" content="Binality is a free, open-source brainwave entrainment application utilizing binaural beats to aid meditation, focus, relaxation, and restorative sleep.">
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#070314">
+  <meta name="color-scheme" content="dark">
 
   <!-- PWA & Mobile Web App Capabilities -->
   <link rel="manifest" href="manifest.webmanifest">
@@ -44,10 +45,14 @@
             <img id="icon" src="images/icon.png" alt="Binality Icon">
           </div>
           <span class="brand-name">BINALITY</span>
+          <span id="audioStatus" class="status-pill" data-state="idle" role="status" aria-live="polite">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span class="status-text">Idle</span>
+          </span>
         </div>
 
         <div class="header-actions">
-          <button id="headerStudioBtn" type="button" class="studio-quick-btn" title="Open Custom Preset Studio (Create, Save &amp; Share Frequency Recipes)">
+          <button id="headerStudioBtn" type="button" class="studio-quick-btn" aria-label="Preset Studio" title="Open Custom Preset Studio (Create, Save &amp; Share Frequency Recipes)">
             <svg class="studio-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <line x1="4" y1="21" x2="4" y2="14"></line>
               <line x1="4" y1="10" x2="4" y2="3"></line>
@@ -62,7 +67,12 @@
             <span class="studio-quick-label">Studio</span>
           </button>
 
-          <button id="headerBreathBtn" type="button" class="breath-quick-btn" aria-pressed="false" title="Toggle Visual Breathing Pacer (Box Breathing &amp; 4-7-8 Pranayama)">
+          <button id="headerModeBtn" type="button" class="mode-quick-btn" aria-pressed="false" aria-label="Tone mode: Binaural, for stereo headphones. Switch to Isochronic">
+            <span id="headerModeIcon" class="mode-quick-icon" aria-hidden="true">🎧</span>
+            <span id="headerModeLabel" class="mode-quick-label">Binaural</span>
+          </button>
+
+          <button id="headerBreathBtn" type="button" class="breath-quick-btn" aria-pressed="false" aria-label="Breathing pacer" title="Toggle Visual Breathing Pacer (Box Breathing &amp; 4-7-8 Pranayama)">
             <svg class="breath-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z"></path>
               <path d="M9 21h6"></path>
@@ -83,12 +93,13 @@
       <!-- Sub Row: Program Name on Left, Active Band & Carrier Badges on Right -->
       <div class="header-sub-row">
         <div class="header-sub-left">
-          <h1 id="title">Relaxation</h1>
+          <h1 class="sr-only">Binality</h1>
+          <div id="title" role="button" tabindex="0" aria-haspopup="dialog" aria-label="Relaxation. Choose a program">Relaxation</div>
         </div>
 
         <div class="header-sub-right">
           <span id="activeBandBadge" class="band-badge">Theta / Delta</span>
-          <span id="carrierBadge" class="pill-badge pill-carrier" title="Base Carrier Frequency">440 Hz</span>
+          <span id="carrierBadge" class="pill-badge pill-carrier" title="Base carrier frequency">440 Hz</span>
         </div>
       </div>
     </header>
@@ -116,6 +127,7 @@
               <span class="view-btn-text-short">Scope</span>
             </button>
           </div>
+          <button id="infoBtn" type="button" class="info-btn" aria-haspopup="dialog" aria-label="About these controls">i</button>
           <div class="chart-meta">
             <span id="voiceCountBadge" class="meta-badge">3 Voices</span>
             <span id="liveFreqBadge" class="meta-badge meta-badge-accent">12.0 Hz Beat</span>
@@ -124,7 +136,7 @@
       </div>
 
       <div id="chart" class="chart-stage">
-        <canvas id="chartCanvas" aria-label="Binaural beat frequency over time chart"></canvas>
+        <canvas id="chartCanvas" role="img" aria-label="Binaural beat frequency over time chart"></canvas>
         <div id="chartTooltip" class="chart-tooltip hidden" role="tooltip"></div>
 
         <!-- Live Acoustic Waveform / FFR Envelope Stage -->
@@ -186,7 +198,7 @@
             </div>
           </div>
 
-          <canvas id="waveformCanvas" aria-label="Live audio oscilloscope and FFR envelope canvas"></canvas>
+          <canvas id="waveformCanvas" role="img" aria-label="Live audio oscilloscope and FFR envelope canvas"></canvas>
 
           <!-- Idle state banner when stopped -->
           <div id="scopeIdleOverlay" class="scope-idle-overlay">
@@ -258,6 +270,7 @@
 
     <!-- Transport & Playback Dock -->
     <section class="transport-dock glass-panel" aria-label="Playback Controls">
+      <div class="dock-scroll">
       <div id="control">
         <div class="time-readout">
           <div id="divPosition">0:00</div>
@@ -265,9 +278,16 @@
           <div id="divDuration">60:00</div>
         </div>
         <div id="divSlider">
-          <input id="slider" type="range" min="0" max="3600" value="0" step="1" aria-label="Playback position in seconds">
+          <input id="slider" type="range" min="0" max="3600" value="0" step="1" aria-label="Playback position" aria-valuetext="0 seconds of 60 minutes">
         </div>
       </div>
+
+      <!-- Compact/Medium only (CSS): collapses the volume sliders and sleep timer (MUX-LAYOUT-2). Start and the time slider never collapse. -->
+      <button id="mixerToggle" type="button" class="mixer-toggle" aria-expanded="false">
+        <span class="mixer-toggle-label">Mixer</span>
+        <span class="mixer-toggle-hint">Volume &amp; timer</span>
+        <svg class="mixer-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </button>
 
       <div class="dock-quick-sliders">
         <div class="tone-quick-control" title="Beats Master Volume">
@@ -289,6 +309,7 @@
           <span id="quickAmbientVal" class="ambient-val-badge">20%</span>
         </div>
       </div>
+      </div><!-- /.dock-scroll -->
 
       <div class="dock-actions-row">
         <div class="timer-quick-control" title="Session Sleep Timer &amp; Harmonic Chime">
@@ -305,13 +326,13 @@
             <option value="30">30 min</option>
             <option value="45">45 min</option>
             <option value="60">60 min</option>
-            <option value="10s">10s Test</option>
+            <option value="10s" data-dev-only>10s Test</option>
           </select>
           <span id="quickTimerDisplay" class="timer-val-badge">Continuous</span>
         </div>
 
         <div id="footer">
-          <button id="start" type="button">start</button>
+          <button id="start" type="button" aria-pressed="false" aria-label="Start session">start</button>
         </div>
       </div>
     </section>
@@ -426,7 +447,7 @@
           <label for="baseFreq" class="settings-label">Base Frequency (Carrier Pitch)</label>
           <div class="freq-input-row">
             <div class="number-input-group">
-              <input id="baseFreq" type="number" value="440" min="20" max="2000" step="1">
+              <input id="baseFreq" type="number" inputmode="decimal" autocomplete="off" value="440" min="20" max="1500" step="1" aria-describedby="baseFreqMsg">
               <span class="unit-suffix">Hz</span>
             </div>
             <div class="harmonic-presets" aria-label="Quick harmonic carrier presets">
@@ -437,6 +458,7 @@
               <button type="button" class="harmonic-btn" data-freq="440">440 Hz</button>
             </div>
           </div>
+          <p id="baseFreqMsg" class="field-msg hidden" role="status" aria-live="polite"></p>
           <p id="carrierHintText" class="settings-hint">Left ear plays the Base Frequency; Right ear plays Base Frequency + Program Beat Frequency via stereo headphones.</p>
         </div>
 
@@ -514,7 +536,7 @@
               <option value="30">30 Minutes</option>
               <option value="45">45 Minutes</option>
               <option value="60">60 Minutes</option>
-              <option value="10s">10 Seconds (Quick Test)</option>
+              <option value="10s" data-dev-only>10 Seconds (Quick Test)</option>
             </select>
 
             <div class="chime-actions">
@@ -537,7 +559,7 @@
             <button type="button" class="timer-preset-btn" data-timer="30">30m</button>
             <button type="button" class="timer-preset-btn" data-timer="45">45m</button>
             <button type="button" class="timer-preset-btn" data-timer="60">60m</button>
-            <button type="button" class="timer-preset-btn" data-timer="10s">10s Test</button>
+            <button type="button" class="timer-preset-btn" data-timer="10s" data-dev-only>10s Test</button>
           </div>
 
           <p class="settings-hint">Performs a gentle 5-second exponential audio fade-out across both binaural tones and ambient soundscape before ringing the 528 / 660 / 792 Hz Solfeggio chime (or silent fade-out when Chime is OFF).</p>
@@ -652,6 +674,10 @@
             <span>Health &amp; Safety Notice</span>
           </div>
           <p><strong>Disclaimer:</strong> Binality is for relaxation and entertainment only. It is not a medical device and does not provide medical advice, diagnosis or treatment. Program names such as "Pain Relief" and "Universal Healing" describe traditional uses of binaural beats, not claims of medical benefit. Do not use while driving or operating machinery. If you have epilepsy, a heart condition or other medical concerns, consult a doctor before use.</p>
+          <div class="disclaimer-actions">
+            <button id="showNoticeBtn" type="button" class="notice-secondary-btn">Show safety notice</button>
+            <button id="settingsInfoBtn" type="button" class="notice-secondary-btn">About these controls</button>
+          </div>
         </div>
       </div>
 
@@ -700,22 +726,22 @@
         <div class="studio-meta-grid">
           <div class="studio-field studio-field-wide">
             <label for="studioName" class="studio-field-label">Preset Name</label>
-            <input id="studioName" type="text" class="studio-input" value="Deep Theta Flow" maxlength="60" placeholder="e.g. Deep Theta Flow">
+            <input id="studioName" type="text" autocomplete="off" autocapitalize="words" class="studio-input" value="Deep Theta Flow" maxlength="60" placeholder="e.g. Deep Theta Flow">
           </div>
 
           <div class="studio-field">
             <label for="studioDurationMin" class="studio-field-label">Duration (min)</label>
-            <input id="studioDurationMin" type="number" class="studio-input" value="20" min="1" max="180" step="1">
+            <input id="studioDurationMin" type="number" inputmode="numeric" autocomplete="off" class="studio-input" value="20" min="1" max="180" step="1">
           </div>
 
           <div class="studio-field">
             <label for="studioCarrierFreq" class="studio-field-label">Carrier (Hz)</label>
-            <input id="studioCarrierFreq" type="number" class="studio-input" value="216" min="20" max="2000" step="1">
+            <input id="studioCarrierFreq" type="number" inputmode="decimal" autocomplete="off" class="studio-input" value="216" min="20" max="2000" step="1">
           </div>
 
           <div class="studio-field studio-field-full">
             <label for="studioDescription" class="studio-field-label">Description</label>
-            <input id="studioDescription" type="text" class="studio-input" value="Smooth Alpha to Theta meditation ramp for creative insight and deep calm (20 minutes)" maxlength="160" placeholder="Describe the purpose and feel of this frequency recipe...">
+            <input id="studioDescription" type="text" autocomplete="off" class="studio-input" value="Smooth Alpha to Theta meditation ramp for creative insight and deep calm (20 minutes)" maxlength="160" placeholder="Describe the purpose and feel of this frequency recipe...">
           </div>
         </div>
 
@@ -795,6 +821,84 @@
     </div>
   </div>
 
+  <!-- Program quick-switch bottom sheet (MUX-IN-7) -->
+  <div id="programSheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="programSheetHeading" hidden>
+    <div class="sheet-backdrop" data-sheet-close></div>
+    <div class="sheet-panel glass-panel">
+      <div class="sheet-header">
+        <h2 id="programSheetHeading">Choose a program</h2>
+        <button type="button" class="close-icon-btn" data-sheet-close aria-label="Close program list">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <ul id="programSheetList" class="program-list"></ul>
+    </div>
+  </div>
+
+  <!-- Controls glossary: every explanation that used to live only in a title= tooltip (MUX-HUD-6) -->
+  <div id="infoSheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="infoSheetHeading" hidden>
+    <div class="sheet-backdrop" data-sheet-close></div>
+    <div class="sheet-panel glass-panel">
+      <div class="sheet-header">
+        <h2 id="infoSheetHeading">About these controls</h2>
+        <button type="button" class="close-icon-btn" data-sheet-close aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <dl class="info-glossary" tabindex="0" aria-label="Control descriptions">
+        <dt>Mode: Binaural</dt>
+        <dd>Two steady tones, one in each ear. Your brain hears the difference as a beat. Needs stereo headphones.</dd>
+        <dt>Mode: Isochronic</dt>
+        <dd>A single tone pulsed at the beat rate. Works on speakers and headphones.</dd>
+        <dt>Beat (FFR)</dt>
+        <dd>The beat frequency in Hz that the program is aiming for at this moment. FFR is the Frequency Following Response, the brain activity that follows the beat.</dd>
+        <dt>Carrier</dt>
+        <dd>The base pitch of the tones. Change it with Base Frequency in Settings. <span id="infoCarrierVal"></span></dd>
+        <dt>Chart / Scope</dt>
+        <dd>Chart shows the program's beat frequency over time. Scope shows the live left and right waveforms and the beat envelope.</dd>
+        <dt>Scope views</dt>
+        <dd>FFR Envelope: the beat pattern. Dual Oscilloscope: left and right waves. Phase Orbit: the phase between the ears. Window sets how much time is shown. Left, Right and FFR switch each trace on or off.</dd>
+        <dt>Breathe</dt>
+        <dd>Shows a guided breathing pacer: box breathing, 4-7-8, coherent or calm patterns.</dd>
+        <dt>Studio</dt>
+        <dd>Create, save and share custom frequency programs. Open it from Settings.</dd>
+        <dt>Test L / R</dt>
+        <dd>Plays a short tone in the left ear, then the right, to check your headphones. It is in Settings.</dd>
+        <dt>Timer</dt>
+        <dd>Fades the session out and plays a soft chime after the chosen time.</dd>
+        <dt>Beats and Pink Noise</dt>
+        <dd>Beats is the volume of the tones. Pink Noise is a soft background sound.</dd>
+        <dt>Status dot</dt>
+        <dd>Grey: idle. Green: playing. Amber: paused or interrupted. Red: error.</dd>
+      </dl>
+    </div>
+  </div>
+
+  <!-- First-run health and safety notice (MUX-LIFE-10 / -12). Must be acknowledged once; reachable again from Settings. -->
+  <div id="noticeModal" class="sheet notice-sheet" role="alertdialog" aria-modal="true" aria-labelledby="noticeHeading" aria-describedby="noticeBody" hidden>
+    <div class="sheet-backdrop"></div>
+    <div class="sheet-panel glass-panel">
+      <div class="sheet-header">
+        <h2 id="noticeHeading">Before you start</h2>
+      </div>
+      <div id="noticeBody" class="notice-body" tabindex="0">
+        <ul class="notice-list">
+          <li>Binaural beats need stereo headphones. Isochronic mode works on speakers.</li>
+          <li>Keep the volume low and comfortable.</li>
+          <li>Do not use while driving or operating machinery.</li>
+          <li>Binality is not a medical device. It gives no medical advice, diagnosis or treatment.</li>
+          <li>If you have epilepsy or a heart condition, or other medical concerns, talk to a doctor before use.</li>
+        </ul>
+        <p class="notice-more">Binality is for relaxation and entertainment only. Program names such as "Pain Relief" and "Universal Healing" describe traditional uses of binaural beats, not claims of medical benefit. The full Health &amp; Safety Notice is always in Settings.</p>
+      </div>
+      <div class="sheet-footer">
+        <button id="noticeAckBtn" type="button" class="notice-ack-btn">I understand</button>
+        <button id="noticeCloseBtn" type="button" class="notice-secondary-btn" hidden>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/platform.js"></script>
   <script src="js/index.js"></script>
 </body>
 </html>
