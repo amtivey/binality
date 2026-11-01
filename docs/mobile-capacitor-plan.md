@@ -2,7 +2,7 @@
 
 Consolidated plan for shipping Binality to Google Play and the App Store as a
 Capacitor 8 app. Kanban t_6a311b6a (root request t_8ed4721f). Base: `origin/dev`
-at 84ee5d4 (v2 UI, after PRs #22 and #24).
+at 84ee5d4 (v2 UI, after PRs #22 and #24); rebased onto e3f3a63 on 2026-11-01.
 
 This is the single plan. Three reference documents hold the detail and are
 cited by section number. Where they disagree with this file, this file wins.
@@ -14,6 +14,21 @@ cited by section number. Where they disagree with this file, this file wins.
 Status: plan only. No part of it has been executed. The host used by the agents
 has no JDK, Android SDK, Xcode, Mac or physical device, so every step that
 needs a real device is marked as an owner step.
+
+Progress snapshot (2026-11-01, dev at e3f3a63). This doc was rebased onto that
+commit. Decisions and phases below are unchanged.
+
+- On dev: #54 privacy policy rewrite (M3.4 text, owner approval still
+  pending), #55 M0.1 ci-check unlock + Node 22, #59 M1.1 web hardening (fonts
+  self-hosted), #71 privacy policy font sentence removed.
+- Merged into the M0.2 scaffold branch, not yet on dev: #57 M0.3
+  mobile-build.yml, #58 M0.4 Android background audio. These reach dev with
+  scaffold PR #56.
+- Open PRs: #56 M0.2, #60 M2.5, #61 M1.2, #62 M1.3, #63 M1.4, #64 M1.5 (M1.6
+  defect fixes #65-#67 and #69 are merged into #64's branch), #68 M1.6.
+- Gates G1 (#25) and G2 (#26) are still open, so the defaults in section 0 apply.
+- PR #72 (pipeline doc) is superseded by this branch: the same refreshed text
+  is in `docs/mobile-release-pipeline.md`.
 
 ---
 

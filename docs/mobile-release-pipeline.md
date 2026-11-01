@@ -17,8 +17,9 @@ Scope: how to produce signed debug and release builds of Binality for Android
 (Google Play) and iOS (App Store) from this repo, how CI does it, what secrets
 exist, and what the owner has to buy or sign up for.
 
-Status of this document: researched and written against the repo at
-`origin/dev` (84ee5d4). Nothing in it has been executed end to end, because
+Status of this document: researched and written against `origin/dev`, then
+refreshed on 2026-11-01 against dev at e3f3a63 (after PRs #54, #55, #59, #71 and
+the M0.3 debug workflow, PR #57). Nothing in it has been executed end to end, because
 there is no Capacitor project in the tree and the devops host has no JDK,
 Android SDK or Xcode (see 1.2). Toolchain versions and store policies were
 checked against official sources on 2026-10-19; re-check the ones marked
@@ -54,7 +55,7 @@ Critical path (calendar time):
 
 | Tool | Version | Needed for | Notes |
 |---|---|---|---|
-| Node.js | 22 or newer | everything | CLI declares engines.node >= 22. CI already uses Node 20 for the static check; the mobile jobs must use 22. |
+| Node.js | 22 or newer | everything | CLI declares engines.node >= 22. `ci.yml` already uses Node 22 (PR #55). |
 | JDK | 21 | Android | Android Studio bundles one; CLI/CI needs JAVA_HOME = JDK 21. JDK 17 fails with "invalid source release: 21". |
 | Android Studio | Otter 2025.2.1 or newer | Android (local) | Older studio rejects AGP 8.13. |
 | Android SDK | platform 36, build-tools 36.x, cmdline-tools | Android | minSdk 24, compile/target 36 (Capacitor 8 defaults, same as the previous wrapper in commit 23856cf). |
@@ -130,16 +131,14 @@ here because CI depends on them.
   the www assembler.
 - `android/` and `ios/` are committed (standard Capacitor practice), so CI does
   not need `cap add`. CI runs `npx cap sync <platform>` to copy `www/` in.
-- Update `scripts/ci-check.sh`. Its "no Capacitor leftovers" block currently
-  fails if `android`, `capacitor.config.json`, `package.json`, `package-lock.json`,
-  `node_modules` or `www` exist, and greps for the word "capacitor" everywhere
-  outside docs/. That block must be removed or inverted in the same PR that
-  re-adds Capacitor, otherwise CI goes red.
-- Self-host the Google Fonts used in index.html (Outfit, Plus Jakarta Sans,
-  JetBrains Mono are loaded from fonts.googleapis.com). Reasons: the app should
-  work offline from the first launch, and a remote font request is the only
-  network traffic the app makes, which affects the store privacy answers
-  (section 7).
+- `scripts/ci-check.sh` was unlocked in PR #55 (M0.1): it no longer rejects
+  Capacitor files outside docs/. It now fails on a tracked `www/` or
+  `node_modules/` and on invalid `capacitor.config.json` / `package.json`.
+  No further change is needed for the scaffold PR.
+- Google Fonts are already self-hosted (PR #59, `fonts/*.woff2`; the privacy
+  policy sentence was removed in PR #71). The app makes no network requests,
+  which is what the store privacy answers in section 7 rely on. Make sure
+  `fonts/` is copied into `www/`.
 - Service worker: sw.js registration should be skipped inside the native shell
   (WKWebView with the capacitor scheme does not support it, and the bundled
   assets are already offline). Feasibility task owns this; noted for the
@@ -310,8 +309,9 @@ hand-edited, strictly increasing integer:
   monotonic. Both platforms use the same number, which makes support easier.
 - `BUILD_OFFSET` is a repo variable (Actions variable, not secret). Set it above
   the highest versionCode ever uploaded under this package name. If a legacy
-  Play listing exists (open question O2) take its current versionCode and add a
-  margin. Play rejects equal or lower codes; max is 2,100,000,000.
+  Play listing exists (open question O2; the consolidated plan says one does,
+  tracked in issue #8, with the owner holding the 2017 key) take its current
+  versionCode and add a margin. Play rejects equal or lower codes; max is 2,100,000,000.
 - Android: `build.gradle` reads `BINALITY_VERSION_CODE` and `BINALITY_VERSION_NAME`
   env vars (defaults 1 and `dev` locally). iOS: xcodebuild overrides
   `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` (no project-file edits, no
@@ -536,18 +536,17 @@ Apple distribution certificates expire after one year and profiles follow;
 
 #### 6.3 Privacy and policy work (blocks both stores)
 
-- `privacypolicy.html` in this repo is a generic template. It claims the service
-  collects name, phone number and postal address and "Log Data", which the app
-  does not do, and refers to "website visitors". It must be rewritten before
-  submission to match reality (offline, no accounts, no analytics, settings kept
-  in local storage, no data transmitted). Wrong policy text creates a mismatch
-  with the store questionnaires and is a rejection risk.
+- `privacypolicy.html` was rewritten to match the app's behaviour (offline, no
+  accounts, no analytics, settings in local storage, nothing transmitted) in
+  PR #54, and the stale Google Fonts sentence was removed in PR #71. The owner
+  still has to review and approve it. Any later change that adds a network call
+  or SDK must update the policy and the store forms together.
 - The policy must be hosted at a stable public URL (for example
   https://www.virtualarenas.com/binality/privacypolicy.html or GitHub Pages),
   not a path inside the app bundle only. The in-app copy can be the same file.
 - Expected store answers, if the app stays as it is: Apple "Data Not Collected";
-  Google Data safety "no data collected, no data shared". This holds only if the
-  Google Fonts request is removed (section 2) and no analytics or ads are added.
+  Google Data safety "no data collected, no data shared". This holds only as long as
+  the app keeps making no network requests and no analytics or ads are added.
   Re-do the forms when any SDK is added.
 - Safety content to consider adding to listing and onboarding: use with
   headphones, do not use while driving or operating machinery, not a medical
@@ -632,13 +631,14 @@ virtualarenas.com).
 Each step lists its precondition. Steps 1-4 can start now.
 
 1. (no precondition) Owner starts enrolments (section 8 items 1-2).
-2. Devops: add `.gitignore` entries, update `scripts/ci-check.sh` allowlist
-   (section 2) in the PR that adds Capacitor.
+2. Devops: done in PR #55 (M0.1): `.gitignore` entries and the
+   `scripts/ci-check.sh` unlock.
 3. Devops (after scaffold PR merges): local Android debug build per 3.1 on the
    devops host or CI; confirm `app-debug.apk` installs and the web content loads
    offline.
-4. Devops: add `mobile-build.yml` (debug) and confirm artifacts on a PR.
-   Acceptance: green run, downloadable debug APK; iOS simulator build green.
+4. Devops: `mobile-build.yml` (debug) was added in PR #57 (M0.3) and its run
+   was green; it targets the M0.2 scaffold branch, so confirm it again once the
+   scaffold is on dev. Acceptance: green run, downloadable debug APK; iOS simulator build green.
 5. Devops: generate upload keystore (3.2), add Gradle signing config and
    versioning env, produce a signed AAB and APK locally or via manual workflow;
    `apksigner verify` passes. Owner stores keystore backup.
