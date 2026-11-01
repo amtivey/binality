@@ -84,6 +84,13 @@ var sleepFadeSec = SLEEP_FADE_SEC; // fade length fixed when the end is schedule
 var programFadeSec = PROGRAM_FADE_SEC;
 var START_FADE_SEC = 3;
 var STOP_FADE_SEC = 0.3;
+var SEEK_FADE_SEC = 0.15; // gain fade-out across a seek restart while playing (MUX-IN-3)
+var TAP_MAX_MOVE_PX = 10; // chart tap = moved less than this ...
+var TAP_MAX_MS = 300; // ... and pressed for less than this (MUX-IN-2)
+var TOUCH_TOOLTIP_LIFT_PX = 58; // touch tooltip sits at least this far above the finger (MUX-IN-1)
+var TOAST_MS = 1500;
+var seekRestartId = null;
+var sliderHeld = false; // true while a finger/mouse holds the #slider thumb
 var pendingStopId = null;
 var ctxResumePending = false;
 var interruptedInfo = null; // { at: Date.now(), reason } while UI state is 'interrupted'
@@ -573,15 +580,12 @@ function updateSliderFill() {
   var val = parseFloat(slider.value) || 0;
   var pct = max > min ? ((val - min) / (max - min)) * 100 : 0;
   pct = Math.max(0, Math.min(100, pct));
-  slider.style.background =
-    'linear-gradient(90deg, #ff70d9 0%, #a855f7 ' +
-    pct.toFixed(2) +
-    '%, rgba(255, 255, 255, 0.14) ' +
-    pct.toFixed(2) +
-    '%, rgba(255, 255, 255, 0.14) 100%)';
+  slider.style.setProperty('--fill', pct.toFixed(2) + '%');
+  setSliderValueText(slider);
 }
 
 function updateLiveReadouts(t) {
+  updateCanvasLabelsSoon();
   var currentT = typeof t === 'number' ? t : parseInt(document.getElementById('slider').value, 10) || 0;
   var liveFreqBadge = document.getElementById('liveFreqBadge');
   var activeBandBadge = document.getElementById('activeBandBadge');
@@ -768,7 +772,7 @@ function createProgramChart() {
 
     // 2. Grid lines & Axis Ticks
     ctx.lineWidth = 1;
-    ctx.font = '500 10px "JetBrains Mono", monospace';
+    ctx.font = '500 11px "JetBrains Mono", monospace';
 
     var yTickCount = height < 220 ? 4 : 5;
     var rawYStep = yMax / yTickCount;
@@ -810,7 +814,7 @@ function createProgramChart() {
 
     if (height >= 180) {
       ctx.fillStyle = 'rgba(203, 213, 225, 0.65)';
-      ctx.font = '500 10px "JetBrains Mono", monospace';
+      ctx.font = '500 11px "JetBrains Mono", monospace';
       ctx.textAlign = 'center';
       ctx.fillText('frequency/time(s)', padLeft + plotW / 2, height - 8);
     }
@@ -941,7 +945,7 @@ function createProgramChart() {
     ctx.restore();
   }
 
-  function handlePointerMove(clientX, clientY) {
+  function handlePointerMove(clientX, clientY, isTouch) {
     var rect = container.getBoundingClientRect();
     var x = clientX - rect.left;
     var y = clientY - rect.top;
@@ -992,11 +996,63 @@ function createProgramChart() {
       tooltip.classList.remove('hidden');
 
       var tipRect = tooltip.getBoundingClientRect();
-      var leftPos = x + 14;
-      if (leftPos + tipRect.width > rect.width - 8) {
-        leftPos = x - tipRect.width - 14;
+      var leftPos;
+      var topPos;
+      if (isTouch) {
+        // Finger or pen (MUX-IN-1): keep the tooltip >= TOUCH_TOOLTIP_LIFT_PX from the touch point, inside the stage.
+        // Try above, then beside (right/left), then below; if none fit, fall back to a one-line compact tooltip.
+        var placeTouch = function (w, h, M, L) {
+          var cy = Math.max(M, Math.min(rect.height - h - M, y - h / 2));
+          var cx = Math.max(M, Math.min(rect.width - w - M, x - w / 2));
+          var cands = [
+            { l: cx, t: y - h - L },
+            { l: x + L, t: cy },
+            { l: x - w - L, t: cy },
+            { l: cx, t: y + L }
+          ];
+          for (var k = 0; k < cands.length; ++k) {
+            var c = cands[k];
+            if (c.l >= M && c.t >= M && c.l + w <= rect.width - M && c.t + h <= rect.height - M) return c;
+          }
+          return null;
+        };
+        var pos = placeTouch(tipRect.width, tipRect.height, 8, TOUCH_TOOLTIP_LIFT_PX);
+        if (!pos) {
+          var parts = [];
+          for (var j = 0; j < voicesData.length; ++j) parts.push(getFrequency(voicesData[j], hoverTime).toFixed(2));
+          tooltip.innerHTML =
+            '<div class="tooltip-time" style="margin:0;white-space:nowrap;">' +
+            getTimeString(hoverTime) +
+            ' &middot; ' +
+            parts.join(' / ') +
+            ' Hz</div>';
+          tipRect = tooltip.getBoundingClientRect();
+          pos = placeTouch(tipRect.width, tipRect.height, 0, TOUCH_TOOLTIP_LIFT_PX);
+        }
+        if (!pos) {
+          // Tiny stage: the stage corner farthest from the finger.
+          var best = -1;
+          [2, rect.width - tipRect.width - 2].forEach(function (cl) {
+            [2, rect.height - tipRect.height - 2].forEach(function (ct) {
+              var ddx = Math.max(cl - x, 0, x - (cl + tipRect.width));
+              var ddy = Math.max(ct - y, 0, y - (ct + tipRect.height));
+              var dd = Math.hypot(ddx, ddy);
+              if (dd > best) {
+                best = dd;
+                pos = { l: cl, t: ct };
+              }
+            });
+          });
+        }
+        leftPos = pos.l;
+        topPos = pos.t;
+      } else {
+        leftPos = x + 14;
+        if (leftPos + tipRect.width > rect.width - 8) {
+          leftPos = x - tipRect.width - 14;
+        }
+        topPos = Math.max(8, Math.min(rect.height - tipRect.height - 8, y - tipRect.height / 2));
       }
-      var topPos = Math.max(8, Math.min(rect.height - tipRect.height - 8, y - tipRect.height / 2));
       tooltip.style.left = Math.max(8, leftPos) + 'px';
       tooltip.style.top = topPos + 'px';
     }
@@ -1004,29 +1060,68 @@ function createProgramChart() {
     replot();
   }
 
-  canvas.addEventListener('mousemove', function (e) {
-    handlePointerMove(e.clientX, e.clientY);
-  });
+  // Pointer Events (MUX-IN-1/2): hover for mouse, press-and-drag scrub for touch/pen. A seek happens only on a
+  // tap: moved < 10 px and (for touch/pen) pressed < 300 ms. Dragging never seeks. The canvas has touch-action: none.
+  var press = null;
 
-  canvas.addEventListener('mouseleave', function () {
+  function hideCursor() {
     hoverTime = null;
     if (tooltip) tooltip.classList.add('hidden');
     replot();
-  });
+  }
 
-  canvas.addEventListener('click', function (e) {
+  function secondAtClientX(clientX) {
     var rect = container.getBoundingClientRect();
-    var x = e.clientX - rect.left;
+    var x = clientX - rect.left;
     var layout = getLayout(rect.width, rect.height);
     if (x >= layout.padLeft && x <= layout.padLeft + layout.plotW && timeMax > 0) {
       var ratio = (x - layout.padLeft) / layout.plotW;
-      var seekSec = Math.max(0, Math.min(timeMax, Math.round(ratio * timeMax)));
-      var slider = document.getElementById('slider');
-      if (slider) {
-        slider.value = seekSec;
-        onSliderChanged();
-      }
+      return Math.max(0, Math.min(timeMax, Math.round(ratio * timeMax)));
     }
+    return null;
+  }
+
+  canvas.addEventListener('pointerdown', function (e) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    press = { id: e.pointerId, type: e.pointerType, x: e.clientX, y: e.clientY, at: Date.now(), moved: false };
+    try {
+      canvas.setPointerCapture(e.pointerId);
+    } catch (err) {}
+    handlePointerMove(e.clientX, e.clientY, e.pointerType !== 'mouse');
+  });
+
+  canvas.addEventListener('pointermove', function (e) {
+    if (press && press.id === e.pointerId) {
+      if (Math.hypot(e.clientX - press.x, e.clientY - press.y) >= TAP_MAX_MOVE_PX) press.moved = true;
+    } else if (press) {
+      return;
+    }
+    handlePointerMove(e.clientX, e.clientY, e.pointerType !== 'mouse');
+  });
+
+  canvas.addEventListener('pointerup', function (e) {
+    if (!press || press.id !== e.pointerId) return;
+    var p = press;
+    press = null;
+    try {
+      canvas.releasePointerCapture(e.pointerId);
+    } catch (err) {}
+    var isTap = !p.moved && (p.type === 'mouse' || Date.now() - p.at < TAP_MAX_MS);
+    if (isTap) {
+      var seekSec = secondAtClientX(e.clientX);
+      if (seekSec !== null) seekToSecond(seekSec, true);
+    }
+    if (p.type !== 'mouse') hideCursor();
+  });
+
+  canvas.addEventListener('pointercancel', function () {
+    press = null;
+    hideCursor();
+  });
+
+  canvas.addEventListener('pointerleave', function (e) {
+    if (press || e.pointerType !== 'mouse') return;
+    hideCursor();
   });
 
   return {
@@ -1066,8 +1161,13 @@ function stopScopeAnimation() {
 
 function startScopeAnimation() {
   stopScopeAnimation();
-  function loop() {
-    drawScopeFrame();
+  var lastDraw = 0;
+  function loop(ts) {
+    // MUX-VIS-3: reduced motion redraws the scope as a static plot at 10 fps
+    if (!prefersReducedMotion() || !ts || ts - lastDraw >= 100) {
+      lastDraw = ts || 0;
+      drawScopeFrame();
+    }
     if (activeStageView === 'waveform' && isCurrentlyPlaying()) {
       scopeAnimId = requestAnimationFrame(loop);
     } else {
@@ -1184,7 +1284,7 @@ function drawScopeFrame() {
     ctx.stroke();
 
     // Axis Labels
-    ctx.font = '500 10px "JetBrains Mono", monospace';
+    ctx.font = '500 11px "JetBrains Mono", monospace';
     ctx.fillStyle = '#38bdf8';
     ctx.textAlign = 'right';
     ctx.fillText('Left Ear (X) →', cx + maxR * 1.1, cy - 6);
@@ -1289,7 +1389,7 @@ function drawScopeFrame() {
     ctx.lineTo(width, midY + plotAmp);
     ctx.stroke();
 
-    ctx.font = '500 10px "JetBrains Mono", monospace';
+    ctx.font = '500 11px "JetBrains Mono", monospace';
     ctx.fillStyle = '#64748b';
     ctx.textAlign = 'left';
     ctx.fillText('+1.0', 10, midY - plotAmp - 4);
@@ -1439,7 +1539,7 @@ function drawScopeFrame() {
     // Vertical time grid lines
     var gridStepMs = spanMs <= 200 ? 25 : spanMs <= 400 ? 50 : 100;
     var numSteps = Math.floor(spanMs / gridStepMs);
-    ctx.font = '500 10px "JetBrains Mono", monospace';
+    ctx.font = '500 11px "JetBrains Mono", monospace';
     ctx.fillStyle = '#64748b';
     ctx.textAlign = 'center';
 
@@ -1545,7 +1645,7 @@ function drawScopeFrame() {
         ctx.stroke();
 
         ctx.fillStyle = '#f472b6';
-        ctx.font = '600 10px "JetBrains Mono", monospace';
+        ctx.font = '600 11px "JetBrains Mono", monospace';
         ctx.textAlign = 'center';
         ctx.fillText('λ = ' + cycleMs.toFixed(1) + 'ms (' + beatRate.toFixed(1) + ' Hz ' + bandName + ' Entrainment)', (calX1 + calX2) / 2, calY - 6);
         ctx.restore();
@@ -1678,6 +1778,8 @@ function setPlayingUI(playing, interrupted) {
   if (startBtn) {
     startBtn.textContent = playing ? 'stop' : 'start';
     startBtn.setAttribute('data-playing', playing ? 'true' : 'false');
+    startBtn.setAttribute('aria-pressed', playing ? 'true' : 'false');
+    startBtn.setAttribute('aria-label', playing ? 'Stop session' : 'Start session');
     startBtn.setAttribute('data-state', uiState);
     if (playing) {
       startBtn.classList.add('is-playing');
@@ -1763,7 +1865,7 @@ function loadProgram(xml) {
 
   if (titleEl) {
     titleEl.textContent = progName;
-    titleEl.title = progName;
+    titleEl.setAttribute('aria-label', progName + '. Choose a program');
   }
   if (nameEl) nameEl.textContent = progName;
   if (descEl) descEl.textContent = progDesc;
@@ -1969,6 +2071,10 @@ function start(preserveTimer, fullFade) {
 
   cleanupAudioNodes();
   setPlayingUI(true);
+  if (window.BinalityPlatform) {
+    // Android foreground service + wake lock (no-op on web); idempotent across seeks.
+    window.BinalityPlatform.keepAlive.start(program.getAttribute('name') || '');
+  }
   timerCompletedStatus = null;
 
   merger = [];
@@ -2241,10 +2347,12 @@ function monitorTick() {
   var t = getCurrentPositionSec();
   var sliderEl = document.getElementById('slider');
   var posEl = document.getElementById('divPosition');
-  if (sliderEl) sliderEl.value = t;
-  if (posEl) posEl.textContent = getTimeString(t);
-  updateSliderFill();
-  updateLiveReadouts(t);
+  // Leave the slider and time label alone while a finger holds the thumb or a seek is mid-fade (MUX-IN-6).
+  var userOwnsSlider = sliderHeld || seekRestartId !== null;
+  if (sliderEl && !userOwnsSlider) sliderEl.value = t;
+  if (posEl && !userOwnsSlider) posEl.textContent = getTimeString(t);
+  if (!userOwnsSlider) updateSliderFill();
+  if (!userOwnsSlider) updateLiveReadouts(t);
   if (sleepEndAt !== null) {
     var rem = getTimerRemaining();
     if (rem !== lastShownTimerSec) {
@@ -2403,12 +2511,8 @@ function updateAmbientRangeFill(slider) {
   var val = parseFloat(slider.value) || 0;
   var pct = max > min ? ((val - min) / (max - min)) * 100 : 0;
   pct = Math.max(0, Math.min(100, pct));
-  slider.style.background =
-    'linear-gradient(90deg, #38bdf8 0%, #a855f7 ' +
-    pct.toFixed(2) +
-    '%, rgba(255, 255, 255, 0.14) ' +
-    pct.toFixed(2) +
-    '%, rgba(255, 255, 255, 0.14) 100%)';
+  slider.style.setProperty('--fill', pct.toFixed(2) + '%');
+  setSliderValueText(slider);
 }
 
 function syncAmbientUI() {
@@ -2511,12 +2615,8 @@ function updateToneRangeFill(slider) {
   var val = parseFloat(slider.value) || 0;
   var pct = max > min ? ((val - min) / (max - min)) * 100 : 0;
   pct = Math.max(0, Math.min(100, pct));
-  slider.style.background =
-    'linear-gradient(90deg, #ff70d9 0%, #a855f7 ' +
-    pct.toFixed(2) +
-    '%, rgba(255, 255, 255, 0.14) ' +
-    pct.toFixed(2) +
-    '%, rgba(255, 255, 255, 0.14) 100%)';
+  slider.style.setProperty('--fill', pct.toFixed(2) + '%');
+  setSliderValueText(slider);
 }
 
 function syncToneVolumeUI() {
@@ -2646,8 +2746,12 @@ function cleanupAudioNodes() {
   }
 }
 
+function isNativeApp() {
+  return !!(window.BinalityPlatform && window.BinalityPlatform.isNative);
+}
+
 function parseTimerSettingToSeconds(val) {
-  if (val === '10s') return 10;
+  if (val === '10s') return isNativeApp() ? 0 : 10; // D21: the 10 s test timer is a web-only development aid
   var mins = parseInt(val, 10);
   if (!isNaN(mins) && mins > 0) return mins * 60;
   return 0;
@@ -3017,6 +3121,7 @@ function startBreathAnimation() {
       scale = 0.52 + 0.02 * Math.sin(progress * Math.PI * 2);
     }
 
+    if (prefersReducedMotion()) scale = 0.76; // MUX-VIS-3: static orb; the countdown text and ring carry the pacing
     var orb = document.getElementById('breathOrb');
     var aura = document.getElementById('breathAura');
     var ringArc = document.getElementById('breathRingArc');
@@ -3221,6 +3326,7 @@ function fadeOutNow(sec) {
 //         interrupted: report UI state 'interrupted' instead of 'idle' }
 function stop(preserveTimer, fromTimerComplete, opts) {
   opts = opts || {};
+  cancelSeekRestart();
   var wasPlaying = isCurrentlyPlaying();
   var userStop = wasPlaying && !preserveTimer && !fromTimerComplete;
 
@@ -3245,6 +3351,8 @@ function stop(preserveTimer, fromTimerComplete, opts) {
   stopMonitor();
   clearHiddenWatch();
   cancelPendingStop();
+  // A seek (preserveTimer) restarts playback immediately, so keep the service up across it.
+  if (!preserveTimer && window.BinalityPlatform) window.BinalityPlatform.keepAlive.stop();
   if (!preserveTimer) {
     clearSleepTimer(true);
   }
@@ -3460,14 +3568,138 @@ function onSliderChanged() {
   updateLiveReadouts(t);
 
   if (isCurrentlyPlaying()) {
-    stop(true);
-    timeStart = t;
-    start(true);
+    restartPlaybackAt(t);
   } else {
     timeStart = t;
     savePosition(t);
     if (chart) chart.replot();
   }
+}
+
+function cancelSeekRestart() {
+  if (seekRestartId !== null) {
+    clearTimeout(seekRestartId);
+    seekRestartId = null;
+  }
+}
+
+// Seeks while playing: 150 ms gain fade to silence, then the usual stop/start restart (which fades back in), so the
+// restart never cuts a waveform mid-cycle (MUX-IN-3). Falls back to an immediate restart if there is nothing to fade.
+function restartPlaybackAt(t) {
+  cancelSeekRestart();
+  var restart = function () {
+    seekRestartId = null;
+    if (!isCurrentlyPlaying()) return; // user stopped during the fade
+    var sliderEl = document.getElementById('slider');
+    if (sliderEl) sliderEl.value = t; // start() reads its start point from the slider
+    stop(true);
+    timeStart = t;
+    start(true);
+  };
+  if (context && context.state === 'running' && toneMasterGain !== null) {
+    fadeOutNow(SEEK_FADE_SEC);
+    seekRestartId = setTimeout(restart, SEEK_FADE_SEC * 1000 + 20);
+  } else {
+    restart();
+  }
+}
+
+// Moves the program to second t (slider, readouts, audio). fromChart adds the "Jumped to" toast.
+function seekToSecond(t, fromChart) {
+  var slider = document.getElementById('slider');
+  if (!slider) return;
+  slider.value = t;
+  onSliderChanged();
+  if (fromChart) showToast('Jumped to ' + getTimeString(t));
+}
+
+var toastHideId = null;
+
+function showToast(text, ms) {
+  var el = document.getElementById('appToast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'appToast';
+    el.className = 'app-toast';
+    el.setAttribute('role', 'status');
+    el.setAttribute('aria-live', 'polite');
+    document.body.appendChild(el);
+  }
+  el.textContent = text;
+  // Force a reflow so a repeated toast restarts its transition.
+  void el.offsetWidth;
+  el.classList.add('visible');
+  if (toastHideId !== null) clearTimeout(toastHideId);
+  toastHideId = setTimeout(function () {
+    toastHideId = null;
+    el.classList.remove('visible');
+  }, ms || TOAST_MS);
+}
+
+// Confirm sheet for destructive actions (MUX-TAP-7): bottom sheet on Compact, centred card otherwise, 56 px buttons.
+// Resolves via onConfirm only on an explicit tap of the destructive button; backdrop, Cancel and Escape dismiss.
+function confirmAction(opts, onConfirm) {
+  var existing = document.getElementById('confirmSheet');
+  if (existing) existing.parentNode.removeChild(existing);
+
+  var sheet = document.createElement('div');
+  sheet.id = 'confirmSheet';
+  sheet.className = 'confirm-sheet';
+  sheet.setAttribute('role', 'alertdialog');
+  sheet.setAttribute('aria-modal', 'true');
+  sheet.setAttribute('aria-labelledby', 'confirmSheetTitle');
+
+  var backdrop = document.createElement('div');
+  backdrop.className = 'confirm-backdrop';
+  var card = document.createElement('div');
+  card.className = 'confirm-card';
+  var title = document.createElement('h2');
+  title.id = 'confirmSheetTitle';
+  title.className = 'confirm-title';
+  title.textContent = opts.title;
+  var body = document.createElement('p');
+  body.className = 'confirm-body';
+  body.textContent = opts.message || '';
+  var cancelBtn = document.createElement('button');
+  cancelBtn.type = 'button';
+  cancelBtn.className = 'confirm-btn confirm-cancel';
+  cancelBtn.textContent = 'Cancel';
+  var okBtn = document.createElement('button');
+  okBtn.type = 'button';
+  okBtn.className = 'confirm-btn confirm-ok';
+  okBtn.textContent = opts.confirmLabel || 'Delete';
+
+  var actions = document.createElement('div');
+  actions.className = 'confirm-actions';
+  actions.appendChild(cancelBtn);
+  actions.appendChild(okBtn);
+  card.appendChild(title);
+  card.appendChild(body);
+  card.appendChild(actions);
+  sheet.appendChild(backdrop);
+  sheet.appendChild(card);
+  document.body.appendChild(sheet);
+  trapFocus(sheet, document.activeElement);
+
+  function dismiss() {
+    document.removeEventListener('keydown', onKey, true);
+    releaseFocus(sheet);
+    if (sheet.parentNode) sheet.parentNode.removeChild(sheet);
+  }
+  function onKey(e) {
+    if (e.key === 'Escape') {
+      e.stopPropagation(); // closes only the sheet, not the modal underneath
+      dismiss();
+    }
+  }
+  document.addEventListener('keydown', onKey, true);
+  backdrop.addEventListener('click', dismiss);
+  cancelBtn.addEventListener('click', dismiss);
+  okBtn.addEventListener('click', function () {
+    dismiss();
+    onConfirm();
+  });
+  cancelBtn.focus();
 }
 
 function syncModeUI() {
@@ -3489,6 +3721,15 @@ function syncModeUI() {
     } else {
       headerModeBtn.classList.remove('is-isochronic');
     }
+  }
+  if (headerModeBtn) {
+    headerModeBtn.setAttribute('aria-pressed', isIso ? 'true' : 'false');
+    headerModeBtn.setAttribute(
+      'aria-label',
+      isIso
+        ? 'Tone mode: Isochronic, works on speakers. Switch to Binaural'
+        : 'Tone mode: Binaural, for stereo headphones. Switch to Isochronic'
+    );
   }
   if (headerModeIcon) {
     headerModeIcon.textContent = isIso ? '🔊' : '🎧';
@@ -3585,10 +3826,34 @@ function syncHarmonicButtons() {
   }
 }
 
+var BASE_FREQ_MIN = 20;
+var BASE_FREQ_MAX = 1500;
+
+function showBaseFreqMessage(text) {
+  var msg = document.getElementById('baseFreqMsg');
+  if (!msg) return;
+  msg.textContent = text || '';
+  if (text) {
+    msg.classList.remove('hidden');
+  } else {
+    msg.classList.add('hidden');
+  }
+}
+
 function applyBaseFrequency(newFreq) {
   var parsed = parseFloat(newFreq);
-  if (isNaN(parsed) || parsed < 20) parsed = 20;
-  if (parsed > 2000) parsed = 2000;
+  var note = '';
+  if (isNaN(parsed)) {
+    parsed = baseFreq;
+    note = 'Enter a frequency from ' + BASE_FREQ_MIN + ' to ' + BASE_FREQ_MAX + ' Hz. Kept ' + parsed + ' Hz.';
+  } else if (parsed < BASE_FREQ_MIN) {
+    parsed = BASE_FREQ_MIN;
+    note = 'Minimum is ' + BASE_FREQ_MIN + ' Hz. Set to ' + parsed + ' Hz.';
+  } else if (parsed > BASE_FREQ_MAX) {
+    parsed = BASE_FREQ_MAX;
+    note = 'Maximum is ' + BASE_FREQ_MAX + ' Hz. Set to ' + parsed + ' Hz.';
+  }
+  showBaseFreqMessage(note);
   baseFreq = parsed;
 
   var baseFreqInput = document.getElementById('baseFreq');
@@ -3740,6 +4005,7 @@ function openSettings() {
   updatePwaStatusUI();
   if (settingsModal) {
     settingsModal.style.display = 'flex';
+    trapFocus(settingsModal, document.getElementById('menu'));
   }
   clientResize();
 }
@@ -3748,6 +4014,7 @@ function closeSettings() {
   var settingsModal = document.getElementById('settings');
   if (settingsModal) {
     settingsModal.style.display = 'none';
+    releaseFocus(settingsModal);
   }
   clientResize();
 }
@@ -4191,7 +4458,7 @@ function renderStudioPreview() {
   // Subtle horizontal grid lines
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
   ctx.lineWidth = 1;
-  ctx.font = '500 10px "JetBrains Mono", monospace';
+  ctx.font = '500 11px "JetBrains Mono", monospace';
   ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
   ctx.textAlign = 'right';
   ctx.textBaseline = 'middle';
@@ -4274,7 +4541,7 @@ function renderStudioPreview() {
 
       var freqStr =
         rawPts[rp].freq % 1 === 0 ? rawPts[rp].freq.toFixed(0) + 'Hz' : rawPts[rp].freq.toFixed(1) + 'Hz';
-      ctx.font = '600 9.5px "JetBrains Mono", monospace';
+      ctx.font = '600 11px "JetBrains Mono", monospace';
       ctx.fillStyle = '#ffffff';
       ctx.textAlign = rp === 0 ? 'left' : rp === rawPts.length - 1 ? 'right' : 'center';
       var labelY = dy - 9 < padT + 4 ? dy + 11 : dy - 9;
@@ -4333,7 +4600,7 @@ function renderStudioVoices() {
       html += '      <div class="studio-point-time">';
       html += '        <label>Time (s)</label>';
       html +=
-        '        <input type="number" class="studio-time-input" min="0" max="' +
+        '        <input type="number" inputmode="decimal" autocomplete="off" class="studio-time-input" min="0" max="' +
         durationSec +
         '" step="5" value="' +
         pt.time +
@@ -4355,7 +4622,7 @@ function renderStudioVoices() {
       html += '      <div class="studio-point-freq">';
       html += '        <label>Beat (Hz)</label>';
       html +=
-        '        <input type="number" class="studio-freq-input" min="0.5" max="80" step="0.5" value="' +
+        '        <input type="number" inputmode="decimal" autocomplete="off" class="studio-freq-input" min="0.5" max="80" step="0.5" value="' +
         pt.freq +
         '" data-voice="' +
         vIdx +
@@ -4615,21 +4882,35 @@ function renderSavedPresetsList() {
   for (var d = 0; d < delBtns.length; ++d) {
     delBtns[d].addEventListener('click', function () {
       var id = this.getAttribute('data-delete-preset');
-      for (var k = 0; k < savedPresets.length; ++k) {
-        if (savedPresets[k].id === id) {
-          var removedName = savedPresets[k].name;
-          savedPresets.splice(k, 1);
-          persistSavedPresets();
-          renderSavedPresetsList();
-          showStudioStatus('Deleted "' + removedName + '" from My Saved Presets.', false);
-          clearUrlPresetHash();
-          if (currentProgram === 'saved:' + id) {
-            changeProgram('programs/relaxation.xml');
-          }
-          break;
+      var target = findSavedPresetById(id);
+      confirmAction(
+        {
+          title: 'Delete preset?',
+          message: target ? '"' + target.name + '" will be removed from My Saved Presets. This cannot be undone.' : 'This cannot be undone.',
+          confirmLabel: 'Delete'
+        },
+        function () {
+          deleteSavedPreset(id);
         }
-      }
+      );
     });
+  }
+}
+
+function deleteSavedPreset(id) {
+  for (var k = 0; k < savedPresets.length; ++k) {
+    if (savedPresets[k].id === id) {
+      var removedName = savedPresets[k].name;
+      savedPresets.splice(k, 1);
+      persistSavedPresets();
+      renderSavedPresetsList();
+      showStudioStatus('Deleted "' + removedName + '" from My Saved Presets.', false);
+      clearUrlPresetHash();
+      if (currentProgram === 'saved:' + id) {
+        changeProgram('programs/relaxation.xml');
+      }
+      break;
+    }
   }
 }
 
@@ -4828,6 +5109,7 @@ function openStudio() {
   var modal = document.getElementById('studioModal');
   if (!modal) return;
   modal.style.display = 'flex';
+  trapFocus(modal, document.getElementById('headerStudioBtn') || document.getElementById('openStudioFromSettingsBtn'));
   clearStudioStatus();
   syncStudioMetaInputs();
   renderStudioVoices();
@@ -4841,6 +5123,7 @@ function closeStudio() {
   var modal = document.getElementById('studioModal');
   if (!modal) return;
   modal.style.display = 'none';
+  releaseFocus(modal);
   clientResize();
 }
 
@@ -5041,6 +5324,19 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // Mixer drawer (Compact/Medium only; the button is display:none elsewhere). Layout itself is pure CSS (MUX-LAYOUT-2).
+  var mixerToggleEl = document.getElementById('mixerToggle');
+  if (mixerToggleEl) {
+    mixerToggleEl.addEventListener('click', function () {
+      var dock = document.querySelector('.transport-dock');
+      var open = !(dock && dock.classList.contains('mixer-open'));
+      if (dock) {
+        dock.classList.toggle('mixer-open', open);
+      }
+      mixerToggleEl.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+
   window.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
       var studioModal = document.getElementById('studioModal');
@@ -5054,6 +5350,14 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }
   });
+
+  // Notification Stop action: same path as the button, so the UI cannot diverge.
+  if (window.BinalityPlatform) {
+    window.BinalityPlatform.keepAlive.onStopRequested(function () {
+      if (isCurrentlyPlaying()) stop();
+      else window.BinalityPlatform.keepAlive.stop();
+    });
+  }
 
   if (startBtn) {
     startBtn.addEventListener('click', function () {
@@ -5103,6 +5407,14 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
     slider.addEventListener('change', onSliderChanged);
+    slider.addEventListener('pointerdown', function () {
+      sliderHeld = true;
+    });
+    ['pointerup', 'pointercancel', 'lostpointercapture', 'change', 'blur'].forEach(function (evt) {
+      slider.addEventListener(evt, function () {
+        sliderHeld = false;
+      });
+    });
   }
 
   var btnViewCurve = document.getElementById('btnViewCurve');
@@ -5166,6 +5478,12 @@ document.addEventListener('DOMContentLoaded', function () {
   if (baseFreqInput) {
     baseFreqInput.addEventListener('change', function () {
       applyBaseFrequency(this.value);
+    });
+    baseFreqInput.addEventListener('blur', function () {
+      if (parseFloat(this.value) !== baseFreq) applyBaseFrequency(this.value);
+    });
+    baseFreqInput.addEventListener('input', function () {
+      showBaseFreqMessage('');
     });
   }
 
@@ -5439,7 +5757,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var savedBaseFreq = localStorage.getItem('baseFreq');
       if (savedBaseFreq !== null) {
         var parsedFreq = parseFloat(savedBaseFreq);
-        if (!isNaN(parsedFreq) && parsedFreq >= 20 && parsedFreq <= 2000) {
+        if (!isNaN(parsedFreq) && parsedFreq >= BASE_FREQ_MIN && parsedFreq <= BASE_FREQ_MAX) {
           baseFreq = parsedFreq;
           if (baseFreqInput) baseFreqInput.value = baseFreq;
         }
@@ -5539,7 +5857,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  initPwaServiceWorker();
+  if (!(window.BinalityPlatform && window.BinalityPlatform.isNative)) initPwaServiceWorker();
+  initMobileHud();
 });
 
 window.addEventListener('resize', function () {
@@ -5550,3 +5869,404 @@ window.addEventListener('resize', function () {
   }
 });
 
+
+// ==========================================================================
+// Mobile HUD, accessibility, sheets and first-run notice (M1.5)
+// ==========================================================================
+
+function prefersReducedMotion() {
+  return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+}
+
+// ---- Sheets: focus trap, inert background, focus returns to the opener (MUX-VIS-6) ----
+var sheetStack = [];
+var FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+function isVisibleEl(el) {
+  return !!(el && (el.offsetWidth || el.offsetHeight || el.getClientRects().length));
+}
+
+function getFocusable(root) {
+  var list = root.querySelectorAll(FOCUSABLE_SELECTOR);
+  var out = [];
+  for (var i = 0; i < list.length; ++i) {
+    if (isVisibleEl(list[i])) out.push(list[i]);
+  }
+  return out;
+}
+
+function trapFocus(modal, opener) {
+  if (!modal) return;
+  for (var k = 0; k < sheetStack.length; ++k) {
+    if (sheetStack[k].modal === modal) return;
+  }
+  var entry = { modal: modal, opener: opener || document.activeElement, inerted: [] };
+  var kids = document.body.children;
+  for (var i = 0; i < kids.length; ++i) {
+    var el = kids[i];
+    if (el === modal || el.tagName === 'SCRIPT' || el.contains(modal) || el.hasAttribute('inert')) continue;
+    el.setAttribute('inert', '');
+    entry.inerted.push(el);
+  }
+  sheetStack.push(entry);
+  var focusables = getFocusable(modal);
+  var target = modal.querySelector('[data-initial-focus]') || focusables[0];
+  if (target) {
+    setTimeout(function () {
+      target.focus();
+    }, 0);
+  }
+}
+
+function releaseFocus(modal) {
+  for (var i = sheetStack.length - 1; i >= 0; --i) {
+    if (sheetStack[i].modal !== modal) continue;
+    var entry = sheetStack.splice(i, 1)[0];
+    for (var j = 0; j < entry.inerted.length; ++j) {
+      entry.inerted[j].removeAttribute('inert');
+    }
+    var opener = entry.opener;
+    if (opener && document.body.contains(opener) && typeof opener.focus === 'function') {
+      setTimeout(function () {
+        opener.focus();
+      }, 0);
+    }
+    return;
+  }
+}
+
+document.addEventListener('keydown', function (e) {
+  if (!sheetStack.length) return;
+  var top = sheetStack[sheetStack.length - 1].modal;
+  if (e.key === 'Escape') {
+    if (top.id === 'noticeModal' && !top.getAttribute('data-dismissable')) return;
+    e.preventDefault();
+    e.stopPropagation(); // the older window-level Escape handler must not also close the sheet underneath
+    closeTopSheet(top);
+    return;
+  }
+  if (e.key !== 'Tab') return;
+  var f = getFocusable(top);
+  if (!f.length) {
+    e.preventDefault();
+    return;
+  }
+  var first = f[0];
+  var last = f[f.length - 1];
+  if (!top.contains(document.activeElement)) {
+    e.preventDefault();
+    first.focus();
+  } else if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault();
+    first.focus();
+  }
+});
+
+function closeTopSheet(top) {
+  if (top.id === 'settings') closeSettings();
+  else if (top.id === 'studioModal') closeStudio();
+  else closeSheet(top);
+}
+
+function openSheet(sheet, opener) {
+  if (!sheet) return;
+  sheet.hidden = false;
+  trapFocus(sheet, opener);
+}
+
+function closeSheet(sheet) {
+  if (!sheet) return;
+  sheet.hidden = true;
+  releaseFocus(sheet);
+}
+
+// ---- Program quick-switch sheet (MUX-IN-7) ----
+var programMetaCache = {};
+
+function programMetaFromXml(xmlText) {
+  var meta = { name: '', desc: '', mins: 0 };
+  try {
+    var doc = new DOMParser().parseFromString(xmlText, 'application/xml');
+    var root = doc.documentElement;
+    meta.name = root.getAttribute('name') || '';
+    meta.desc = (root.getAttribute('description') || '').replace(/\s*\(\d+\s*minutes?\)\s*$/i, '');
+    var voices = doc.getElementsByTagName('voice');
+    var maxLen = 0;
+    for (var i = 0; i < voices.length; ++i) {
+      maxLen = Math.max(maxLen, parseFloat(voices[i].getAttribute('length')) || 0);
+    }
+    meta.mins = Math.round(maxLen / 60);
+  } catch (e) {}
+  return meta;
+}
+
+function loadProgramMeta(filename) {
+  if (programMetaCache[filename]) return Promise.resolve(programMetaCache[filename]);
+  var done = function (xmlText) {
+    programMetaCache[filename] = programMetaFromXml(xmlText);
+    return programMetaCache[filename];
+  };
+  if (BUILTIN_PROGRAMS_XML[filename]) return Promise.resolve(done(BUILTIN_PROGRAMS_XML[filename]));
+  return fetch(filename)
+    .then(function (r) {
+      if (!r.ok) throw new Error('program');
+      return r.text();
+    })
+    .then(done)
+    .catch(function () {
+      return { name: '', desc: '', mins: 0 };
+    });
+}
+
+function buildProgramRow(value, name, desc, mins) {
+  var li = document.createElement('li');
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'program-row';
+  btn.setAttribute('data-program', value);
+  if (value === currentProgram) {
+    btn.setAttribute('aria-current', 'true');
+    btn.classList.add('current');
+  }
+  var text = document.createElement('span');
+  text.className = 'program-row-text';
+  var n = document.createElement('span');
+  n.className = 'program-row-name';
+  n.textContent = name;
+  text.appendChild(n);
+  if (desc) {
+    var d = document.createElement('span');
+    d.className = 'program-row-desc';
+    d.textContent = desc;
+    text.appendChild(d);
+  }
+  btn.appendChild(text);
+  if (mins) {
+    var m = document.createElement('span');
+    m.className = 'program-row-dur';
+    m.textContent = mins + ' min';
+    btn.appendChild(m);
+  }
+  li.appendChild(btn);
+  return li;
+}
+
+function openProgramSheet() {
+  var sheet = document.getElementById('programSheet');
+  var list = document.getElementById('programSheetList');
+  var select = document.getElementById('selectProgram');
+  if (!sheet || !list || !select) return;
+  list.innerHTML = '';
+  var opener = document.getElementById('title');
+  var opts = select.options;
+  var rows = [];
+  for (var i = 0; i < opts.length; ++i) {
+    var v = opts[i].value;
+    if (v === 'custom' || v.indexOf('programs/') !== 0) continue;
+    var li = buildProgramRow(v, opts[i].textContent, '', 0);
+    list.appendChild(li);
+    rows.push({ value: v, li: li, label: opts[i].textContent });
+  }
+  var saved = typeof savedPresets !== 'undefined' ? savedPresets : [];
+  for (var s2 = 0; s2 < saved.length; ++s2) {
+    list.appendChild(buildProgramRow('saved:' + saved[s2].id, saved[s2].name, 'My saved preset', saved[s2].durationMin || 15));
+  }
+  openSheet(sheet, opener);
+  if (opener) opener.setAttribute('aria-expanded', 'true');
+  rows.forEach(function (r) {
+    loadProgramMeta(r.value).then(function (meta) {
+      var fresh = buildProgramRow(r.value, r.label, meta.desc, meta.mins);
+      if (r.li.parentNode) r.li.parentNode.replaceChild(fresh, r.li);
+      r.li = fresh;
+    });
+  });
+  var cur = list.querySelector('.program-row.current');
+  if (cur && cur.scrollIntoView) cur.scrollIntoView({ block: 'center' });
+}
+
+function chooseProgram(value) {
+  var sheet = document.getElementById('programSheet');
+  var select = document.getElementById('selectProgram');
+  closeSheet(sheet);
+  var opener = document.getElementById('title');
+  if (opener) opener.setAttribute('aria-expanded', 'false');
+  if (value === currentProgram) return;
+  if (select) select.value = value;
+  changeProgram(value); // stops playback if running, never auto-starts
+}
+
+// ---- Slider value text and canvas labels (MUX-VIS-6) ----
+function spokenDuration(totalSec) {
+  var t = Math.max(0, Math.floor(totalSec));
+  var h = Math.floor(t / 3600);
+  var m = Math.floor((t % 3600) / 60);
+  var sec = t % 60;
+  var parts = [];
+  if (h) parts.push(h + (h === 1 ? ' hour' : ' hours'));
+  if (m) parts.push(m + (m === 1 ? ' minute' : ' minutes'));
+  if (sec || !parts.length) parts.push(sec + (sec === 1 ? ' second' : ' seconds'));
+  return parts.join(' ');
+}
+
+function setSliderValueText(slider) {
+  if (!slider || !slider.id) return;
+  var text = '';
+  var val = parseFloat(slider.value) || 0;
+  if (slider.id === 'slider') {
+    text = spokenDuration(val) + ' of ' + spokenDuration(parseFloat(slider.max) || 0);
+  } else if (slider.id === 'quickToneSlider' || slider.id === 'volumeSlider') {
+    text = 'Beats volume ' + Math.round(val * 100) + ' percent';
+  } else if (slider.id === 'quickAmbientSlider' || slider.id === 'ambientSlider') {
+    text = 'Ambient volume ' + Math.round(val * 100) + ' percent';
+  } else {
+    return;
+  }
+  if (slider.getAttribute('aria-valuetext') !== text) slider.setAttribute('aria-valuetext', text);
+}
+
+var canvasLabelPending = false;
+function updateCanvasLabelsSoon() {
+  if (canvasLabelPending) return;
+  canvasLabelPending = true;
+  setTimeout(function () {
+    canvasLabelPending = false;
+    var titleEl = document.getElementById('title');
+    var badge = document.getElementById('liveFreqBadge');
+    var prog = titleEl ? titleEl.textContent : 'Program';
+    var hz = badge ? badge.textContent : '';
+    var chartC = document.getElementById('chartCanvas');
+    var waveC = document.getElementById('waveformCanvas');
+    var chartLabel = prog + ' program, beat frequency over time. Now ' + hz;
+    var waveLabel = prog + ' live waveform and beat envelope. Now ' + hz;
+    if (chartC && chartC.getAttribute('aria-label') !== chartLabel) chartC.setAttribute('aria-label', chartLabel);
+    if (waveC && waveC.getAttribute('aria-label') !== waveLabel) waveC.setAttribute('aria-label', waveLabel);
+  }, 1000);
+}
+
+// ---- First-run notice (MUX-LIFE-10 / -12) ----
+var NOTICE_KEY = 'binalityNoticeAck';
+
+function noticeAcknowledged() {
+  try {
+    return localStorage.getItem(NOTICE_KEY) === '1';
+  } catch (e) {
+    return false;
+  }
+}
+
+function openNotice(fromSettings) {
+  var modal = document.getElementById('noticeModal');
+  var ack = document.getElementById('noticeAckBtn');
+  var close = document.getElementById('noticeCloseBtn');
+  if (!modal) return;
+  var already = noticeAcknowledged();
+  modal.setAttribute('data-dismissable', already ? 'true' : '');
+  if (ack) ack.textContent = already ? 'OK' : 'I understand';
+  if (close) close.hidden = true;
+  openSheet(modal, fromSettings ? document.getElementById('showNoticeBtn') : null);
+  var focusTarget = ack;
+  if (focusTarget) setTimeout(function () { focusTarget.focus(); }, 0);
+}
+
+function acknowledgeNotice() {
+  try {
+    localStorage.setItem(NOTICE_KEY, '1');
+  } catch (e) {}
+  closeSheet(document.getElementById('noticeModal'));
+}
+
+function openInfoSheet(opener) {
+  var carrier = document.getElementById('infoCarrierVal');
+  if (carrier) carrier.textContent = 'Currently ' + baseFreq + ' Hz.';
+  openSheet(document.getElementById('infoSheet'), opener);
+}
+
+function initMobileHud() {
+  // D21: 10 s test timer options are web/dev only
+  if (isNativeApp()) {
+    var dev = document.querySelectorAll('[data-dev-only]');
+    for (var d = 0; d < dev.length; ++d) {
+      if (dev[d].parentNode) dev[d].parentNode.removeChild(dev[d]);
+    }
+  }
+
+  // Program title opens the quick-switch sheet
+  var titleEl = document.getElementById('title');
+  if (titleEl) {
+    titleEl.setAttribute('aria-expanded', 'false');
+    titleEl.addEventListener('click', openProgramSheet);
+    titleEl.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openProgramSheet();
+      }
+    });
+  }
+  var list = document.getElementById('programSheetList');
+  if (list) {
+    list.addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('.program-row') : null;
+      if (btn) chooseProgram(btn.getAttribute('data-program'));
+    });
+  }
+  ['programSheet', 'infoSheet'].forEach(function (id) {
+    var sheet = document.getElementById(id);
+    if (!sheet) return;
+    sheet.addEventListener('click', function (e) {
+      if (e.target.closest && e.target.closest('[data-sheet-close]')) {
+        closeSheet(sheet);
+        if (id === 'programSheet' && titleEl) titleEl.setAttribute('aria-expanded', 'false');
+      }
+    });
+  });
+  // Escape on the program sheet should also reset aria-expanded
+  var progSheet = document.getElementById('programSheet');
+  if (progSheet && window.MutationObserver) {
+    new MutationObserver(function () {
+      if (progSheet.hidden && titleEl) titleEl.setAttribute('aria-expanded', 'false');
+    }).observe(progSheet, { attributes: true, attributeFilter: ['hidden'] });
+  }
+
+  // Info sheet buttons
+  var infoBtn = document.getElementById('infoBtn');
+  if (infoBtn) {
+    infoBtn.addEventListener('click', function () {
+      openInfoSheet(infoBtn);
+    });
+  }
+  var settingsInfoBtn = document.getElementById('settingsInfoBtn');
+  if (settingsInfoBtn) {
+    settingsInfoBtn.addEventListener('click', function () {
+      openInfoSheet(settingsInfoBtn);
+    });
+  }
+
+  // Safety notice
+  var ackBtn = document.getElementById('noticeAckBtn');
+  if (ackBtn) ackBtn.addEventListener('click', acknowledgeNotice);
+  var showBtn = document.getElementById('showNoticeBtn');
+  if (showBtn) {
+    showBtn.addEventListener('click', function () {
+      openNotice(true);
+    });
+  }
+  if (!noticeAcknowledged()) openNotice(false);
+
+  // MUX-HUD-6: icon-only controls with a title get it as their accessible name too
+  var titled = document.querySelectorAll('button[title], [role="button"][title], input[title], select[title]');
+  for (var t = 0; t < titled.length; ++t) {
+    var el = titled[t];
+    if (el.id === 'title') continue;
+    if (!el.getAttribute('aria-label') && !el.getAttribute('aria-labelledby') && !(el.textContent || '').trim()) {
+      el.setAttribute('aria-label', el.getAttribute('title'));
+    }
+  }
+
+  var sl = document.querySelectorAll('input[type="range"]');
+  for (var r = 0; r < sl.length; ++r) setSliderValueText(sl[r]);
+  updateCanvasLabelsSoon();
+}
