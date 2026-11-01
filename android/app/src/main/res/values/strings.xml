@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Binality</string>
+    <string name="title_activity_main">Binality</string>
+    <string name="package_name">com.virtualarenas.binality</string>
+    <string name="custom_url_scheme">com.virtualarenas.binality</string>
+</resources>
