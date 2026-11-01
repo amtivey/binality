@@ -1,11 +1,10 @@
 /**
  * Binality v2 Service Worker (100% Offline PWA)
- * Complete offline caching for app shell, audio synthesis engines, XML programs, and Google Fonts.
+ * Complete offline caching for app shell, audio synthesis engines, XML programs, and self-hosted fonts.
  */
 
-var CACHE_VERSION = 'binality-v2.0.7';
+var CACHE_VERSION = 'binality-v2.1.2';
 var CACHE_NAME = 'binality-core-' + CACHE_VERSION;
-var FONTS_CACHE_NAME = 'binality-fonts-' + CACHE_VERSION;
 
 var PRECACHE_URLS = [
   './',
@@ -18,6 +17,9 @@ var PRECACHE_URLS = [
   'css/index.css',
   'js/platform.js',
   'js/index.js',
+  'fonts/outfit-latin.woff2',
+  'fonts/plus-jakarta-sans-latin.woff2',
+  'fonts/jetbrains-mono-latin.woff2',
   'images/favicon.png',
   'images/icon.png',
   'images/binality-icon-192.png',
@@ -66,7 +68,7 @@ self.addEventListener('activate', function (event) {
     caches.keys().then(function (keys) {
       return Promise.all(
         keys.map(function (key) {
-          if (key !== CACHE_NAME && key !== FONTS_CACHE_NAME) {
+          if (key !== CACHE_NAME) {
             console.log('[SW] Removing old cache:', key);
             return caches.delete(key);
           }
@@ -78,36 +80,14 @@ self.addEventListener('activate', function (event) {
   );
 });
 
-// Fetch: Smart caching strategies for navigation, assets, and Google Fonts
+// Fetch: Smart caching strategies for navigation and assets
 self.addEventListener('fetch', function (event) {
   var request = event.request;
   if (request.method !== 'GET') return;
 
   var url = new URL(request.url);
 
-  // 1. Google Fonts stylesheets & font files (Cache-First + Background Revalidate)
-  if (url.origin === 'https://fonts.googleapis.com' || url.origin === 'https://fonts.gstatic.com') {
-    event.respondWith(
-      caches.open(FONTS_CACHE_NAME).then(function (cache) {
-        return cache.match(request).then(function (cachedResponse) {
-          var fetchPromise = fetch(request)
-            .then(function (networkResponse) {
-              if (networkResponse && networkResponse.status === 200) {
-                cache.put(request, networkResponse.clone());
-              }
-              return networkResponse;
-            })
-            .catch(function () {
-              return cachedResponse;
-            });
-          return cachedResponse || fetchPromise;
-        });
-      })
-    );
-    return;
-  }
-
-  // 2. Navigation requests (HTML pages)
+  // 1. Navigation requests (HTML pages)
   if (request.mode === 'navigate') {
     event.respondWith(
       caches.match(request).then(function (cached) {
@@ -138,7 +118,7 @@ self.addEventListener('fetch', function (event) {
     return;
   }
 
-  // 3. Same-origin assets (CSS, JS, XML, Images)
+  // 2. Same-origin assets (CSS, JS, XML, Images)
   if (url.origin === self.location.origin) {
     event.respondWith(
       caches.match(request).then(function (cachedResponse) {

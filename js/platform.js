@@ -53,12 +53,83 @@
     return resolved(true);
   }
 
+  // keepAlive: Android foreground service + wake lock so audio survives screen-off (D7).
+  // Native Android only; a no-op everywhere else (web, iOS: handled by later cards).
+  // start(title) is safe to call repeatedly. onStopRequested(fn) is invoked when the user taps
+  // Stop in the playback notification; the app must run its normal stop() path from it.
+  var NOTIF_ASKED_KEY = 'binality.notifPermissionAsked';
+  var stopHandler = null;
+  var stopListenerAdded = false;
+  var wantKeepAlive = false; // guards against a slow permission flow starting the service after stop()
+  var keepAliveActive = platform === 'android';
+
+  function fgPlugin() {
+    return keepAliveActive && isNative ? plugin('ForegroundAudio') : undefined;
+  }
+
+  // Android 13+: explain once, then ask. A denial is final for our purposes and never blocks playback.
+  function ensureNotificationPermission(p) {
+    return p
+      .checkNotificationPermission()
+      .then(function (r) {
+        if (r && r.granted) return;
+        try {
+          if (window.localStorage.getItem(NOTIF_ASKED_KEY)) return;
+          window.localStorage.setItem(NOTIF_ASKED_KEY, '1');
+        } catch (e) {
+          /* storage unavailable: fall through and ask once per call */
+        }
+        var ok = window.confirm(
+          'Binality shows a notification while a session plays, with a Stop button, ' +
+            'so audio keeps running when your screen is off. Allow notifications on the next prompt.\n\n' +
+            'If you decline, playback still works; you just will not see the notification.'
+        );
+        if (!ok) return;
+        return p.requestNotificationPermission();
+      })
+      .catch(function () {
+        /* permission flow must never block playback */
+      });
+  }
+
   var keepAlive = {
-    start: function () {
-      return resolved(false);
+    start: function (title) {
+      var p = fgPlugin();
+      if (!p) return resolved(false);
+      wantKeepAlive = true;
+      if (!stopListenerAdded && p.addListener) {
+        stopListenerAdded = true;
+        p.addListener('stopRequested', function () {
+          if (stopHandler) stopHandler();
+        });
+      }
+      return ensureNotificationPermission(p).then(function () {
+        if (!wantKeepAlive) return false;
+        return p.start({ title: title || '' }).then(
+          function () {
+            return true;
+          },
+          function () {
+            return false;
+          }
+        );
+      });
     },
     stop: function () {
-      return resolved(false);
+      var p = fgPlugin();
+      wantKeepAlive = false;
+      if (!p) return resolved(false);
+      return p.stop().then(
+        function () {
+          return true;
+        },
+        function () {
+          return false;
+        }
+      );
+    },
+    onStopRequested: function (fn) {
+      stopHandler = fn;
     }
   };
 
