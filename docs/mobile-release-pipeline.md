@@ -553,8 +553,8 @@ Apple distribution certificates expire after one year and profiles follow;
   device, consult a doctor (especially for epilepsy or photosensitivity if any
   visuals flicker; the owner should confirm whether any visual mode flashes).
 - Developer contact: a support email address and a support URL are required by
-  both stores. A role address (for example support@virtualarenas.com) is better
-  than a personal one.
+  both stores. G2 (2026-11-01): binality@virtualarenas.com, the same address as
+  the privacy policy.
 
 ### 7. Secrets and variables
 
